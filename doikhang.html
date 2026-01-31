@@ -34,9 +34,14 @@
         .flash-overlay {
             position: absolute; top:0; left:0; width:100%; height:100%;
             background: white; opacity: 0; pointer-events: none;
-            transition: opacity 0.05s;
         }
-        .flash-overlay.active { opacity: 0.3; }
+        /* Flash bằng animation (không dùng setTimeout) -> đỡ giật khi 2 người spam tap */
+        .flash-overlay.flash { animation: flash 80ms ease-out; }
+        @keyframes flash {
+            0% { opacity: 0; }
+            30% { opacity: 0.30; }
+            100% { opacity: 0; }
+        }
 
         .player-info {
             color: white; text-align: center; font-size: clamp(1.5rem, 4vw, 3rem);
@@ -141,51 +146,73 @@
         let position = 50; 
         let currentIcon = "🔥";
         
-        // Biến dùng cho Audio Pool
-        const TAP_SOUND_URL = "https://assets.mixkit.co/active_storage/sfx/2578/2578-preview.mp3";
-        const AUDIO_POOL_SIZE = 15; // Tạo sẵn 15 cái loa
-        let audioPool = [];
-        let audioIndex = 0;
+        // Âm thanh tap (WebAudio) -> chịu được spam tap hơn HTMLAudio pool
+const TAP_SOUND_URL = "https://assets.mixkit.co/active_storage/sfx/2578/2578-preview.mp3";
+let audioCtx = null;
+let tapBuffer = null;
+let tapGain = null;
 
-        // DOM Elements
-        const fighter = document.getElementById('fighter');
-        const flashLeft = document.getElementById('flashLeft');
-        const flashRight = document.getElementById('flashRight');
-        const overlay = document.getElementById('overlay');
-        const cntOverlay = document.getElementById('cntOverlay');
-        const cntText = document.getElementById('countdown');
-        const zoneLeft = document.getElementById('zoneLeft');
-        const zoneRight = document.getElementById('zoneRight');
-        const sfxWin = document.getElementById('sfx-win');
-        const sfxWhistle = document.getElementById('sfx-whistle');
+async function initTapAudio() {
+    try {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        tapGain = audioCtx.createGain();
+        tapGain.gain.value = 0.3;
+        tapGain.connect(audioCtx.destination);
 
-        // --- KHỞI TẠO HỆ THỐNG ÂM THANH (AUDIO POOL) ---
-        // Kỹ thuật này giúp phát tiếng liên tục mà không lag
-        function initAudio() {
-            const container = document.getElementById('audio-pool');
-            container.innerHTML = '';
-            audioPool = [];
-            for(let i=0; i<AUDIO_POOL_SIZE; i++) {
-                let a = new Audio(TAP_SOUND_URL);
-                a.volume = 0.3;
-                audioPool.push(a);
-            }
-        }
-        initAudio();
+        const res = await fetch(TAP_SOUND_URL);
+        const ab = await res.arrayBuffer();
+        tapBuffer = await audioCtx.decodeAudioData(ab);
+    } catch (err) {
+        // Nếu thiết bị chặn / lỗi mạng -> game vẫn chạy bình thường, chỉ mất tiếng tap
+        tapBuffer = null;
+    }
+}
 
-        function playTap() {
-            // Lấy 1 cái loa rảnh rỗi trong pool để phát
-            audioPool[audioIndex].currentTime = 0;
-            audioPool[audioIndex].play().catch(()=>{});
-            audioIndex = (audioIndex + 1) % AUDIO_POOL_SIZE; // Xoay vòng
-        }
+function ensureAudioRunning() {
+    // Gọi trong user-gesture (touch/keydown/click) để browser cho phép audio
+    if (!audioCtx) {
+        initTapAudio();
+        return;
+    }
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume().catch(()=>{});
+    }
+}
+
+function playTap() {
+    if (!audioCtx || !tapBuffer) return;
+    // Nếu context bị suspend thì resume trước (không block main thread)
+    if (audioCtx.state === 'suspended') audioCtx.resume().catch(()=>{});
+
+    const src = audioCtx.createBufferSource();
+    src.buffer = tapBuffer;
+    src.connect(tapGain);
+    src.start(0);
+}
 
         // --- GAME LOOP (VÒNG LẶP RENDER) ---
         // Đây là bí quyết mượt mà: Tách rời việc xử lý dữ liệu và việc vẽ hình
         function loop() {
             if (!gameActive) return;
 
-            // 1. Cập nhật vị trí nhân vật (Chỉ vẽ lại nếu cần)
+            // 0. Áp lực input 1 lần/khung hình (mượt hơn khi 2 người bấm cùng lúc)
+            if (pendingLeftTaps || pendingRightTaps) {
+                position += (pendingRightTaps - pendingLeftTaps) * STEP_VAL;
+                pendingLeftTaps = 0;
+                pendingRightTaps = 0;
+
+                // Clamp để tránh vượt biên quá nhanh khi spam
+                if (position < 0) position = 0;
+                else if (position > 100) position = 100;
+            }
+
+            if (pendingFlashL) { runFlashOnce(flashLeft); pendingFlashL = false; }
+            if (pendingFlashR) { runFlashOnce(flashRight); pendingFlashR = false; }
+
+            // Giới hạn tiếng tap: tối đa 1 tiếng / frame (tránh nghẽn audio khi 2 người spam)
+            if (pendingTapSound) { playTap(); pendingTapSound = false; }
+
+            // 1. Cập nhật vị trí nhân vật
             fighter.style.left = position + "%";
 
             // 2. Cập nhật Icon
@@ -206,28 +233,37 @@
         }
 
         // --- INPUT HANDLING (XỬ LÝ CHẠM) ---
-        // Chỉ cập nhật con số, không vẽ hình ở đây -> Siêu nhanh
-        function move(direction) {
-            if(!gameActive) return;
-            
-            if(direction === 'left') {
-                position -= STEP_VAL;
-                triggerFlash(flashLeft);
-            } else {
-                position += STEP_VAL;
-                triggerFlash(flashRight);
-            }
-            playTap();
-        }
+// Tối ưu: chỉ "đếm tap" trong event handler, còn update position/DOM sẽ làm 1 lần/khung hình trong RAF loop.
+var pendingLeftTaps = 0;
+var pendingRightTaps = 0;
+var pendingFlashL = false;
+var pendingFlashR = false;
+var pendingTapSound = false;
 
-        function triggerFlash(element) {
-            // Hiệu ứng nháy nhẹ
-            element.classList.add('active');
-            setTimeout(() => element.classList.remove('active'), 80);
-        }
+function enqueueTap(direction, count = 1) {
+    if(!gameActive) return;
+
+    if(direction === 'left') {
+        pendingLeftTaps += count;
+        pendingFlashL = true;
+    } else {
+        pendingRightTaps += count;
+        pendingFlashR = true;
+    }
+    pendingTapSound = true;
+}
+
+function runFlashOnce(element) {
+    // Restart animation nhẹ, không setTimeout (tránh bão timer khi 2 người spam)
+    element.classList.remove('flash');
+    // eslint-disable-next-line no-unused-expressions
+    element.offsetWidth; // force reflow để restart animation
+    element.classList.add('flash');
+}
 
         // --- CÁC HÀM ĐIỀU KHIỂN GAME ---
         function startCountdown() {
+            ensureAudioRunning();
             overlay.classList.add('hidden');
             cntOverlay.classList.remove('hidden');
             let count = 3;
@@ -270,23 +306,26 @@
         // --- SỰ KIỆN CẢM ỨNG (MULTI-TOUCH) ---
         zoneLeft.addEventListener('touchstart', (e) => {
             if(!gameActive) return;
-            e.preventDefault(); 
-            // Vòng lặp này xử lý đa điểm: 3 ngón chạm cùng lúc = 3 lần move
-            for(let i=0; i < e.changedTouches.length; i++) move('left'); 
+            ensureAudioRunning();
+            e.preventDefault();
+            enqueueTap('left', e.changedTouches.length || 1);
         }, { passive: false });
 
         zoneRight.addEventListener('touchstart', (e) => {
             if(!gameActive) return;
-            e.preventDefault(); 
-            for(let i=0; i < e.changedTouches.length; i++) move('right');
+            ensureAudioRunning();
+            e.preventDefault();
+            enqueueTap('right', e.changedTouches.length || 1);
         }, { passive: false });
 
         // --- SỰ KIỆN BÀN PHÍM ---
         document.addEventListener('keydown', (e) => {
             if(!gameActive) return;
-            if(e.code === 'KeyS' || e.key === 's' || e.key === 'S') move('left');
-            if(e.code === 'KeyK' || e.key === 'k' || e.key === 'K') move('right');
+            ensureAudioRunning();
+            if(e.code === 'KeyS' || e.key === 's' || e.key === 'S') enqueueTap('left', 1);
+            if(e.code === 'KeyK' || e.key === 'k' || e.key === 'K') enqueueTap('right', 1);
         });
+
 
         // Broadcast Listener (Để Game Master điều khiển nếu cần)
         const bc_listener = new BroadcastChannel('kyha_channel');
