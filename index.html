@@ -19,8 +19,23 @@
             font-size: clamp(2.5rem, 6vw, 5rem);
             color: #ffeb3b;
             text-shadow: 0 0 10px #ff9800;
-            margin-bottom: 30px;
+            margin-bottom: 10px;
         }
+
+        /* Nút Tải Nhạc (Mới) */
+        .btn-download {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #fff;
+            color: #ccc;
+            padding: 8px 15px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin-bottom: 30px;
+            transition: 0.3s;
+        }
+        .btn-download:hover { background: white; color: black; }
 
         .grid-menu {
             display: grid;
@@ -53,7 +68,15 @@
         .title { font-size: 1.5rem; font-weight: bold; text-transform: uppercase; margin-bottom: 5px; color: #ffeb3b; }
         .desc { font-size: 0.9rem; color: #ccc; }
 
-        /* Màu riêng cho nút Master */
+        /* Style riêng cho ô Mua Hàng */
+        .card.shop {
+            border-color: #00e676; /* Màu xanh lá nổi bật */
+            background: linear-gradient(45deg, rgba(0, 230, 118, 0.2), rgba(0,0,0,0));
+        }
+        .card.shop .title { color: #00e676; }
+        .card.shop:hover { box-shadow: 0 0 30px rgba(0, 230, 118, 0.4); }
+
+        /* Style riêng cho Game Master */
         .card.master { border-color: #f44336; background: rgba(244, 67, 54, 0.1); }
         .card.master:hover { background: rgba(244, 67, 54, 0.3); box-shadow: 0 0 30px rgba(244, 67, 54, 0.4); }
     </style>
@@ -62,6 +85,10 @@
 
     <img src="https://cdn-icons-png.flaticon.com/512/2972/2972454.png" width="80" style="margin-bottom:10px">
     <h1>KỲ HÀ GAME CENTER</h1>
+
+    <a href="kyha.MP3" download class="btn-download">
+        ⬇️ Tải Nhạc Beat (MP3)
+    </a>
 
     <div class="grid-menu">
         <a href="sieutritue.html" class="card">
@@ -92,6 +119,12 @@
             <div class="icon">🎵</div>
             <div class="title">Đọc Theo Điệu Nhạc</div>
             <div class="desc">Thử thách Rapper Kỳ Hà</div>
+        </a>
+
+        <a href="https://haisankyha.vn" target="_blank" class="card shop">
+            <div class="icon">🛒</div>
+            <div class="title">MUA HÀNG ONLINE</div>
+            <div class="desc">Ghé thăm Website chính thức</div>
         </a>
 
         <a href="master.html" class="card master">
