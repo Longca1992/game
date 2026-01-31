@@ -9,12 +9,13 @@
     *{box-sizing:border-box}
     body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,"SF Pro Display","SF Pro Text",Segoe UI,Roboto,Arial,sans-serif;color:var(--ink);height:100vh;overflow:hidden;background:radial-gradient(900px 600px at 20% 0%, rgba(255,211,106,.35), transparent 55%),radial-gradient(900px 600px at 80% 10%, rgba(255,59,48,.10), transparent 55%),linear-gradient(180deg,#f8f8f8,#efefef)}
     .app{height:100vh;display:flex;flex-direction:column;max-width:1200px;margin:0 auto;padding:14px;gap:12px}
-    header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex:0 0 auto}
+    
+    /* HEADER GỌN GÀNG HƠN */
+    header{display:flex;align-items:center;justify-content:center;gap:12px;flex:0 0 auto; text-align: center;}
     .title h1{margin:0;font-size:clamp(18px,2.4vw,28px);letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .title p{margin:4px 0 0;color:var(--muted);font-weight:800;font-size:12px}
-    .topRight{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
-    .pill{padding:8px 12px;border:2px solid var(--border);border-radius:999px;background:rgba(255,255,255,.88);font-weight:1100;box-shadow:var(--shadow);display:inline-flex;gap:8px;align-items:center;white-space:nowrap;cursor: pointer; user-select: none;}
-    .pill b{font-weight:1200}
+    
+    .pill{padding:4px 10px;border:1px solid var(--border);border-radius:6px;background:#fff;font-weight:bold;font-size:13px;display:inline-flex;gap:5px;align-items:center;white-space:nowrap;box-shadow:0 2px 5px rgba(0,0,0,0.05);}
     
     main{flex:1;min-height:0;display:grid;grid-template-columns:1fr 350px;gap:12px}
     @media (max-width:980px){main{grid-template-columns:1fr}}
@@ -54,8 +55,7 @@
     }
     .phraseBox.dimmed { opacity: 0.3; filter: grayscale(100%); transform: scale(0.95); }
     .phraseBox.activeBox { 
-        opacity: 1; transform: scale(1.02); 
-        background: rgba(255,211,106, 0.15); border-color: rgba(255,211,106, 0.6);
+        opacity: 1; transform: scale(1.02); background: rgba(255,211,106, 0.15); border-color: rgba(255,211,106, 0.6);
     }
 
     .phraseBox span {
@@ -65,8 +65,7 @@
     }
     
     .phraseBox span.active {
-        color: var(--red);
-        transform: scale(1.5); 
+        color: var(--red); transform: scale(1.5); 
         text-shadow: 0 4px 12px rgba(230, 0, 0, 0.3);
     }
     
@@ -86,6 +85,9 @@
     .btnSecondary{background:rgba(255,255,255,.92)}
     .btnWarn{background:linear-gradient(180deg,#ffe9a6,#ffd36a)}
     .gridBtn{display:grid;grid-template-columns:1fr;gap:10px}
+    /* Grid 3 cột cho nút nhỏ */
+    .gridBtn3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px}
+    
     .row{display:flex;gap:10px;align-items:center;justify-content:space-between;margin:8px 0}
     input,select,textarea{width:100%;border:2px solid var(--border);border-radius:12px;padding:10px 10px;background:#fff;font-weight:1000;outline:none;font-family: inherit;}
     
@@ -130,13 +132,7 @@
         <h1>🎵 Mini Game Đọc Chữ theo Tempo Nhạc</h1>
         <p>Sync Nhạc • Upload MP3 • 4 Words</p>
       </div>
-      <div class="topRight">
-        <button class="pill" id="btnToggleTick">🔊 <b id="tickStateText">ON</b></button>
-        <button class="pill" id="btnOpenSettings">⚙️ <b>Edit</b></button>
-        <div class="pill"><small>Level</small> <b id="liveText">1/5</b></div>
-        <div class="pill"><small>Mạng</small> <b class="hearts" id="lifeText">❤️❤️❤️</b></div>
-      </div>
-    </header>
+      </header>
 
     <main>
       <section class="panel">
@@ -178,6 +174,19 @@
 
         <div class="controls">
           <div class="group">
+            <h3>Hệ thống & Trạng thái</h3>
+            <div class="gridBtn3" style="margin-bottom:10px;">
+                <button class="btnSecondary" id="btnFullscreen" style="padding:8px; font-size:13px;">⛶ Full</button>
+                <button class="btnSecondary" id="btnToggleTick" style="padding:8px; font-size:13px;">🔊 <span id="tickStateText">ON</span></button>
+                <button class="btnSecondary" id="btnOpenSettings" style="padding:8px; font-size:13px;">⚙️ Edit</button>
+            </div>
+            <div class="row" style="justify-content:space-around; background:#f0f0f0; padding:5px; border-radius:8px;">
+                <div class="pill" style="border:none; box-shadow:none; background:transparent"><small>Level:</small> <b id="liveText">1/5</b></div>
+                <div class="pill" style="border:none; box-shadow:none; background:transparent"><small>Mạng:</small> <b class="hearts" id="lifeText">❤️❤️❤️</b></div>
+            </div>
+          </div>
+
+          <div class="group">
             <h3>Chạy game</h3>
             <div class="gridBtn">
               <button class="btnPrimary" id="btnStart">▶️ Bắt đầu Level 1</button>
@@ -217,11 +226,11 @@
                 <input id="baseMusicBpm" type="number" value="130" min="60" max="200" title="Nếu nhạc nhanh, tăng số này lên" />
             </div>
             
-             <div class="row" style="border-top:1px solid #ccc; padding-top:8px; margin-top:8px;">
+            <div class="row" style="border-top:1px solid #ccc; padding-top:8px; margin-top:8px;">
                 <label>Chỉnh nhịp:</label>
                 <div style="display:flex; gap:5px; flex:1;">
-                    <button class="btnSecondary" id="btnNudgeMinus" style="padding:5px;">⏪ Sớm hơn</button>
-                    <button class="btnSecondary" id="btnNudgePlus" style="padding:5px;">Trễ hơn ⏩</button>
+                    <button class="btnSecondary" id="btnNudgeMinus" style="padding:5px;">⏪ Sớm</button>
+                    <button class="btnSecondary" id="btnNudgePlus" style="padding:5px;">Trễ ⏩</button>
                 </div>
             </div>
             <p id="musicStatus" class="tiny" style="color:#008000; font-weight:bold; margin-top:5px;">Chưa chọn file...</p>
@@ -299,7 +308,7 @@
   let isTickOn = true;
   let audioCtx=null;
   let baseAudioTime = 0;
-  let userBeatOffset = 0; 
+  let userBeatOffset = 0;
 
   // DOM Elements
   const cardsGrid = document.getElementById("cardsGrid");
@@ -320,12 +329,17 @@
   const popupSub = document.getElementById("popupSub");
   const overlay = document.getElementById("overlay");
   const countNum = document.getElementById("countNum");
+  
+  // Controls đã chuyển
   const btnToggleTick = document.getElementById("btnToggleTick");
   const tickStateText = document.getElementById("tickStateText");
+  const btnFullscreen = document.getElementById("btnFullscreen");
+  const btnOpenSettings = document.getElementById("btnOpenSettings");
+  
   const settingsModal = document.getElementById("settingsModal");
   const textInput = document.getElementById("textInput");
   const bpmConfigArea = document.getElementById("bpmConfigArea");
-  
+
   // Music DOM
   const music = document.getElementById("music");
   const btnUseFile = document.getElementById("btnUseFile");
@@ -337,7 +351,6 @@
   const btnNudgePlus = document.getElementById("btnNudgePlus");
 
   // === AUDIO CORE OPTIMIZATION ===
-  // Only create AudioContext once and reuse it.
   function ensureAudio(){
     if (!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
     if (audioCtx.state==="suspended") audioCtx.resume();
@@ -347,8 +360,6 @@
   function tickSound(accent=false){
     if(!isTickOn) return;
     const ctx=ensureAudio();
-    
-    // Low latency scheduling
     const t = ctx.currentTime;
     const osc=ctx.createOscillator();
     const gain=ctx.createGain();
@@ -366,7 +377,6 @@
     osc.start(t); 
     osc.stop(t+0.06);
     
-    // Clean up nodes is handled by GC, but setting null helps
     osc.onended = () => { osc.disconnect(); gain.disconnect(); }
   }
 
@@ -389,18 +399,18 @@
     let result = [];
     if(card.mode === "swapPairs"){
         for(let i=1; i<=8; i++){
-            result.push(String(i)); 
+            result.push(String(i));
             if(i % 2 !== 0) {
-               result.push(card.groupA[0]); 
+               result.push(card.groupA[0]);
                result.push(card.groupA[1]); 
             } else {
                result.push(card.groupB[0]); 
-               result.push(card.groupB[1]); 
+               result.push(card.groupB[1]);
             }
         }
     }
     else if (card.mode === "manual4"){
-        const words = card.words; 
+        const words = card.words;
         for(let i=1; i<=8; i++){
             result.push(String(i));
             if(i % 2 !== 0) {
@@ -412,11 +422,10 @@
             }
         }
     }
-    return result; 
+    return result;
   }
 
   function updatePhraseHTML(element, tokens) {
-      // Direct DOM update - expensive, so do it only when needed
       element.innerHTML = "";
       tokens.forEach(word => {
           const span = document.createElement("span");
@@ -432,17 +441,14 @@
   }
 
   function renderKaraokeDual(allTokens, currentBeatIndex) {
-      // OPTIMIZATION: Don't re-render if we already processed this beat
       if (currentBeatIndex === lastRenderedBeat) return;
       lastRenderedBeat = currentBeatIndex;
 
       const currentPhraseIdx = Math.floor(currentBeatIndex / 3);
       const isRightSide = (currentPhraseIdx % 2 !== 0);
-      
       const activeEl = isRightSide ? rightPhraseEl : leftPhraseEl;
       const inactiveEl = isRightSide ? leftPhraseEl : rightPhraseEl;
-      
-      // Toggle Classes (Cheap operation)
+
       if(activeEl.classList.contains("dimmed")) {
           activeEl.classList.remove("dimmed");
           activeEl.classList.add("activeBox");
@@ -450,7 +456,6 @@
           inactiveEl.classList.remove("activeBox");
       }
       
-      // Update word highlight
       const wordIdx = currentBeatIndex % 3;
       const spans = activeEl.children;
       for(let i=0; i<spans.length; i++){
@@ -458,12 +463,10 @@
           else spans[i].classList.remove("active");
       }
       
-      // Look Ahead Update
       if(currentBeatIndex % 3 === 0) {
           const nextPhraseIdx = currentPhraseIdx + 1;
           const nextTokens = getPhraseTokens(allTokens, nextPhraseIdx);
-          // Only update innerHTML for the inactive side
-          updatePhraseHTML(inactiveEl, nextTokens); 
+          updatePhraseHTML(inactiveEl, nextTokens);
       }
   }
   
@@ -540,8 +543,7 @@
     applyLive(0);
     maxLives = parseInt(livesSelect.value);
     lives = maxLives;
-    userBeatOffset = 0; 
-    
+    userBeatOffset = 0;
     CARDS = shuffle(CARDS);
     renderCards();
     
@@ -549,7 +551,6 @@
     rightPhraseEl.innerHTML = "<span>2</span> <span>...</span>";
     leftPhraseEl.className = "phraseBox activeBox";
     rightPhraseEl.className = "phraseBox dimmed";
-    
     cardTitleEl.textContent = "???";
     statusText.textContent = "Sẵn sàng chọn thẻ";
     btnStart.textContent = "▶️ Chọn thẻ trước";
@@ -560,14 +561,13 @@
   function applyLive(lv){
     const idx = Math.max(0, Math.min(LIVE_BPM.length - 1, lv));
     bpm = LIVE_BPM[idx];
-    updateMusicRate(); // Sync audio immediately when level changes
+    updateMusicRate(); 
     liveText.textContent=`${lv+1}/${TOTAL_LIVES}`;
   }
   
   function updateMusicRate(){
     if(!music.src) return;
     const base = parseInt(baseMusicBpm.value) || 130;
-    // Calculate rate to match game BPM
     const rate = Math.max(0.5, Math.min(3.0, bpm / base));
     music.playbackRate = rate;
   }
@@ -591,13 +591,7 @@
     }
     
     if(bn>lastBeatNumber){
-      // Loop catch-up logic
-      // Only process the latest beat to prevent UI flooding if lag happened
-      const processStart = Math.max(lastBeatNumber + 1, bn); 
-      // Actually, for rhythm game logic, we need to process triggers. 
-      // But for visual update, we only care about current state.
-      
-      onBeat(bn); // Process current beat
+      onBeat(bn);
       lastBeatNumber=bn;
     }
     rafId=requestAnimationFrame(beatLoop);
@@ -612,13 +606,11 @@
         renderKaraokeDual(c.tokens, beatIndex);
     }
 
-    beatIndex = k + 1; // Sync index
+    beatIndex = k + 1; 
     beatInfoEl.textContent = `${Math.min(beatIndex,beatsPerLive)}/${beatsPerLive}`;
-
     if(beatIndex >= beatsPerLive){
       stopAll(); 
-      music.pause(); 
-      
+      music.pause();
       if(live >= TOTAL_LIVES-1){
         toast("🏆 ĐÃ PHÁ ĐẢO!");
         statusText.textContent="Hoàn thành xuất sắc!";
@@ -630,12 +622,13 @@
       btnStart.textContent = `▶️ Lên Level ${live+2}`;
       btnStart.classList.add("btnPulse"); 
       live += 1; 
-      applyLive(live); // Update BPM display immediately for next level
+      applyLive(live);
     }
   }
 
   function stopAll(){
-    running=false; countingDown=false;
+    running=false;
+    countingDown=false;
     overlay.classList.remove("show");
     levelPopup.classList.remove("show");
     cancelAnimationFrame(rafId);
@@ -649,7 +642,6 @@
   }
 
   async function showLevelIntro(){
-      // applyLive(live) already called before
       popupTitle.textContent = `LEVEL ${live+1}`;
       popupSub.textContent = `Tốc độ: ${bpm} BPM`;
       levelPopup.classList.add("show");
@@ -658,42 +650,33 @@
   }
 
   async function startSequence(){
-     // --- VALIDATION START ---
      if (selectedCardIndex === null) {
          toast("⚠️ Vui lòng chọn 1 thẻ bài trước!");
          return;
      }
      
-     // Kiểm tra xem đã có nhạc chưa (File hoặc link mặc định)
-     // Ở đây code cho phép link mặc định, nhưng nếu muốn bắt buộc file:
-     // if (!music.src || music.src === "" || music.src === window.location.href) ...
-     
-     // Code hiện tại tự động gán link nếu chưa có (trong sự kiện click cũ)
-     // Nhưng để chắc chắn, ta kiểm tra:
      if (!music.src || music.src === "") {
          toast("⚠️ Vui lòng chọn File Nhạc trước khi bắt đầu!");
          btnUseFile.style.borderColor = "red";
          setTimeout(() => btnUseFile.style.borderColor = "#333", 1000);
          return;
      }
-     // --- VALIDATION END ---
      
      if(running) return;
-     
-     // IMPORTANT: Apply current level bpm again just to be safe
      applyLive(live);
 
      resetKaraokeForStart(selectedCardIndex);
      await showLevelIntro();
 
-     countingDown=true; ensureAudio(); 
+     countingDown=true;
+     ensureAudio(); 
      overlay.classList.add("show");
      btnStart.classList.remove("btnPulse");
      
      for(const n of [3,2,1]){
        countNum.textContent=String(n);
        countNum.style.animation="none";
-       void countNum.offsetHeight; countNum.style.animation=""; 
+       void countNum.offsetHeight; countNum.style.animation="";
        await new Promise(r=>setTimeout(r,800));
      }
      overlay.classList.remove("show");
@@ -708,7 +691,7 @@
      }
      
      beatIndex=0; 
-     lastRenderedBeat = -1; // Reset render tracker
+     lastRenderedBeat = -1;
      basePerf=performance.now();
      lastBeatNumber=-1;
      running=true;
@@ -740,7 +723,6 @@
       userBeatOffset += 50; 
       toast(`Trễ hơn (+50ms) -> ${userBeatOffset}`);
   });
-
   livesSelect.addEventListener("change", ()=>{
       maxLives = parseInt(livesSelect.value);
       lives = maxLives;
@@ -762,25 +744,19 @@
       });
   }
 
-  document.getElementById("btnOpenSettings").addEventListener("click", ()=>{
-      // 1. Text Config
+  btnOpenSettings.addEventListener("click", ()=>{
       const text = CARDS.map(c => {
           if(c.mode === "swapPairs") return `${c.groupA[0]} - ${c.groupA[1]}`;
           if(c.mode === "manual4") return `${c.words.join(" - ")}`;
           return "";
       }).filter(s => s).join("\n");
       textInput.value = text;
-      
-      // 2. BPM Config
       renderBpmInputs();
-      
       settingsModal.classList.add("show");
   });
-  
   document.getElementById("btnCloseSettings").addEventListener("click", ()=>settingsModal.classList.remove("show"));
   
   document.getElementById("btnSaveSettings").addEventListener("click", ()=>{
-      // Save Text
       const raw = textInput.value.trim();
       if(!raw) { alert("Chưa nhập nội dung!"); return; }
       
@@ -795,10 +771,10 @@
              newCards.push({ name: `${parts[0]}...`, desc: "Thủ công", mode: "manual4", words: parts });
          }
       });
+      
       if(newCards.length === 0) { alert("Sai cú pháp!"); return; }
       CARDS = newCards;
       
-      // Save BPM
       const inputs = document.querySelectorAll(".bpmInput");
       inputs.forEach(inp => {
           const idx = parseInt(inp.dataset.idx);
@@ -831,6 +807,30 @@
       isTickOn = !isTickOn;
       tickStateText.textContent = isTickOn ? "ON" : "OFF";
       toast(isTickOn ? "Đã bật tiếng Tít" : "Đã tắt tiếng Tít");
+  });
+
+  // --- FULLSCREEN LOGIC ---
+  btnFullscreen.addEventListener("click", () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch((e) => {
+        if(document.documentElement.webkitRequestFullscreen) {
+            document.documentElement.webkitRequestFullscreen();
+        } else {
+            console.log("Máy này không hỗ trợ Fullscreen API");
+        }
+      });
+      btnFullscreen.innerHTML = "❌ <b>Thoát</b>";
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if (document.webkitExitFullscreen) {
+        document.webkitExitFullscreen();
+      }
+      btnFullscreen.innerHTML = "⛶ <b>Full</b>";
+    }
+  });
+  document.addEventListener("fullscreenchange", () => {
+      if (!document.fullscreenElement) btnFullscreen.innerHTML = "⛶ <b>Full</b>";
   });
 
   // Init
