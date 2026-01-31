@@ -146,7 +146,21 @@
         let position = 50; 
         let currentIcon = "🔥";
         
-        // Âm thanh tap (WebAudio) -> chịu được spam tap hơn HTMLAudio pool
+        
+
+        // --- THAM CHIẾU DOM (KHÔNG dựa vào biến global theo id) ---
+        const fighter = document.getElementById('fighter');
+        const flashLeft = document.getElementById('flashLeft');
+        const flashRight = document.getElementById('flashRight');
+        const overlay = document.getElementById('overlay');
+        const cntOverlay = document.getElementById('cntOverlay');
+        const cntText = document.getElementById('countdown');
+        const zoneLeft = document.getElementById('zoneLeft');
+        const zoneRight = document.getElementById('zoneRight');
+        const sfxWin = document.getElementById('sfx-win');
+        const sfxWhistle = document.getElementById('sfx-whistle');
+
+// Âm thanh tap (WebAudio) -> chịu được spam tap hơn HTMLAudio pool
 const TAP_SOUND_URL = "https://assets.mixkit.co/active_storage/sfx/2578/2578-preview.mp3";
 let audioCtx = null;
 let tapBuffer = null;
