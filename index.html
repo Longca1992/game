@@ -22,7 +22,7 @@
             margin-bottom: 10px;
         }
 
-        /* Nút Tải Nhạc (Mới) */
+        /* Nút Tải Nhạc */
         .btn-download {
             display: inline-block;
             background: rgba(255, 255, 255, 0.1);
@@ -70,7 +70,7 @@
 
         /* Style riêng cho ô Mua Hàng */
         .card.shop {
-            border-color: #00e676; /* Màu xanh lá nổi bật */
+            border-color: #00e676;
             background: linear-gradient(45deg, rgba(0, 230, 118, 0.2), rgba(0,0,0,0));
         }
         .card.shop .title { color: #00e676; }
@@ -79,6 +79,11 @@
         /* Style riêng cho Game Master */
         .card.master { border-color: #f44336; background: rgba(244, 67, 54, 0.1); }
         .card.master:hover { background: rgba(244, 67, 54, 0.3); box-shadow: 0 0 30px rgba(244, 67, 54, 0.4); }
+        
+        /* Style riêng cho Game Mới (Nổi bật) */
+        .card.new-game { border-color: #ff9800; }
+        .card.new-game .icon { animation: bounce 2s infinite; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
     </style>
 </head>
 <body>
@@ -91,6 +96,24 @@
     </a>
 
     <div class="grid-menu">
+        <a href="duathuyenrong.html" class="card new-game">
+            <div class="icon">🚣🐉</div>
+            <div class="title">Đua Thuyền Rồng</div>
+            <div class="desc">Đua tiếp sức - Time Attack</div>
+        </a>
+
+        <a href="tamsao.html" class="card new-game">
+            <div class="icon">🎭🗣️</div>
+            <div class="title">Hải Sản Tam Sao</div>
+            <div class="desc">Nhìn hình đoán ý đồng đội</div>
+        </a>
+
+        <a href="chiadoi.html" class="card">
+            <div class="icon">🎰</div>
+            <div class="title">Vòng Quay Chia Đội</div>
+            <div class="desc">Chia team ngẫu nhiên</div>
+        </a>
+
         <a href="sieutritue.html" class="card">
             <div class="icon">🧠</div>
             <div class="title">Siêu Trí Tuệ</div>
