@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Đua Thuyền Tiếp Sức V4 - Tổng Kết</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Roboto:wght@700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        * { box-sizing: border-box; user-select: none; -webkit-user-select: none; touch-action: none; }
+        body { margin: 0; padding: 0; overflow: hidden; font-family: 'Roboto', sans-serif; background: #0277bd; height: 100vh; color: white; }
+
+        /* --- SCREEN MANAGER --- */
+        .screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 10; padding: 10px;
+        }
+        .active { display: flex; }
+
+        /* THEMES */
+        .bg-setup { background: radial-gradient(circle, #b71c1c, #560027); }
+        .bg-dash { background: #f5f5f5; color: #333; }
+        .bg-game { background: radial-gradient(circle, #4fc3f7, #0288d1); }
+        .bg-final { background: radial-gradient(circle, #ffd700, #ff8f00); color: #b71c1c; }
+
+        /* UI ELEMENTS */
+        .box { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.3); width: 100%; max-width: 800px; }
+        .btn {
+            padding: 12px 25px; font-size: 1.1rem; border-radius: 50px; border: none;
+            font-family: 'Bangers'; cursor: pointer; margin: 5px; box-shadow: 0 4px 0 rgba(0,0,0,0.3);
+            transition: 0.1s; display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+        }
+        .btn:active { transform: translateY(3px); box-shadow: none; }
+        .btn-green { background: #43a047; color: white; }
+        .btn-blue { background: #1976d2; color: white; }
+        .btn-red { background: #d32f2f; color: white; }
+        .btn-gold { background: #ffeb3b; color: #d32f2f; }
+
+        /* DASHBOARD TABLE */
+        .dash-header { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 800px; margin-bottom: 10px; }
+        .team-row {
+            background: white; border-radius: 10px; margin-bottom: 10px; padding: 10px;
+            display: flex; flex-direction: column; border: 1px solid #ddd;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .row-top { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #eee; padding-bottom: 5px; margin-bottom: 5px; }
+        .team-name { font-family: 'Bangers'; font-size: 1.5rem; color: #1565c0; }
+        .team-total { font-weight: bold; color: #d32f2f; font-size: 1.2rem; }
+        
+        .history-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+        .tag { background: #eee; padding: 2px 8px; border-radius: 4px; font-size: 0.85rem; color: #555; }
+        
+        /* GAME ELEMENTS */
+        .ocean { position: absolute; width: 100%; height: 100%; z-index: 1; }
+        .finish-line { position: absolute; right: 10%; top: 0; height: 100%; width: 20px; background-image: repeating-linear-gradient(0deg, #fff, #fff 20px, #d32f2f 20px, #d32f2f 40px); }
+        .boat-lane { position: absolute; top: 45%; width: 100%; height: 2px; background: rgba(255,255,255,0.5); }
+        .boat { position: absolute; left: 2%; top: -50px; font-size: clamp(4rem, 15vw, 7rem); filter: drop-shadow(0 10px 10px rgba(0,0,0,0.3)); transition: left 0.1s linear; z-index: 5; }
+        .tap-zone { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 50; }
+        .timer-display { position: absolute; top: 20px; right: 20px; font-family: 'Bangers'; font-size: 3rem; text-shadow: 2px 2px 0 #000; z-index: 20; }
+        .team-display { position: absolute; top: 20px; left: 20px; font-family: 'Bangers'; font-size: 2.5rem; color: #ffeb3b; text-shadow: 2px 2px 0 #000; z-index: 20; }
+
+        /* FINAL TABLE */
+        .final-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .final-table th { background: #b71c1c; color: white; padding: 10px; }
+        .final-table td { background: rgba(255,255,255,0.9); color: #333; padding: 10px; border-bottom: 1px solid #ccc; font-weight: bold; }
+        .rank-1 { background: #fff9c4 !important; color: #d32f2f !important; font-size: 1.3rem; }
+        .rank-1 td:first-child:before { content: '🏆 '; }
+    </style>
+</head>
+<body>
+
+    <div class="screen active bg-setup" id="setupScreen">
+        <h1 style="font-family:'Bangers'; font-size:3rem; margin-bottom:20px; color:#ffeb3b">THIẾT LẬP ĐỘI ĐUA 🚣</h1>
+        <div class="box" style="text-align:center">
+            <input type="text" id="newTeamName" placeholder="Nhập tên đội..." style="padding:10px; width:70%; border-radius:5px; border:1px solid #ccc; font-size:1.1rem">
+            <button class="btn btn-green" onclick="addTeam()">➕ Thêm</button>
+            <div id="setupList" style="margin-top:20px; text-align:left; max-height:200px; overflow-y:auto"></div>
+            <br>
+            <button class="btn btn-gold" style="width:100%; font-size:1.5rem" onclick="goToDashboard()">VÀO GIẢI ĐẤU ▶️</button>
+        </div>
+    </div>
+
+    <div class="screen bg-dash" id="dashboardScreen" style="justify-content: flex-start; overflow-y:auto">
+        <div class="dash-header">
+            <h2 style="color:#d32f2f; font-family:'Bangers'; font-size:2rem; margin:0">BẢNG ĐIỀU KHIỂN</h2>
+            <button class="btn btn-red" style="font-size:0.8rem" onclick="resetAll()">⚠️ Xóa Hết</button>
+        </div>
+
+        <div id="teamsContainer" style="width:100%; max-width:800px; padding-bottom:80px">
+            </div>
+
+        <div style="position:fixed; bottom:0; left:0; width:100%; background:white; padding:15px; border-top:1px solid #ccc; display:flex; justify-content:center; box-shadow: 0 -5px 10px rgba(0,0,0,0.1)">
+             <button class="btn btn-gold" style="font-size:1.3rem; padding:15px 40px" onclick="showFinalResult()">🏁 TỔNG KẾT & TRAO GIẢI 🏁</button>
+        </div>
+    </div>
+
+    <div class="screen bg-game" id="gameScreen">
+        <div class="team-display" id="gameTeamName">TEAM A</div>
+        <div class="timer-display" id="gameTimer">0.00s</div>
+        
+        <div class="ocean">
+            <div class="finish-line"></div>
+            <div class="boat-lane"><div class="boat" id="boat">🚣</div></div>
+        </div>
+        <div class="tap-zone" id="tapZone"></div>
+    </div>
+
+    <div class="screen" id="resultPopup" style="background:rgba(0,0,0,0.9)">
+        <div class="box" style="text-align:center; border:4px solid #ffeb3b">
+            <h2 style="color:#555">KẾT QUẢ LƯỢT CHẠY</h2>
+            <div id="resTeam" style="font-family:'Bangers'; color:#1565c0; font-size:2.5rem">TEAM A</div>
+            <div id="resTime" style="font-family:'Bangers'; color:#d32f2f; font-size:5rem; margin:10px 0">10.50s</div>
+            <button class="btn btn-green" onclick="saveResult()">💾 LƯU KẾT QUẢ</button>
+            <br>
+            <button class="btn btn-red" style="margin-top:10px; font-size:0.9rem" onclick="goToDashboard()">Hủy (Đua lại)</button>
+        </div>
+    </div>
+
+    <div class="screen bg-final" id="finalScreen">
+        <h1 style="font-family:'Bangers'; font-size:3.5rem; text-shadow:2px 2px 0 #fff; margin-bottom:10px">🏆 BẢNG VÀNG CHUNG CUỘC 🏆</h1>
+        <div class="box" style="overflow-y:auto; max-height:70vh">
+            <table class="final-table">
+                <thead>
+                    <tr>
+                        <th>Hạng</th>
+                        <th>Đội Thi Đấu</th>
+                        <th>Số Lượt</th>
+                        <th>TỔNG THỜI GIAN</th>
+                    </tr>
+                </thead>
+                <tbody id="finalTableBody"></tbody>
+            </table>
+            <br>
+            <button class="btn btn-blue" onclick="goToDashboard()">⬅️ Quay Lại Đua Tiếp</button>
+        </div>
+    </div>
+
+    <audio id="sfx-row" src="https://assets.mixkit.co/active_storage/sfx/2578/2578-preview.mp3"></audio>
+    <audio id="sfx-win" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3"></audio>
+    <audio id="sfx-bgm" loop src="https://assets.mixkit.co/active_storage/sfx/995/995-preview.mp3"></audio>
+
+    <script>
+        // --- DATA ---
+        // Cấu trúc: { "Team A": [10.5, 12.0, 9.5], "Team B": [15.0] }
+        let teamsData = JSON.parse(localStorage.getItem('dragonBoatV4')) || {};
+        let currentTeam = "";
+        
+        // --- GAME VARS ---
+        let pos = 2;
+        let isRacing = false;
+        let startTime, timerInt;
+        const FINISH = 88;
+
+        // --- DOM ---
+        const boat = document.getElementById('boat');
+        const timerEl = document.getElementById('gameTimer');
+        const sfxRow = document.getElementById('sfx-row');
+        const sfxWin = document.getElementById('sfx-win');
+        const sfxBgm = document.getElementById('sfx-bgm');
+
+        window.onload = function() {
+            renderSetup();
+            if(Object.keys(teamsData).length > 0) goToDashboard();
+        }
+
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        // --- 1. SETUP ---
+        function addTeam() {
+            const name = document.getElementById('newTeamName').value.trim();
+            if(!name) return;
+            if(teamsData[name]) return alert("Đội này có rồi!");
+            teamsData[name] = [];
+            saveData();
+            renderSetup();
+            document.getElementById('newTeamName').value = "";
+        }
+        function renderSetup() {
+            const div = document.getElementById('setupList');
+            div.innerHTML = Object.keys(teamsData).map(n => 
+                `<div style="display:flex; justify-content:space-between; border-bottom:1px solid #ddd; padding:5px">
+                    <b>${n}</b> <span onclick="deleteTeam('${n}')" style="color:red; cursor:pointer">Xóa</span>
+                 </div>`
+            ).join('');
+        }
+        function deleteTeam(n) {
+            if(confirm('Xóa đội ' + n + '?')) { delete teamsData[n]; saveData(); renderSetup(); }
+        }
+
+        // --- 2. DASHBOARD ---
+        function goToDashboard() {
+            renderDashboard();
+            showScreen('dashboardScreen');
+        }
+        function renderDashboard() {
+            const container = document.getElementById('teamsContainer');
+            container.innerHTML = "";
+            
+            Object.keys(teamsData).forEach(name => {
+                const times = teamsData[name];
+                const total = times.reduce((a,b)=>a+b, 0).toFixed(2);
+                
+                // Hiển thị danh sách lịch sử dạng thẻ (Tags)
+                const historyHtml = times.map((t, i) => `<span class="tag">L${i+1}: ${t}s</span>`).join('');
+
+                container.innerHTML += `
+                <div class="team-row">
+                    <div class="row-top">
+                        <span class="team-name">${name}</span>
+                        <span class="team-total">Tổng: ${total}s</span>
+                    </div>
+                    <div style="font-size:0.9rem; color:#666; margin-bottom:5px">Đã chạy: ${times.length} lượt</div>
+                    <div class="history-tags">${historyHtml}</div>
+                    <div style="margin-top:10px; text-align:right">
+                        <button class="btn btn-blue" style="font-size:0.9rem" onclick="prepareRace('${name}')">🚣 ĐUA TIẾP</button>
+                    </div>
+                </div>`;
+            });
+        }
+
+        // --- 3. RACING ---
+        function prepareRace(name) {
+            currentTeam = name;
+            document.getElementById('gameTeamName').innerText = name;
+            pos = 2; boat.style.left = pos + "%";
+            timerEl.innerText = "0.00s";
+            isRacing = true;
+            sfxBgm.currentTime = 0; sfxBgm.volume = 0.3; sfxBgm.play().catch(()=>{});
+            
+            showScreen('gameScreen');
+            
+            startTime = Date.now();
+            timerInt = setInterval(() => {
+                timerEl.innerText = ((Date.now() - startTime)/1000).toFixed(2) + "s";
+            }, 30);
+        }
+
+        function tap() {
+            if(!isRacing) return;
+            pos += 3.5; // Tốc độ
+            boat.style.left = pos + "%";
+            
+            const s = sfxRow.cloneNode(); s.volume = 0.5; s.play().catch(()=>{});
+
+            if(pos >= FINISH) finishRace();
+        }
+
+        function finishRace() {
+            isRacing = false; clearInterval(timerInt);
+            sfxBgm.pause(); sfxWin.play();
+            const time = ((Date.now() - startTime)/1000).toFixed(2);
+            
+            document.getElementById('resTeam').innerText = currentTeam;
+            document.getElementById('resTime').innerText = time + "s";
+            setTimeout(() => showScreen('resultPopup'), 500);
+        }
+
+        function saveResult() {
+            const t = parseFloat(document.getElementById('resTime').innerText);
+            teamsData[currentTeam].push(t); // Lưu không giới hạn
+            saveData();
+            goToDashboard();
+        }
+
+        // --- 4. FINAL RESULT (TỔNG KẾT) ---
+        function showFinalResult() {
+            // Tính toán xếp hạng
+            let ranking = Object.keys(teamsData).map(name => {
+                const times = teamsData[name];
+                const total = times.reduce((a,b)=>a+b, 0);
+                return { name, count: times.length, total };
+            });
+
+            // Sắp xếp: Tổng thời gian THẤP NHẤT lên đầu (với điều kiện đã chạy > 0 lượt)
+            ranking.sort((a,b) => {
+                if(a.total === 0) return 1;
+                if(b.total === 0) return -1;
+                return a.total - b.total;
+            });
+
+            const tbody = document.getElementById('finalTableBody');
+            tbody.innerHTML = "";
+            ranking.forEach((r, i) => {
+                if(r.total === 0) return; // Không hiện đội chưa đua
+                tbody.innerHTML += `
+                    <tr class="${i===0 ? 'rank-1' : ''}">
+                        <td>${i+1}</td>
+                        <td>${r.name}</td>
+                        <td>${r.count}</td>
+                        <td>${r.total.toFixed(2)}s</td>
+                    </tr>
+                `;
+            });
+
+            showScreen('finalScreen');
+            // Pháo giấy ăn mừng
+            confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 } });
+            sfxWin.play();
+        }
+
+        // --- UTILS ---
+        function saveData() { localStorage.setItem('dragonBoatV4', JSON.stringify(teamsData)); }
+        function resetAll() { if(confirm("Xóa sạch dữ liệu?")) { teamsData={}; saveData(); location.reload(); } }
+
+        // --- EVENTS ---
+        const zone = document.getElementById('tapZone');
+        zone.addEventListener('touchstart', (e)=>{ e.preventDefault(); for(let i=0; i<e.changedTouches.length; i++) tap(); }, {passive:false});
+        zone.addEventListener('mousedown', tap);
+        document.addEventListener('keydown', (e)=>{ if(e.code==='Space'||e.code==='Enter') tap(); });
+
+    </script>
+</body>
+</html>

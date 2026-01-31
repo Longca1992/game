@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hải Sản Tam Sao - Hải Sản Kỳ Hà</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Roboto:wght@700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; touch-action: manipulation; }
+        body { 
+            margin: 0; height: 100vh; overflow: hidden; font-family: 'Roboto', sans-serif; 
+            background: #fff; display: flex; flex-direction: column;
+        }
+
+        /* KHUNG HIỂN THỊ TỪ KHÓA */
+        .card-container {
+            flex: 1; display: flex; align-items: center; justify-content: center;
+            background: radial-gradient(circle, #fff, #f0f0f0);
+            position: relative;
+        }
+        
+        #keyword {
+            font-size: clamp(3rem, 10vw, 6rem); text-align: center;
+            font-weight: bold; color: #333; text-transform: uppercase;
+            padding: 20px; line-height: 1.2;
+        }
+
+        /* THANH ĐIỀU KHIỂN BÊN DƯỚI */
+        .controls {
+            height: 30vh; display: flex; width: 100%;
+        }
+        .btn {
+            flex: 1; border: none; font-family: 'Bangers'; font-size: 2rem; color: white;
+            cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .btn-pass { background: #d32f2f; border-right: 1px solid rgba(0,0,0,0.1); }
+        .btn-correct { background: #388e3c; }
+        .btn:active { opacity: 0.8; }
+
+        /* THÔNG SỐ (TIMER & SCORE) */
+        .status-bar {
+            position: absolute; top: 0; width: 100%; padding: 10px 20px;
+            display: flex; justify-content: space-between; font-size: 2rem; font-weight: bold;
+            color: #d32f2f; z-index: 10;
+        }
+        
+        /* MÀN HÌNH CHỜ */
+        .overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(183, 28, 28, 0.95); z-index: 100;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            color: #ffeb3b;
+        }
+        .btn-start {
+            padding: 20px 60px; font-size: 2.5rem; background: #ffeb3b; color: #b71c1c;
+            border: none; border-radius: 50px; font-family: 'Bangers'; margin-top: 30px;
+        }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div class="overlay" id="startScreen">
+        <h1 style="font-family:'Bangers'; font-size:4rem; margin:0">HẢI SẢN TAM SAO</h1>
+        <p style="font-size:1.5rem; color:white">Diễn tả từ khóa - Đồng đội đoán</p>
+        <button class="btn-start" onclick="startGame()">BẮT ĐẦU 60S</button>
+    </div>
+
+    <div class="overlay hidden" id="endScreen">
+        <h1 style="font-family:'Bangers'; font-size:3rem;">HẾT GIỜ!</h1>
+        <div style="font-size:5rem; font-weight:bold" id="finalScore">0</div>
+        <p style="font-size:1.5rem; color:white">Câu trả lời đúng</p>
+        <button class="btn-start" onclick="location.reload()">CHƠI LẠI</button>
+    </div>
+
+    <div class="status-bar">
+        <div id="timer">60s</div>
+        <div id="score">Score: 0</div>
+    </div>
+
+    <div class="card-container">
+        <div id="keyword">SẴN SÀNG?</div>
+    </div>
+
+    <div class="controls">
+        <button class="btn btn-pass" onclick="handlePass()">
+            <span>❌</span> BỎ QUA
+        </button>
+        <button class="btn btn-correct" onclick="handleCorrect()">
+            <span>✅</span> ĐÚNG RỒI
+        </button>
+    </div>
+
+    <audio id="sfx-correct" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3"></audio>
+    <audio id="sfx-wrong" src="https://assets.mixkit.co/active_storage/sfx/2578/2578-preview.mp3"></audio>
+    <audio id="sfx-timeout" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3"></audio>
+
+    <script>
+        // DATA TỪ KHÓA (Anh có thể thêm vào đây)
+        const WORDS = [
+            "Cua Hoàng Đế", "Tôm Hùm Alaska", "Bào Ngư", "Cá Mập", "Sếp Long", 
+            "Mực Một Nắng", "Chốt Đơn", "Livestream", "Tất Niên", "Lì Xì",
+            "Bánh Chưng", "Thưởng Tết", "Khách Hàng", "Shipper", "Đóng Hàng",
+            "Cân Điêu", "Giảm Giá", "Kỳ Hà", "Phú Thọ Hòa", "Sashimi",
+            "Hàu Sữa", "Ốc Hương", "Ghẹ Xanh", "Tôm Tít", "Cua Cà Mau"
+        ];
+
+        let score = 0;
+        let timeLeft = 60;
+        let timerInterval;
+        let currentWordIndex = 0;
+        let shuffledWords = [];
+
+        const sfxCorrect = document.getElementById('sfx-correct');
+        const sfxWrong = document.getElementById('sfx-wrong');
+        const sfxTimeout = document.getElementById('sfx-timeout');
+
+        function startGame() {
+            document.getElementById('startScreen').classList.add('hidden');
+            
+            // Xáo trộn từ khóa
+            shuffledWords = [...WORDS].sort(() => 0.5 - Math.random());
+            nextWord();
+            
+            // Bắt đầu đếm ngược
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer').innerText = timeLeft + "s";
+                if(timeLeft <= 0) endGame();
+                if(timeLeft <= 5) document.getElementById('timer').style.color = "red"; // Cảnh báo sắp hết giờ
+            }, 1000);
+        }
+
+        function nextWord() {
+            if(currentWordIndex >= shuffledWords.length) {
+                currentWordIndex = 0; // Quay vòng nếu hết từ
+            }
+            document.getElementById('keyword').innerText = shuffledWords[currentWordIndex];
+            currentWordIndex++;
+        }
+
+        function handleCorrect() {
+            score++;
+            document.getElementById('score').innerText = "Score: " + score;
+            sfxCorrect.currentTime = 0; sfxCorrect.play();
+            
+            // Hiệu ứng chớp xanh
+            document.body.style.backgroundColor = "#e8f5e9";
+            setTimeout(() => document.body.style.backgroundColor = "#fff", 100);
+            
+            nextWord();
+        }
+
+        function handlePass() {
+            sfxWrong.currentTime = 0; sfxWrong.play();
+            
+            // Hiệu ứng chớp đỏ
+            document.body.style.backgroundColor = "#ffebee";
+            setTimeout(() => document.body.style.backgroundColor = "#fff", 100);
+            
+            nextWord();
+        }
+
+        function endGame() {
+            clearInterval(timerInterval);
+            sfxTimeout.play();
+            document.getElementById('finalScore').innerText = score;
+            document.getElementById('endScreen').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
