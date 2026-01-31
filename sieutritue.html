@@ -1,11 +1,12 @@
 <!DOCTYPE html>
+
 <html lang="vi">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  <title>Siêu Trí Nhớ Hải Sản - Đối Kháng</title>
-  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Roboto:wght@700&display=swap" rel="stylesheet">
-  <style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/>
+<title>Siêu Trí Nhớ Hải Sản - Đối Kháng</title>
+<link href="https://fonts.googleapis.com/css2?family=Bangers&amp;family=Roboto:wght@700&amp;display=swap" rel="stylesheet"/>
+<style>
     * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
     html, body { height: 100%; }
     body{
@@ -311,93 +312,209 @@
       .header-btns{ left: 12px; right: 12px; top: 8px; }
       .mini-btn{ padding: 8px 12px; }
     }
-  </style>
+  
+
+    /* ===== Responsive layout v3 (iPad/iPhone landscape + Mac) ===== */
+    :root{
+      --safeTop: env(safe-area-inset-top);
+      --safeRight: env(safe-area-inset-right);
+      --safeBottom: env(safe-area-inset-bottom);
+      --safeLeft: env(safe-area-inset-left);
+    }
+    html, body { height: 100%; }
+    body{
+      height: 100dvh; /* iOS dynamic viewport */
+      width: 100vw;
+      padding: 0;
+    }
+
+    /* Header as CSS grid to avoid overlap */
+    .scoreboard{
+      display:grid;
+      grid-template-columns: 1fr minmax(140px, 240px) 1fr;
+      grid-template-rows: auto auto;
+      grid-template-areas:
+        "controls controls controls"
+        "team1 mid team2";
+      gap: 10px;
+      padding: calc(var(--safeTop) + 10px) calc(var(--safeRight) + 12px) 10px calc(var(--safeLeft) + 12px);
+      min-height: unset;
+      align-items: stretch;
+    }
+    .header-btns{
+      position: static;
+      grid-area: controls;
+      display:flex;
+      justify-content:flex-end;
+      gap: 10px;
+      pointer-events:auto;
+    }
+    #scoreBoard1{ grid-area: team1; }
+    #scoreBoard2{ grid-area: team2; }
+    .mid{
+      grid-area: mid;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      align-items:center;
+      gap: 6px;
+      pointer-events:none;
+    }
+    .top-center{
+      flex: 0 0 auto;
+      min-width: unset;
+      padding: 0;
+    }
+    .vs-text{
+      opacity: 0.9;
+      margin: 0;
+      line-height: 1;
+    }
+
+    /* Board should fill remaining space, no fixed vh */
+    .game-board{
+      flex: 1 1 auto;
+      height: auto;
+      min-height: 0;
+      padding: 10px calc(var(--safeRight) + 10px) calc(var(--safeBottom) + 10px) calc(var(--safeLeft) + 10px);
+      align-items: stretch;
+    }
+    .grid{
+      width: 100%;
+      height: 100%;
+      max-width: 96vw;
+      max-height: 100%;
+    }
+
+    /* iPhone portrait: stack header blocks */
+    @media (max-width: 520px){
+      .scoreboard{
+        grid-template-columns: 1fr;
+        grid-template-areas:
+          "controls"
+          "team1"
+          "mid"
+          "team2";
+      }
+      .header-btns{ justify-content:space-between; }
+      .mid{ flex-direction:row; gap: 12px; }
+      .vs-text{ display:none; }
+    }
+
+    /* iPhone landscape: reduce header footprint */
+    @media (max-height: 430px) and (orientation: landscape){
+      .scoreboard{
+        grid-template-columns: 1fr minmax(120px, 190px) 1fr;
+        gap: 8px;
+        padding: calc(var(--safeTop) + 6px) calc(var(--safeRight) + 10px) 6px calc(var(--safeLeft) + 10px);
+      }
+      .mini-btn{
+        padding: 6px 10px;
+        font-size: 14px;
+      }
+      .team-score{
+        padding: 8px 10px;
+        border-radius: 14px;
+        border-width: 3px;
+      }
+      .team-score h2{
+        font-size: 14px;
+      }
+      .score-num{
+        font-size: clamp(24px, 7vh, 46px);
+        min-width: 44px;
+      }
+      .meta .badge{ display:none; } /* chừa chỗ */
+      .meta .timer{
+        padding: 2px 8px;
+        min-width: 64px;
+        font-size: 12px;
+      }
+      .top-center .series{ font-size: 16px; letter-spacing: 1px; }
+      .top-center .round{ font-size: 14px; }
+      .vs-text{ font-size: 16px; }
+    }
+
+    /* iPad landscape: keep one row but tidy spacing */
+    @media (min-width: 768px) and (orientation: landscape){
+      .scoreboard{
+        grid-template-columns: 1fr minmax(180px, 280px) 1fr;
+        gap: 12px;
+      }
+      .mini-btn{ font-size: 18px; padding: 8px 14px; }
+    }
+</style>
 </head>
 <body>
+<canvas id="fxCanvas"></canvas>
+<div class="scoreboard">
+<div class="header-btns">
+<button class="mini-btn" id="btnSettings">⚙️ Thiết lập</button>
+<button class="mini-btn" id="btnRestart">🔁 Reset ván</button>
+</div>
+<div class="team-score team-1 active" id="scoreBoard1">
+<h2>Team Đỏ<br/>(Tôm)</h2>
+<div class="score-num" id="score1">0</div>
+<div class="meta">
+<div class="badge">Tỷ số: <span id="matchScore1">0</span></div>
+<div class="timer">⏳ <span id="timer1">10</span>s</div>
+</div>
+</div><div class="mid"><div class="top-center">
+<div class="series">VÁN: <span id="roundNow">1</span>/<span id="roundTotal">2</span></div>
+<div class="round">Ô: <span id="cellsNow">50</span> • Lượt: <span id="turnNow">ĐỎ</span></div>
+</div><div class="vs-text">VS</div></div>
 
-  <canvas id="fxCanvas"></canvas>
 
-  <div class="scoreboard">
-    <div class="header-btns">
-      <button class="mini-btn" id="btnSettings">⚙️ Thiết lập</button>
-      <button class="mini-btn" id="btnRestart">🔁 Reset ván</button>
-    </div>
-
-    <div class="team-score team-1 active" id="scoreBoard1">
-      <h2>Team Đỏ<br>(Tôm)</h2>
-      <div class="score-num" id="score1">0</div>
-      <div class="meta">
-        <div class="badge">Tỷ số: <span id="matchScore1">0</span></div>
-        <div class="timer">⏳ <span id="timer1">10</span>s</div>
-      </div>
-    </div>
-
-    <div class="top-center">
-      <div class="series">VÁN: <span id="roundNow">1</span>/<span id="roundTotal">2</span></div>
-      <div class="round">Ô: <span id="cellsNow">50</span> • Lượt: <span id="turnNow">ĐỎ</span></div>
-    </div>
-
-    <div class="vs-text">VS</div>
-
-    <div class="team-score team-2" id="scoreBoard2">
-      <div class="score-num" id="score2">0</div>
-      <h2 style="text-align:right">Team Xanh<br>(Cua)</h2>
-      <div class="meta">
-        <div class="badge">Tỷ số: <span id="matchScore2">0</span></div>
-        <div class="timer">⏳ <span id="timer2">10</span>s</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="game-board">
-    <div class="grid" id="grid"></div>
-  </div>
-
-  <!-- Settings Modal -->
-  <div class="modal show" id="settingsModal">
-    <div class="panel">
-      <h1 style="font-size:7vmin;margin:0 0 1vh 0;">THIẾT LẬP</h1>
-
-      <div class="row">
-        <label for="gamesSelect">Chơi tổng số ván</label>
-        <select id="gamesSelect">
-          <option value="2">2 ván</option>
-          <option value="4">4 ván</option>
-        </select>
-      </div>
-
-      <div class="row">
-        <label for="cellsInput">Số ô (chẵn)</label>
-        <input id="cellsInput" type="number" min="10" max="120" step="2" value="50"/>
-      </div>
-
-      <div class="row">
-        <label for="turnTimeSelect">Thời gian/lượt</label>
-        <select id="turnTimeSelect">
-          <option value="10">10s</option>
-          <option value="8">8s</option>
-          <option value="12">12s</option>
-        </select>
-      </div>
-
-      <div class="hint">
-        • Hết thời gian mà <b>không bấm</b> sẽ tự chuyển lượt.<br/>
-        • Nếu sau N ván mà hòa, hệ thống tự thêm <b>1 ván chung kết</b>.<br/>
+<div class="team-score team-2" id="scoreBoard2">
+<div class="score-num" id="score2">0</div>
+<h2 style="text-align:right">Team Xanh<br/>(Cua)</h2>
+<div class="meta">
+<div class="badge">Tỷ số: <span id="matchScore2">0</span></div>
+<div class="timer">⏳ <span id="timer2">10</span>s</div>
+</div>
+</div>
+</div>
+<div class="game-board">
+<div class="grid" id="grid"></div>
+</div>
+<!-- Settings Modal -->
+<div class="modal show" id="settingsModal">
+<div class="panel">
+<h1 style="font-size:7vmin;margin:0 0 1vh 0;">THIẾT LẬP</h1>
+<div class="row">
+<label for="gamesSelect">Chơi tổng số ván</label>
+<select id="gamesSelect">
+<option value="2">2 ván</option>
+<option value="4">4 ván</option>
+</select>
+</div>
+<div class="row">
+<label for="cellsInput">Số ô (chẵn)</label>
+<input id="cellsInput" max="120" min="10" step="2" type="number" value="50"/>
+</div>
+<div class="row">
+<label for="turnTimeSelect">Thời gian/lượt</label>
+<select id="turnTimeSelect">
+<option value="10">10s</option>
+<option value="8">8s</option>
+<option value="12">12s</option>
+</select>
+</div>
+<div class="hint">
+        • Hết thời gian mà <b>không bấm</b> sẽ tự chuyển lượt.<br>
+        • Nếu sau N ván mà hòa, hệ thống tự thêm <b>1 ván chung kết</b>.<br>
         • Tự co dãn ô để vừa màn hình theo số ô bạn chọn.
-      </div>
-
-      <button class="btn btn-primary" id="btnApply">BẮT ĐẦU CHƠI</button>
-      <button class="btn btn-secondary" id="btnCloseSettings" style="margin-left:10px;">ĐÓNG</button>
-    </div>
-  </div>
-
-  <!-- End Modal -->
-  <div class="modal" id="endModal">
-    <h1 id="winnerText">WINNER</h1>
-    <p id="winnerSub">Kết thúc!</p>
-    <button class="btn btn-primary" id="btnNewMatch">CHƠI TRẬN MỚI</button>
-  </div>
-
+      </br></br></div>
+<button class="btn btn-primary" id="btnApply">BẮT ĐẦU CHƠI</button>
+<button class="btn btn-secondary" id="btnCloseSettings" style="margin-left:10px;">ĐÓNG</button>
+</div>
+</div>
+<!-- End Modal -->
+<div class="modal" id="endModal">
+<h1 id="winnerText">WINNER</h1>
+<p id="winnerSub">Kết thúc!</p>
+<button class="btn btn-primary" id="btnNewMatch">CHƠI TRẬN MỚI</button>
+</div>
 <script>
 (() => {
   // ====== Emoji pool (đủ lớn cho nhiều ô) ======
