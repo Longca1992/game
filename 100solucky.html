@@ -441,28 +441,71 @@
     let currentPunishments = [];
 
     // =========================
-    //  AUDIO (WebAudio for smooth tapping)
+    //  AUDIO (WebAudio - iOS/iPad safe unlock)
     // =========================
     let audioCtx = null;
     let masterGain = null;
+    let audioUnlocked = false;
+    let pendingResume = null;
 
-    function ensureAudio() {
-      if (!document.getElementById('sfxToggle').checked) return false;
+    function getSfxEnabled(){
+      const el = document.getElementById('sfxToggle');
+      return !!(el && el.checked);
+    }
+
+    function syncVolume(){
+      if (!masterGain) return;
+      const volEl = document.getElementById('volControl');
+      const vol = parseFloat((volEl && volEl.value) || "0.5");
+      masterGain.gain.value = Math.max(0, Math.min(1, vol));
+    }
+
+    function ensureAudioContext(){
+      if (!getSfxEnabled()) return false;
+
       if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new Ctx();
         masterGain = audioCtx.createGain();
         masterGain.gain.value = 0.6;
         masterGain.connect(audioCtx.destination);
       }
-      if (audioCtx.state === 'suspended') audioCtx.resume().catch(()=>{});
-      // volume sync with slider
-      const vol = parseFloat(document.getElementById('volControl').value || "0.5");
-      if (masterGain) masterGain.gain.value = Math.max(0, Math.min(1, vol));
+      syncVolume();
+
+      // iOS/Safari: resume must be triggered by a user gesture. We keep the promise so play calls can wait.
+      if (audioCtx.state !== 'running') {
+        if (!pendingResume) {
+          pendingResume = audioCtx.resume().catch(()=>{}).finally(()=>{ pendingResume = null; });
+        }
+      }
       return true;
     }
 
-    function playTone({freq=440, dur=0.06, type='sine', gain=0.18, slideTo=null} = {}) {
-      if (!ensureAudio()) return;
+    function unlockAudioGesture(){
+      if (audioUnlocked) return;
+      if (!ensureAudioContext()) return;
+
+      // Make a tiny inaudible sound to fully unlock audio on iOS
+      const t0 = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      g.gain.setValueAtTime(0.00001, t0);
+      osc.frequency.setValueAtTime(440, t0);
+      osc.connect(g);
+      g.connect(masterGain);
+      try {
+        osc.start(t0);
+        osc.stop(t0 + 0.02);
+      } catch(e) {}
+      audioUnlocked = true;
+    }
+
+    // Attach unlock on the earliest possible gestures (covers iPad/iPhone Safari)
+    window.addEventListener('pointerdown', unlockAudioGesture, {passive:true});
+    window.addEventListener('touchstart', unlockAudioGesture, {passive:true});
+    window.addEventListener('mousedown', unlockAudioGesture, {passive:true});
+
+    function playToneInternal({freq=440, dur=0.06, type='sine', gain=0.18, slideTo=null} = {}) {
       const t0 = audioCtx.currentTime;
       const osc = audioCtx.createOscillator();
       const g = audioCtx.createGain();
@@ -478,12 +521,33 @@
       osc.stop(t0 + dur + 0.02);
     }
 
+    function playTone(opts) {
+      if (!ensureAudioContext()) return;
+
+      // If we're still suspended, wait for resume before playing (fix iPad/iPhone silent SFX)
+      if (audioCtx.state !== 'running') {
+        const resumeNow = pendingResume || audioCtx.resume().catch(()=>{});
+        Promise.resolve(resumeNow).then(()=>{
+          try { playToneInternal(opts); } catch(e) {}
+        });
+        return;
+      }
+      try { playToneInternal(opts); } catch(e) {}
+    }
+
     function sfxTap(){ playTone({freq: 520, dur: 0.05, type:'triangle', gain:0.12, slideTo: 420}); }
     function sfxReward(){ playTone({freq: 660, dur: 0.10, type:'sine', gain:0.20, slideTo: 990}); }
     function sfxPunish(){ playTone({freq: 220, dur: 0.12, type:'sawtooth', gain:0.16, slideTo: 140}); }
 
+    // Keep volume in sync while user drags slider
+    const __volEl = document.getElementById('volControl');
+    if (__volEl) __volEl.addEventListener('input', ()=>{ ensureAudioContext(); syncVolume(); }, {passive:true});
+    const __sfxEl = document.getElementById('sfxToggle');
+    if (__sfxEl) __sfxEl.addEventListener('change', ()=>{ if (__sfxEl.checked) unlockAudioGesture(); }, {passive:true});
+
     // =========================
     //  HELPERS
+
     // =========================
     function deepCopy(obj){ return JSON.parse(JSON.stringify(obj)); }
 
