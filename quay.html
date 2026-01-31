@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Vòng Quay Chia Đội - Hải Sản Kỳ Hà</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root { --do: #d32f2f; --vang: #ffeb3b; --do-dam: #7b0000; }
+        
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            margin: 0; padding: 0;
+            background: radial-gradient(circle, var(--do), var(--do-dam));
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            color: var(--vang);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        header {
+            text-align: center;
+            padding: 10px;
+            background: rgba(0,0,0,0.3);
+            border-bottom: 2px solid var(--vang);
+            flex-shrink: 0;
+        }
+
+        h1 { margin: 0; font-size: clamp(1rem, 4vw, 1.8rem); text-shadow: 2px 2px 4px #000; }
+
+        /* Layout 3 khung linh hoạt */
+        main {
+            display: flex;
+            flex: 1;
+            padding: 10px;
+            gap: 10px;
+            overflow: hidden;
+        }
+
+        .side-panel {
+            width: 250px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid var(--vang);
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .center-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        /* Vòng quay co giãn theo khung hình */
+        .wheel-box {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            aspect-ratio: 1/1;
+        }
+
+        canvas {
+            width: 100% !important;
+            height: 100% !important;
+            filter: drop-shadow(0 0 15px rgba(0,0,0,0.6));
+        }
+
+        .pointer {
+            position: absolute;
+            top: 50%;
+            right: -10px;
+            transform: translateY(-50%);
+            width: 0; height: 0;
+            border-top: 20px solid transparent;
+            border-bottom: 20px solid transparent;
+            border-right: 40px solid var(--vang);
+            z-index: 10;
+            filter: drop-shadow(-2px 2px 2px rgba(0,0,0,0.5));
+        }
+
+        /* Input & Controls */
+        textarea, input {
+            width: 100%;
+            background: rgba(255,255,255,0.15);
+            border: 1px solid var(--vang);
+            color: #fff;
+            padding: 8px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        button {
+            background: linear-gradient(180deg, #fff176, #fbc02d);
+            color: #7b0000;
+            border: none;
+            padding: 12px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            text-transform: uppercase;
+            box-shadow: 0 4px 0 #b7950b;
+        }
+
+        button:active { transform: translateY(2px); box-shadow: 0 2px 0 #b7950b; }
+        button:disabled { opacity: 0.5; filter: grayscale(1); }
+
+        /* Kết quả đội */
+        .team-group {
+            background: rgba(0,0,0,0.2);
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            border-left: 4px solid var(--vang);
+        }
+        .team-title { font-weight: bold; font-size: 0.9rem; color: #fff; margin-bottom: 5px; }
+        .member { font-size: 0.85rem; padding: 2px 0; border-bottom: 1px dotted rgba(255,255,255,0.1); }
+
+        /* Overlay Thông báo */
+        #winOverlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.9);
+            display: none; flex-direction: column; align-items: center;
+            justify-content: center; z-index: 100; text-align: center;
+        }
+        #winOverlay h2 { font-size: 5rem; color: var(--vang); margin: 0; text-shadow: 0 0 30px var(--vang); }
+
+        /* RESPONSIVE CHO IPHONE/IPAD */
+        @media (max-width: 850px) {
+            main { flex-direction: column; overflow-y: auto; }
+            .side-panel { width: 100%; height: auto; min-height: 200px; }
+            .center-panel { order: -1; padding: 20px 0; }
+            #winOverlay h2 { font-size: 3rem; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>🏮 CHIA ĐỘI TẤT NIÊN - HẢI SẢN KỲ HÀ 🏮</h1>
+</header>
+
+<main>
+    <div class="side-panel">
+        <label>Số đội muốn chia:</label>
+        <input type="number" id="teamQty" value="2" min="2">
+        <label>Danh sách (tối thiểu 8):</label>
+        <textarea id="nameInputs" style="flex:1">LongCa
+Dương
+Hằng
+Duyên
+Chi
+Phúc
+Lộc
+Thọ</textarea>
+        <button onclick="setupGame()">Làm mới Vòng Quay</button>
+    </div>
+
+    <div class="center-panel">
+        <div class="wheel-box">
+            <div class="pointer"></div>
+            <canvas id="wheel" width="500" height="500"></canvas>
+        </div>
+        <button id="spinBtn" onclick="startSpin()" style="margin-top:20px; width: 200px; font-size: 1.2rem;">QUAY NGAY</button>
+    </div>
+
+    <div class="side-panel" id="resultBoard">
+        <h3 style="margin-top:0; border-bottom: 1px solid var(--vang)">KẾT QUẢ ĐỘI</h3>
+        <div id="teamsContainer"></div>
+    </div>
+</main>
+
+<div id="winOverlay">
+    <p style="font-size: 1.5rem; color: white;">XIN CHÚC MỪNG</p>
+    <h2 id="winnerName">...</h2>
+    <button onclick="closeWin()" style="margin-top: 30px; padding: 15px 40px;">TIẾP TỤC CHIA ĐỘI</button>
+</div>
+
+<script>
+    const canvas = document.getElementById('wheel');
+    const ctx = canvas.getContext('2d');
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    let names = [];
+    let teams = [];
+    let currentAngle = 0;
+    let isSpinning = false;
+
+    // Âm thanh Tick kịch tính cho Apple
+    function playTick() {
+        const osc = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        osc.connect(g); g.connect(audioCtx.destination);
+        osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+        g.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+    }
+
+    function setupGame() {
+        names = document.getElementById('nameInputs').value.split('\n').filter(n => n.trim() !== "");
+        const qty = parseInt(document.getElementById('teamQty').value);
+        teams = Array.from({ length: qty }, () => []);
+        renderTeams();
+        drawWheel();
+    }
+
+    function drawWheel() {
+        const arc = (Math.PI * 2) / (names.length || 1);
+        ctx.clearRect(0, 0, 500, 500);
+        
+        names.forEach((name, i) => {
+            const angle = currentAngle + i * arc;
+            ctx.fillStyle = i % 2 === 0 ? "#d32f2f" : "#ffeb3b";
+            ctx.beginPath();
+            ctx.moveTo(250, 250);
+            ctx.arc(250, 250, 240, angle, angle + arc);
+            ctx.fill();
+            ctx.strokeStyle = "#7b0000";
+            ctx.stroke();
+
+            ctx.save();
+            ctx.translate(250, 250);
+            ctx.rotate(angle + arc / 2);
+            ctx.fillStyle = i % 2 === 0 ? "#ffeb3b" : "#d32f2f";
+            ctx.font = "bold 18px Arial";
+            ctx.textAlign = "right";
+            ctx.fillText(name, 220, 10);
+            ctx.restore();
+        });
+    }
+
+    function startSpin() {
+        if (isSpinning || names.length === 0) return;
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        
+        isSpinning = true;
+        document.getElementById('spinBtn').disabled = true;
+
+        const duration = 8000; // Quay trong 8 giây
+        const startTime = performance.now();
+        const spins = 10 + Math.random() * 5; 
+        const totalRotation = spins * Math.PI * 2;
+        const startRotation = currentAngle;
+
+        function animate(now) {
+            let elapsed = now - startTime;
+            let p = elapsed / duration;
+
+            if (p < 1) {
+                // Thuật toán rà cực chậm về cuối (Quintic ease out)
+                let ease = 1 - Math.pow(1 - p, 5);
+                currentAngle = startRotation + (totalRotation * ease);
+                
+                // Tiếng tick kịch tính khi lướt qua tên
+                const arc = (Math.PI * 2) / names.length;
+                if (Math.floor(currentAngle / arc) !== Math.floor((currentAngle - 0.05) / arc)) {
+                    playTick();
+                }
+
+                drawWheel();
+                requestAnimationFrame(animate);
+            } else {
+                finishSpin();
+            }
+        }
+        requestAnimationFrame(animate);
+    }
+
+    function finishSpin() {
+        isSpinning = false;
+        const arc = (Math.PI * 2) / names.length;
+        const finalAngle = currentAngle % (Math.PI * 2);
+        const index = Math.floor((Math.PI * 2 - finalAngle) / arc) % names.length;
+        const winner = names[index];
+
+        // Hiển thị Overlay
+        document.getElementById('winnerName').innerText = winner;
+        document.getElementById('winOverlay').style.display = 'flex';
+        
+        // Pháo hoa
+        confetti({ particleCount: 200, spread: 90, origin: { y: 0.7 }, colors: ['#ffeb3b', '#d32f2f'] });
+
+        // Tự động vào đội có số người ít nhất
+        let smallestTeam = teams.reduce((p, c) => p.length <= c.length ? p : c);
+        smallestTeam.push(winner);
+
+        // Xóa tên khỏi danh sách quay
+        names.splice(index, 1);
+        document.getElementById('nameInputs').value = names.join('\n');
+        
+        renderTeams();
+    }
+
+    function closeWin() {
+        document.getElementById('winOverlay').style.display = 'none';
+        document.getElementById('spinBtn').disabled = false;
+        drawWheel();
+    }
+
+    function renderTeams() {
+        const container = document.getElementById('teamsContainer');
+        container.innerHTML = "";
+        teams.forEach((members, i) => {
+            let group = document.createElement('div');
+            group.className = 'team-group';
+            group.innerHTML = `<div class="team-title">ĐỘI ${i+1} (${members.length})</div>` + 
+                              members.map(m => `<div class="member">🏮 ${m}</div>`).join('');
+            container.appendChild(group);
+        });
+    }
+
+    setupGame();
+</script>
+</body>
+</html>
