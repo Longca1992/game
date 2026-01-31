@@ -506,38 +506,54 @@
     }
 
     function unlockAudioGesture(){
-      if (audioUnlocked) return;
-      if (!ensureAudioContext()) return;
+      if (!getSfxEnabled()) { updateAudioStatus(); return; }
 
-      // iOS quirk: sometimes WebAudio alone stays silent on local/offline pages.
-      // Also attempt to unlock via a tiny HTMLAudio element play (still inside user gesture).
+      // Create AudioContext ONLY inside a user gesture for iOS
+      if (!audioCtx) {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        try {
+          audioCtx = new Ctx();
+          masterGain = audioCtx.createGain();
+          masterGain.gain.value = 0.6;
+          masterGain.connect(audioCtx.destination);
+        } catch(e) {
+          updateAudioStatus();
+          return;
+        }
+      }
+      syncVolume();
+
+      // Always attempt to resume inside the same gesture
+      let resumeP = Promise.resolve();
+      if (audioCtx.state !== 'running') {
+        try { resumeP = audioCtx.resume(); } catch(e) { resumeP = Promise.resolve(); }
+      }
+
+      // HTMLAudio unlock (audible enough to confirm on iPad)
       const unlockEl = document.getElementById('unlockSound');
       if (unlockEl) {
         try {
-          unlockEl.volume = 0.001;
+          unlockEl.volume = 0.08;
+          unlockEl.currentTime = 0;
           const p = unlockEl.play();
-          if (p && p.then) p.then(()=>{ try{ unlockEl.pause(); unlockEl.currentTime = 0; }catch(e){} }).catch(()=>{});
+          if (p && p.then) {
+            p.then(()=>{ try{ unlockEl.pause(); unlockEl.currentTime = 0; }catch(e){} }).catch(()=>{});
+          }
         } catch(e) {}
       }
 
-      // Make a tiny inaudible sound to fully unlock WebAudio on iOS
-      const t0 = audioCtx.currentTime;
-      const osc = audioCtx.createOscillator();
-      const g = audioCtx.createGain();
-      g.gain.setValueAtTime(0.00001, t0);
-      osc.frequency.setValueAtTime(440, t0);
-      osc.connect(g);
-      g.connect(masterGain);
-      try {
-        osc.start(t0);
-        osc.stop(t0 + 0.02);
-      } catch(e) {}
-
-      audioUnlocked = true;
-      updateAudioStatus();
+      // Mark unlocked once resume completes (best-effort)
+      Promise.resolve(resumeP).then(()=>{
+        try { audioUnlocked = (audioCtx && audioCtx.state === 'running'); } catch(e) { audioUnlocked = true; }
+        updateAudioStatus();
+      }).catch(()=>{
+        audioUnlocked = true;
+        updateAudioStatus();
+      });
     }
 
     // Attach unlock on the earliest possible gestures (covers iPad/iPhone Safari)
+ on the earliest possible gestures (covers iPad/iPhone Safari)
     window.addEventListener('pointerdown', unlockAudioGesture, {passive:true});
     window.addEventListener('touchstart', unlockAudioGesture, {passive:true});
     window.addEventListener('mousedown', unlockAudioGesture, {passive:true});
@@ -565,12 +581,28 @@
 
     const __testBtn = document.getElementById('testSfxBtn');
     if (__testBtn) {
-      __testBtn.addEventListener('click', ()=>{
+      // Use pointerdown so it's guaranteed to be considered a user gesture on iOS
+      __testBtn.addEventListener('pointerdown', (ev)=>{
+        try { ev.preventDefault(); } catch(e) {}
         unlockAudioGesture();
-        // play a clearly audible test tone
-        playTone({freq: 880, dur: 0.12, type:'sine', gain:0.22, slideTo: 660});
+
+        // 1) Try a real HTMLAudio play (often more reliable on some iPads)
+        const unlockEl = document.getElementById('unlockSound');
+        if (unlockEl) {
+          try {
+            unlockEl.volume = Math.max(0.05, Math.min(1, parseFloat((document.getElementById('volControl')?.value)||'0.5')));
+            unlockEl.currentTime = 0;
+            const p = unlockEl.play();
+            if (p && p.catch) {
+              p.catch(()=>{ /* ignore */ });
+            }
+          } catch(e) {}
+        }
+
+        // 2) Try WebAudio test tone too
+        playTone({freq: 880, dur: 0.14, type:'sine', gain:0.24, slideTo: 660});
         updateAudioStatus();
-      });
+      }, {passive:false});
     }
     // keep status updated
     setInterval(updateAudioStatus, 800);
@@ -605,9 +637,57 @@
       try { playToneInternal(opts); } catch(e) {}
     }
 
-    function sfxTap(){ playTone({freq: 520, dur: 0.05, type:'triangle', gain:0.12, slideTo: 420}); }
-    function sfxReward(){ playTone({freq: 660, dur: 0.10, type:'sine', gain:0.20, slideTo: 990}); }
-    function sfxPunish(){ playTone({freq: 220, dur: 0.12, type:'sawtooth', gain:0.16, slideTo: 140}); }
+    // Detect iOS/iPadOS (iPadOS 13+ can report as Mac)
+    const __UA = navigator.userAgent || '';
+    const __isIOS = /iPad|iPhone|iPod/i.test(__UA) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+    // HTMLAudio click pool (most compatible on iPad/iPhone, even when WebAudio is flaky)
+    let __tapPool = null;
+    let __tapIdx = 0;
+    function ensureTapPool(){
+      if (__tapPool) return;
+      const src = document.getElementById('unlockSound')?.getAttribute('src');
+      if (!src) return;
+      __tapPool = Array.from({length: 10}, ()=>{
+        const a = new Audio(src);
+        a.preload = 'auto';
+        a.playsInline = true;
+        return a;
+      });
+    }
+    function playHtmlClick(vol=0.25){
+      if (!getSfxEnabled()) return;
+      ensureTapPool();
+      if (!__tapPool || __tapPool.length === 0) return;
+      const a = __tapPool[(__tapIdx++) % __tapPool.length];
+      try {
+        a.pause();
+        a.currentTime = 0;
+      } catch(e) {}
+      a.volume = Math.max(0, Math.min(1, vol));
+      const p = a.play();
+      if (p && p.catch) p.catch(()=>{});
+    }
+
+    function sfxTap(){
+      const vol = parseFloat((document.getElementById('volControl')?.value) || "0.5");
+      // On iOS: prefer HTMLAudio click (more likely to produce sound)
+      if (__isIOS) {
+        playHtmlClick(Math.min(1, vol * 0.35));
+      } else {
+        playTone({freq: 520, dur: 0.05, type:'triangle', gain: Math.min(0.22, vol*0.22), slideTo: 420});
+      }
+    }
+    function sfxReward(){
+      const vol = parseFloat((document.getElementById('volControl')?.value) || "0.5");
+      if (__isIOS) playHtmlClick(Math.min(1, vol * 0.45));
+      playTone({freq: 660, dur: 0.10, type:'sine', gain: Math.min(0.28, vol*0.28), slideTo: 990});
+    }
+    function sfxPunish(){
+      const vol = parseFloat((document.getElementById('volControl')?.value) || "0.5");
+      if (__isIOS) playHtmlClick(Math.min(1, vol * 0.45));
+      playTone({freq: 220, dur: 0.12, type:'sawtooth', gain: Math.min(0.22, vol*0.22), slideTo: 140});
+    }
 
     // Keep volume in sync while user drags slider
     const __volEl = document.getElementById('volControl');
