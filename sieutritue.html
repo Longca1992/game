@@ -577,7 +577,7 @@
     const g = audioCtx.createGain();
 
     const cfg = {
-      flip:  { f: 520, dur: 0.04, gain: 0.10 },
+      flip:  { f: 520, dur: 0.04, gain: 0.14 },
       match: { f: 820, dur: 0.08, gain: 0.13 },
       fail:  { f: 180, dur: 0.10, gain: 0.12 },
       win:   { f: 980, dur: 0.20, gain: 0.14 },
@@ -593,6 +593,11 @@
     o.start(now);
     o.stop(now + cfg.dur + 0.02);
   }
+  // "Unlock" âm thanh ngay khi người chơi chạm lần đầu (iOS/Safari hay chặn autoplay)
+  window.addEventListener('pointerdown', () => {
+    ensureAudio();
+  }, { passive: true, once: true });
+
 
   // ====== Confetti ======
   const fx = document.getElementById('fxCanvas');
@@ -865,8 +870,13 @@
 
       // pointerdown hỗ trợ đa chạm tốt hơn click
       card.addEventListener('pointerdown', (e) => {
+        // iOS/Safari: cần "unlock" AudioContext trong user gesture
         ensureAudio();
-        flipCard(card);
+        const didFlip = flipCard(card);
+        if(didFlip){
+          // phát ngay trong gesture để chắc chắn không bị chặn
+          beep('flip');
+        }
       }, {passive:true});
 
       grid.appendChild(card);
@@ -878,9 +888,9 @@
   }
 
   function flipCard(card){
-    if(lockBoard) return;
-    if(card.classList.contains('matched') || card.classList.contains('flipped')) return;
-    if(flippedCards.length === 1 && flippedCards[0] === card) return;
+    if(lockBoard) return false;
+    if(card.classList.contains('matched') || card.classList.contains('flipped')) return false;
+    if(flippedCards.length === 1 && flippedCards[0] === card) return false;
 
     // có hành động hợp lệ -> reset "idle timer"
     lastActionTs = performance.now();
@@ -889,11 +899,11 @@
 
     card.classList.add('flipped');
     flippedCards.push(card);
-    queueSound('flip');
 
     if(flippedCards.length === 2){
       checkForMatch();
     }
+    return true;
   }
 
   function checkForMatch(){
