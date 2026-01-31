@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tất Niên Cty Hải Sản Kỳ Hà - 2025</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root { --primary-red: #b30000; --gold: #ffd700; }
+        * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
+        body {
+            margin: 0; padding: 0; font-family: 'Roboto', sans-serif;
+            background: radial-gradient(circle at center, var(--primary-red), #3e0000);
+            color: #fff; height: 100dvh; width: 100vw;
+            overflow: hidden; display: flex; flex-direction: column;
+        }
+
+        /* --- MÀN HÌNH CHÀO --- */
+        #startOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); z-index: 9999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        #startOverlay h1 {
+            font-family: 'Roboto', sans-serif; font-weight: 900; text-transform: uppercase;
+            font-size: 3.5rem; color: var(--gold); margin-bottom: 20px; text-align: center;
+            line-height: 1.2; text-shadow: 2px 2px 0px #800000;
+        }
+        .btn-start {
+            padding: 20px 60px; font-size: 1.5rem;
+            background: linear-gradient(to bottom, var(--gold), #b8860b);
+            color: #800000; border: none; border-radius: 5px;
+            cursor: pointer; font-weight: bold; animation: pulse 1s infinite;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5); text-transform: uppercase;
+        }
+        @keyframes pulse { 0%, 100% {transform: scale(1);} 50% {transform: scale(1.02);} }
+
+        /* --- HEADER --- */
+        header {
+            flex: 0 0 auto; text-align: center; padding: 10px 0;
+            background: rgba(0,0,0,0.3); border-bottom: 3px solid var(--gold); z-index: 10;
+            position: relative;
+        }
+        h1 {
+            font-family: 'Roboto', sans-serif; margin: 0; font-weight: 700; text-transform: uppercase;
+            font-size: clamp(1.2rem, 3vh, 2rem); color: var(--gold); text-shadow: 1px 1px 3px #000;
+        }
+        .sound-btn {
+            position: absolute; top: 50%; right: 15px; transform: translateY(-50%);
+            background: none; border: 2px solid var(--gold); border-radius: 5px;
+            color: var(--gold); font-size: 1.2rem; width: 36px; height: 36px;
+            display: flex; justify-content: center; align-items: center; cursor: pointer;
+        }
+
+        /* --- LAYOUT --- */
+        .game-container { flex: 1; display: flex; padding: 10px; gap: 10px; overflow: hidden; }
+        .column {
+            flex: 1; display: flex; flex-direction: column;
+            background: rgba(255,255,255,0.05); border: 2px solid rgba(255,215,0,0.3);
+            border-radius: 8px; padding: 5px; transition: all 0.3s;
+        }
+        .column.active-col { 
+            border-color: #fff; background: rgba(255,255,255,0.15); 
+            box-shadow: 0 0 15px var(--gold); z-index: 20;
+        }
+        .column.disabled-col { opacity: 0.3; pointer-events: none; filter: grayscale(1); }
+        .col-title {
+            text-align: center; font-weight: bold; text-transform: uppercase;
+            font-size: clamp(0.9rem, 2vh, 1.3rem); margin-bottom: 5px; color: var(--gold);
+        }
+        #qCounter { text-align: center; font-size: 0.9rem; color: #50fa7b; font-weight: bold; margin-bottom: 5px; }
+
+        /* --- GRID --- */
+        .grid-wrapper { flex: 1; position: relative; display: flex; justify-content: center; align-items: center; }
+        .grid-box {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px;
+            width: 100%; height: 100%; max-height: 100%; aspect-ratio: 1/1; 
+        }
+        @media (max-aspect-ratio: 1/1.2) { .grid-box { aspect-ratio: auto; } }
+
+        /* --- CARDS --- */
+        .card { position: relative; cursor: pointer; perspective: 1000px; width: 100%; height: 100%; min-height: 0; }
+        .card-inner { width: 100%; height: 100%; position: relative; text-align: center; transition: transform 0.6s; transform-style: preserve-3d; }
+        .card.flipped .card-inner { transform: rotateY(180deg); }
+        .card-front, .card-back {
+            position: absolute; width: 100%; height: 100%; backface-visibility: hidden;
+            display: flex; justify-content: center; align-items: center;
+            border-radius: 6px; font-weight: bold; border: 1px solid rgba(255,255,255,0.3);
+            font-size: clamp(1.5rem, 5vh, 3rem); 
+        }
+        .reward-col .card-front { background: linear-gradient(135deg, #004d00, #2e8b57); }
+        .question-col .card-front { background: linear-gradient(135deg, #8b0000, #ff4500); color: var(--gold); }
+        .penalty-col .card-front { background: linear-gradient(135deg, #1a1a1a, #333); }
+        .card-back { background: #fff; color: #000; transform: rotateY(180deg); font-size: 1rem; }
+
+        /* --- MODAL --- */
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 1500; justify-content: center; align-items: center; backdrop-filter: blur(8px);
+        }
+        .modal-content {
+            background: #fff; color: #333; width: 90%; max-width: 550px; padding: 25px;
+            border-radius: 10px; text-align: center; border: 4px solid var(--gold);
+            box-shadow: 0 0 30px var(--gold); animation: zoomIn 0.3s; position: relative;
+        }
+        @keyframes zoomIn { from {transform: scale(0.5);} to {transform: scale(1);} }
+        .modal-body { font-size: 1.8rem; margin: 20px 0; font-weight: bold; line-height: 1.4; color: #b30000; }
+        
+        /* Phần hiển thị đáp án */
+        #answerSection {
+            display: none; margin-top: 15px; padding: 10px; background: #e6f7ff; 
+            border: 2px dashed #1890ff; color: #0050b3; font-size: 1.4rem; border-radius: 5px;
+        }
+
+        .blur-effect { filter: blur(30px); transition: filter 3.5s ease-in; }
+        .blur-effect.revealed { filter: blur(0); }
+        
+        .modal-btn { 
+            padding: 12px 30px; margin: 5px; border: none; border-radius: 5px; 
+            font-size: 1.1rem; cursor: pointer; font-weight: bold; color: #fff; text-transform: uppercase;
+        }
+        .btn-true { background: #28a745; } 
+        .btn-false { background: #dc3545; } 
+        .btn-gold { background: var(--gold); color: #800000; }
+        .btn-info { background: #17a2b8; display: none; } /* Nút xem đáp án */
+
+        /* --- TIMER --- */
+        #timerContainer { width: 100%; height: 12px; background: #ddd; border-radius: 6px; margin-bottom: 15px; overflow: hidden; display: none; }
+        #timerBar { width: 100%; height: 100%; background: #28a745; transition: width 1s linear, background 0.3s; }
+        #timerText { font-size: 1.3rem; color: #555; font-weight: bold; margin-bottom: 5px; display: none; }
+
+        /* --- ADMIN & EXTRAS --- */
+        .settings-btn {
+            position: fixed; bottom: 10px; left: 10px; font-size: 24px; cursor: pointer; z-index: 100;
+            background: rgba(0,0,0,0.5); width: 40px; height: 40px; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center; border: 2px solid #fff;
+        }
+        .admin-panel textarea { width: 100%; height: 70px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; }
+        #fireworks { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2000; }
+
+    </style>
+</head>
+<body>
+
+    <div id="startOverlay">
+        <h1>TẤT NIÊN<br>HẢI SẢN KỲ HÀ</h1>
+        <button class="btn-start" onclick="enterGame()">BẮT ĐẦU</button>
+        <p style="color:#ccc; margin-top:20px; font-size: 0.9rem;">(Chạm để kích hoạt Âm Thanh)</p>
+    </div>
+
+    <header>
+        <h1>Hải Sản Kỳ Hà - 2025</h1>
+        <button class="sound-btn" onclick="toggleSound()" id="soundIcon">🔊</button>
+    </header>
+    
+    <div class="settings-btn" onclick="openAdmin()">⚙️</div>
+
+    <div class="game-container">
+        <div class="column reward-col" id="colReward">
+            <div class="col-title">🎁 Thưởng</div>
+            <div class="grid-wrapper"><div class="grid-box" id="rewardGrid"></div></div>
+        </div>
+        <div class="column question-col" id="colQuestion">
+            <div class="col-title">❓ Câu Hỏi</div>
+            <div id="qCounter">Đang tải...</div>
+            <div class="grid-wrapper"><div class="grid-box" id="questionGrid"></div></div>
+        </div>
+        <div class="column penalty-col" id="colPenalty">
+            <div class="col-title">😈 Phạt</div>
+            <div class="grid-wrapper"><div class="grid-box" id="penaltyGrid"></div></div>
+        </div>
+    </div>
+
+    <canvas id="fireworks"></canvas>
+
+    <div id="gameModal" class="modal">
+        <div class="modal-content">
+            <h2 id="modalTitle" style="margin:0; color:#555; font-size: 1.2rem;">Tiêu đề</h2>
+            
+            <div id="timerText">00:00</div>
+            <div id="timerContainer"><div id="timerBar"></div></div>
+
+            <div id="modalBody" class="modal-body">Nội dung</div>
+            
+            <div id="answerSection"></div>
+
+            <div id="modalFooter" style="margin-top: 15px;"></div>
+        </div>
+    </div>
+
+    <div id="adminModal" class="modal">
+        <div class="modal-content admin-panel" style="text-align:left;">
+            <h2 style="text-align:center; margin-top:0;">⚙️ Nạp Dữ Liệu</h2>
+            <p style="font-size:0.9rem; color:#444; background: #eee; padding: 10px; border-radius: 5px;">
+                <b>Cú pháp nhập Câu hỏi:</b><br>
+                <code>Nội dung - Số giây - Đáp án</code><br><br>
+                Ví dụ: <code>Thủ đô Pháp? - 10 - Paris</code><br>
+                Ví dụ: <code>Sếp tên gì? - 5 - Anh Long</code><br>
+            </p>
+            <label><b>Câu Hỏi:</b></label><textarea id="inQ"></textarea>
+            <label><b>Thưởng:</b></label><textarea id="inR"></textarea>
+            <label><b>Phạt:</b></label><textarea id="inP"></textarea>
+            <div style="text-align:center;">
+                <button class="modal-btn btn-true" onclick="saveData()">Lưu & Nạp Đạn</button>
+                <button class="modal-btn btn-false" onclick="closeAdmin()">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // --- 1. AUDIO SYSTEM ---
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    let isMuted = false;
+    let bgMusic = new Audio('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'); 
+    bgMusic.loop=true; bgMusic.volume=0.3;
+
+    function toggleSound() {
+        isMuted = !isMuted;
+        const icon = document.getElementById('soundIcon');
+        if(isMuted) { icon.innerText = "🔇"; bgMusic.pause(); } else { icon.innerText = "🔊"; bgMusic.play().catch(()=>{}); }
+    }
+
+    function playTone(freq, type, dur) {
+        if(isMuted) return;
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+        const osc=audioCtx.createOscillator(); const g=audioCtx.createGain();
+        osc.type=type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        g.gain.setValueAtTime(0.1, audioCtx.currentTime); g.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime+dur);
+        osc.connect(g); g.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime+dur);
+    }
+    function playSuspense() { playTone(600,'triangle',0.1); }
+    function playWin() { [523,659,784,1046].forEach((f,i)=>setTimeout(()=>playTone(f,'sine',0.3),i*100)); }
+    function playFail() { [150,130,110].forEach((f,i)=>setTimeout(()=>playTone(f,'sawtooth',0.3),i*150)); }
+    function playTimeUp() { [800, 800, 800].forEach((f,i)=>setTimeout(()=>playTone(f,'square',0.1),i*200)); }
+
+    // --- 2. DATA ---
+    const defaultData = {
+        q: ["Địa chỉ Cty? - 10 - 206 Nguyễn Ngọc Nhựt", "Hotline Cty? - 10 - 0987.777.131", "Kể tên 5 sản phẩm? - 30", "Sếp tên gì? - 5 - LongCa", "Con gì đầu dê mình ốc? - 15 - Con Dốc"],
+        r: ["500K", "300K", "200K", "100K", "50K", "Vé Số", "Mời Sếp uống", "Hộp Cánh Gà", "Tràng pháo tay"],
+        p: ["Uống 100%", "Hát 1 bài", "Múa phụ họa", "Lì xì ngược 20k", "Catwalk", "Thụt dầu 5 cái", "Khai thật tật xấu", "Gọi điện chúc Tết", "Cười 3 kiểu"]
+    };
+    let masterQuestions = [], availableQuestions = [], rewards = [], penalties = [];
+    let currentTempIndex = -1;
+    let timerInterval;
+    let currentAnswer = ""; // Biến lưu đáp án tạm
+
+    function enterGame() {
+        document.getElementById('startOverlay').style.display = 'none';
+        if(!isMuted) {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            bgMusic.play().catch(e => console.log("Bg Music Err"));
+        }
+        initData(); renderGrids(); setActiveColumn('question');
+    }
+
+    function initData() {
+        const sQ = localStorage.getItem('hskh_q'), sR = localStorage.getItem('hskh_r'), sP = localStorage.getItem('hskh_p');
+        masterQuestions = sQ ? JSON.parse(sQ) : [...defaultData.q];
+        availableQuestions = [...masterQuestions];
+        rewards = sR ? JSON.parse(sR) : [...defaultData.r];
+        penalties = sP ? JSON.parse(sP) : [...defaultData.p];
+        updateCounter();
+    }
+    function updateCounter() {
+        const count = availableQuestions.length;
+        document.getElementById('qCounter').innerText = count === 0 ? "HẾT CÂU HỎI!" : `Câu hỏi còn lại: ${count}`;
+    }
+
+    // --- 3. RENDER ---
+    function renderGrids() {
+        renderCol('questionGrid', 9, 'q', handleQ);
+        renderCol('rewardGrid', 9, 'r', handleR);
+        renderCol('penaltyGrid', 9, 'p', handleP);
+    }
+    function renderCol(id, count, type, fn) {
+        const el = document.getElementById(id); el.innerHTML = '';
+        for(let i=1; i<=count; i++){
+            const card = document.createElement('div'); card.className = `card ${type}-card`; card.onclick = () => fn(i, card);
+            card.innerHTML = `<div class="card-inner"><div class="card-front">${i}</div><div class="card-back"></div></div>`; el.appendChild(card);
+        }
+    }
+    function setActiveColumn(type) {
+        ['colReward','colQuestion','colPenalty'].forEach(id => document.getElementById(id).className = 'column disabled-col');
+        if(type === 'question') document.getElementById('colQuestion').className = 'column question-col active-col';
+        if(type === 'reward') document.getElementById('colReward').className = 'column reward-col active-col';
+        if(type === 'penalty') document.getElementById('colPenalty').className = 'column penalty-col active-col';
+    }
+
+    // --- 4. GAME LOGIC ---
+    function handleQ(i, card) {
+        if(!document.getElementById('colQuestion').classList.contains('active-col')) return;
+        if(availableQuestions.length === 0) { alert("Hết câu hỏi!"); return; }
+
+        playSuspense(); card.classList.add('flipped');
+        
+        const randIdx = Math.floor(Math.random() * availableQuestions.length);
+        const rawContent = availableQuestions[randIdx];
+        currentTempIndex = randIdx;
+
+        // --- PHÂN TÍCH CÚ PHÁP: CÂU HỎI - GIÂY - ĐÁP ÁN ---
+        // Tách chuỗi bằng dấu "-"
+        const parts = rawContent.split('-').map(p => p.trim());
+        
+        let qText = parts[0];
+        let duration = 15; // Mặc định
+        currentAnswer = ""; // Reset đáp án
+
+        if (parts.length >= 2) {
+            // Kiểm tra phần thứ 2 có phải số giây không
+            if (!isNaN(parts[1]) && parts[1] !== "") {
+                duration = parseInt(parts[1]);
+                // Nếu có phần thứ 3, đó là đáp án
+                if (parts.length >= 3) {
+                    currentAnswer = parts.slice(2).join('-'); // Ghép lại nếu đáp án có dấu -
+                }
+            } else {
+                // Nếu phần 2 không phải số, có thể người dùng nhập: Câu hỏi - Đáp án (quên giây)
+                // Hoặc: Câu hỏi có dấu gạch ngang
+                // Để đơn giản, ta coi phần còn lại là câu hỏi nối tiếp hoặc bỏ qua
+            }
+        }
+
+        setTimeout(() => {
+            // Ẩn đáp án cũ
+            document.getElementById('answerSection').style.display = 'none';
+            document.getElementById('answerSection').innerText = "";
+
+            showModal("CÂU HỎI", qText, `
+                <button id="btnShowAns" class="modal-btn btn-info" onclick="toggleAnswer()">XEM ĐÁP ÁN</button>
+                <button class="modal-btn btn-true" onclick="ans(true)">ĐÚNG</button>
+                <button class="modal-btn btn-false" onclick="ans(false)">SAI</button>
+            `);
+            startTimer(duration);
+        }, 500);
+    }
+
+    function startTimer(seconds) {
+        const container = document.getElementById('timerContainer');
+        const bar = document.getElementById('timerBar');
+        const text = document.getElementById('timerText');
+        const btnShowAns = document.getElementById('btnShowAns');
+        
+        container.style.display = 'block';
+        text.style.display = 'block';
+        bar.style.width = '100%';
+        bar.style.background = '#28a745';
+        
+        // Ẩn nút xem đáp án lúc đầu
+        if(btnShowAns) btnShowAns.style.display = 'none';
+        
+        let timeLeft = seconds;
+        text.innerText = `Thời gian: ${timeLeft}s`;
+
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            text.innerText = `Thời gian: ${timeLeft}s`;
+            const percent = (timeLeft / seconds) * 100;
+            bar.style.width = percent + '%';
+            
+            if(timeLeft < 5) bar.style.background = '#dc3545'; 
+            
+            if(timeLeft <= 0) {
+                clearInterval(timerInterval);
+                playTimeUp();
+                text.innerText = "HẾT GIỜ!";
+                // HIỆN NÚT XEM ĐÁP ÁN KHI HẾT GIỜ (Nếu có đáp án)
+                if(currentAnswer && btnShowAns) {
+                    btnShowAns.style.display = 'inline-block';
+                }
+            }
+        }, 1000);
+    }
+
+    function toggleAnswer() {
+        const ansDiv = document.getElementById('answerSection');
+        ansDiv.innerText = "ĐÁP ÁN: " + currentAnswer;
+        ansDiv.style.display = 'block';
+    }
+
+    function ans(isCorrect) {
+        closeModal();
+        if(currentTempIndex > -1) { availableQuestions.splice(currentTempIndex, 1); updateCounter(); }
+        if(isCorrect) { playWin(); setActiveColumn('reward'); } else { playFail(); setActiveColumn('penalty'); }
+    }
+
+    function handleR(i, card) {
+        if(!document.getElementById('colReward').classList.contains('active-col')) return;
+        playSuspense(); card.classList.add('flipped');
+        const content = rewards[Math.floor(Math.random()*rewards.length)];
+        setTimeout(() => {
+            playWin(); 
+            startFireworks(); 
+            showModal("🎉 CHÚC MỪNG", content, `<button class="modal-btn btn-gold" onclick="finish('r')">NHẬN QUÀ</button>`);
+        }, 1000);
+    }
+
+    function handleP(i, card) {
+        if(!document.getElementById('colPenalty').classList.contains('active-col')) return;
+        playSuspense(); card.classList.add('flipped');
+        const content = penalties[Math.floor(Math.random()*penalties.length)];
+        setTimeout(() => {
+            const b = document.getElementById('modalBody'); b.classList.add('blur-effect'); b.innerText = content;
+            showModal("😈 HÌNH PHẠT", content, `<button class="modal-btn btn-false" onclick="finish('p')">CHẤP NHẬN</button>`);
+            setTimeout(() => { b.classList.add('revealed'); playFail(); }, 300);
+        }, 1000);
+    }
+
+    function finish(type) {
+        closeModal(); stopFireworks();
+        document.getElementById('modalBody').className = 'modal-body';
+        document.querySelectorAll('.card').forEach(c => c.classList.remove('flipped'));
+        setActiveColumn('question');
+    }
+
+    // --- UTILS ---
+    function showModal(t,b,f) {
+        document.getElementById('modalTitle').innerText = t;
+        document.getElementById('modalBody').innerHTML = b;
+        document.getElementById('modalFooter').innerHTML = f;
+        document.getElementById('gameModal').style.display = 'flex';
+    }
+    function closeModal() { 
+        document.getElementById('gameModal').style.display = 'none'; 
+        clearInterval(timerInterval); 
+        document.getElementById('timerContainer').style.display = 'none';
+        document.getElementById('timerText').style.display = 'none';
+        document.getElementById('answerSection').style.display = 'none'; // Ẩn đáp án
+    }
+    
+    function openAdmin() { 
+        document.getElementById('inQ').value = masterQuestions.join('\n');
+        document.getElementById('inR').value = rewards.join('\n');
+        document.getElementById('inP').value = penalties.join('\n');
+        document.getElementById('adminModal').style.display = 'flex';
+    }
+    function closeAdmin() { document.getElementById('adminModal').style.display = 'none'; }
+    function saveData() {
+        const parse = id => Papa.parse(document.getElementById(id).value, {skipEmptyLines:true}).data.flat();
+        const nQ=parse('inQ'), nR=parse('inR'), nP=parse('inP');
+        if(nQ.length) { masterQuestions = nQ; localStorage.setItem('hskh_q', JSON.stringify(masterQuestions)); availableQuestions = [...masterQuestions]; updateCounter(); }
+        if(nR.length) localStorage.setItem('hskh_r', JSON.stringify(rewards=nR));
+        if(nP.length) localStorage.setItem('hskh_p', JSON.stringify(penalties=nP));
+        alert("Đã lưu!"); closeAdmin(); document.querySelectorAll('.card').forEach(c => c.classList.remove('flipped')); setActiveColumn('question');
+    }
+
+    // FIREWORKS
+    const canvas = document.getElementById('fireworks'); const ctx = canvas.getContext('2d');
+    let particles=[], fwInterval;
+    window.onresize = () => { canvas.width=window.innerWidth; canvas.height=window.innerHeight; }; window.onresize();
+    function createParticle(x,y){ for(let i=0;i<50;i++) particles.push({x,y,color:`hsl(${Math.random()*360},100%,50%)`,vx:(Math.random()-0.5)*15,vy:(Math.random()-0.5)*15,life:120,a:1}); }
+    function animFW(){ ctx.clearRect(0,0,canvas.width,canvas.height); particles.forEach((p,i)=>{ if(p.life>0){ ctx.fillStyle=p.color;ctx.globalAlpha=p.a;ctx.beginPath();ctx.arc(p.x,p.y,4,0,7);ctx.fill();p.x+=p.vx;p.y+=p.vy;p.life--;p.a-=0.01;}else particles.splice(i,1); }); if(particles.length||fwInterval) requestAnimationFrame(animFW); }
+    function startFireworks(){ fwInterval=setInterval(()=>createParticle(Math.random()*canvas.width,Math.random()*canvas.height/3),300); animFW(); }
+    function stopFireworks(){ clearInterval(fwInterval); fwInterval=null; particles=[]; ctx.clearRect(0,0,canvas.width,canvas.height); }
+
+</script>
+</body>
+</html>

@@ -1,0 +1,1015 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>Mini Game Tất Niên Xóm 54/92 - 2025</title>
+  <style>
+    :root{
+      --bg1:#8b0000;
+      --bg2:#2a0000;
+      --gold:#ffd36a;
+      --gold2:#ffb300;
+      --text:#fff5dd;
+      --muted:#ffdca8cc;
+      --cell:#3a0000;
+      --cell2:#520000;
+      --ring: rgba(255, 211, 106, 0.95);
+      --shadow: 0 18px 45px rgba(0,0,0,.35);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, "SF Pro Display", "SF Pro Text", Segoe UI, Roboto, Arial, sans-serif;
+      color:var(--text);
+      min-height:100vh;
+      background:
+        radial-gradient(1200px 700px at 20% 0%, rgba(255,211,106,.20), transparent 60%),
+        radial-gradient(900px 500px at 80% 10%, rgba(255,179,0,.18), transparent 55%),
+        linear-gradient(180deg, var(--bg1), var(--bg2));
+      overflow:hidden;
+    }
+
+    .app{ height:100vh; display:flex; flex-direction:column; overflow:hidden; }
+
+    header{
+      padding: 14px 14px 10px;
+      display:flex; gap:12px;
+      align-items:center; justify-content:space-between;
+      max-width: 1200px; width:100%;
+      margin: 0 auto;
+    }
+    .title{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+    .title h1{
+      margin:0; font-size: clamp(18px, 2.4vw, 28px);
+      letter-spacing:.2px;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .title p{ margin:0; color:var(--muted); font-size:13px; }
+
+    .badge{
+      display:flex; align-items:center; gap:10px;
+      background: linear-gradient(180deg, rgba(255,211,106,.22), rgba(0,0,0,.15));
+      border: 1px solid rgba(255,211,106,.35);
+      padding: 10px 12px;
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      min-width: 240px;
+      justify-content: space-between;
+      flex:0 0 auto;
+    }
+    .badge .lbl{ color:var(--muted); font-size:12px; }
+    .badge .val{ font-weight: 900; color: var(--gold); }
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,211,106,.18);
+      background: rgba(0,0,0,.12);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+      white-space:nowrap;
+    }
+    .pill b{ color: var(--gold); }
+
+    main{
+      flex:1; min-height:0;
+      max-width: 1200px; width:100%;
+      margin: 0 auto;
+      padding: 8px 14px 14px;
+      display:grid;
+
+      /* NEW: control panel narrower */
+      grid-template-columns: 1fr 320px;
+      gap: 14px;
+      overflow:hidden;
+    }
+    @media (max-width: 980px){
+      main{ grid-template-columns: 1fr; }
+      .badge{ min-width: unset; }
+    }
+
+    .panel{
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,.20));
+      border: 1px solid rgba(255,211,106,.22);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      min-height:0;
+      display:flex;
+      flex-direction:column;
+    }
+    .panel .head{
+      padding: 12px 14px;
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      border-bottom: 1px solid rgba(255,211,106,.15);
+      background: linear-gradient(180deg, rgba(255,211,106,.10), rgba(0,0,0,.12));
+      flex:0 0 auto;
+    }
+    .panel .head .h{ font-weight: 950; letter-spacing:.2px; }
+    .panel .head .sub{ color: var(--muted); font-size: 12px; margin-left:8px; font-weight:700; }
+
+    .gridWrap{ padding: 12px; min-height:0; flex:1; display:flex; }
+    .grid{
+      display:grid;
+      /* columns are set by JS inline style: grid-template-columns: repeat(X, 1fr) */
+      gap: clamp(6px, 1.0vw, 10px);
+      user-select:none; -webkit-user-select:none;
+      touch-action: manipulation;
+      width:100%; height:100%;
+      align-content:stretch;
+    }
+    .cell{
+      position:relative;
+      border-radius: 14px;
+      display:flex; align-items:center; justify-content:center;
+      font-weight: 950;
+      color: rgba(255,245,221,.95);
+      box-shadow: 0 8px 20px rgba(0,0,0,.25);
+      transition: transform .08s ease, filter .08s ease, opacity .12s ease;
+      overflow:hidden;
+      background: linear-gradient(180deg, var(--cell2), var(--cell));
+      border: 1px solid rgba(255,211,106,.12);
+
+      aspect-ratio: 1 / 1;
+      font-size: clamp(12px, 2.0vw, 18px);
+    }
+    .cell.used{ opacity:.30; filter: grayscale(.12); }
+    .cell.active{
+      transform: translateY(-1px) scale(1.03);
+      border-color: rgba(255,211,106,.70);
+      box-shadow:
+        0 0 0 3px var(--ring),
+        0 0 26px 6px rgba(255,211,106,.25),
+        0 16px 34px rgba(0,0,0,.35);
+    }
+    .cell.active::after{
+      content:"";
+      position:absolute; inset:-30%;
+      background: radial-gradient(circle at 50% 50%, rgba(255,211,106,.35), transparent 60%);
+      transform: rotate(15deg);
+      animation: glow 1.1s ease-in-out infinite;
+    }
+    @keyframes glow{ 0%,100%{opacity:.25} 50%{opacity:.55} }
+
+    /* RIGHT PANEL: vertical controls */
+    .controls{
+      padding: 12px;
+      display:flex;
+      flex-direction:column;
+      gap: 10px;
+      min-height:0;
+    }
+    .block{
+      display:flex; flex-direction:column; gap:10px;
+      padding: 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,211,106,.18);
+      background: rgba(0,0,0,.16);
+      flex:0 0 auto;
+    }
+
+    .prizeBox{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+    .prizeName{ font-size: 18px; font-weight: 1000; letter-spacing:.2px; color: var(--gold); }
+    .hint{ color: var(--muted); font-size: 12px; line-height: 1.35; }
+
+    .field{
+      display:flex; flex-direction:column; gap:8px;
+      padding: 10px 10px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,211,106,.14);
+      background: rgba(255,255,255,.04);
+    }
+    .field label{ color: var(--muted); font-size: 12px; font-weight: 900; }
+    .fieldRow{ display:flex; gap:10px; align-items:center; }
+    input[type="number"]{
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,211,106,.25);
+      background: rgba(0,0,0,.18);
+      color: var(--text);
+      font-weight: 900;
+      font-size: 14px;
+      outline:none;
+    }
+
+    button{
+      appearance:none; border:none;
+      border-radius: 16px;
+      padding: 14px 14px;
+      font-weight: 950;
+      font-size: 16px;
+      color:#2a0c00;
+      background: linear-gradient(180deg, var(--gold), var(--gold2));
+      box-shadow: 0 14px 28px rgba(0,0,0,.28);
+      cursor:pointer;
+      transition: transform .08s ease, filter .12s ease, opacity .12s ease;
+      touch-action: manipulation;
+      width: 100%;
+    }
+    button:active{ transform: translateY(1px) scale(.99); }
+    button:disabled{ opacity:.45; cursor:not-allowed; filter: grayscale(.15); }
+    .btnSecondary{
+      background: linear-gradient(180deg, rgba(255,255,255,.18), rgba(0,0,0,.20));
+      color: var(--text);
+      border: 1px solid rgba(255,211,106,.22);
+    }
+    .btnDanger{
+      background: linear-gradient(180deg, rgba(255,90,95,.95), rgba(150,0,0,.85));
+      color: #fff;
+    }
+
+    .switch{
+      display:flex; flex-direction:column; gap:10px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .switch label{ display:flex; align-items:center; gap:10px; }
+    .switch input{ width: 20px; height: 20px; accent-color: var(--gold2); }
+
+    .log{
+      padding: 10px 12px 12px;
+      border-top: 1px solid rgba(255,211,106,.15);
+      background: rgba(0,0,0,.10);
+      overflow:auto;
+      flex:1;
+      min-height:0;
+      border-radius: 16px;
+    }
+    .logItem{
+      display:flex; justify-content:space-between; gap:10px;
+      padding: 10px 10px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,211,106,.14);
+      background: rgba(255,255,255,.04);
+      margin-bottom: 10px;
+    }
+    .logItem:last-child{ margin-bottom:0; }
+    .logItem .left{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+    .logItem .left .p{ font-weight: 950; color: var(--gold); }
+    .logItem .left .t{ font-size: 12px; color: var(--muted); }
+    .logItem .num{
+      font-size: 26px;
+      font-weight: 1100;
+      color: #fff;
+      min-width: 68px;
+      text-align:right;
+      text-shadow: 0 10px 22px rgba(0,0,0,.35);
+    }
+
+    .toast{
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 18px;
+      background: rgba(0,0,0,.55);
+      border: 1px solid rgba(255,211,106,.22);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      opacity: 0;
+      pointer-events:none;
+      transition: opacity .18s ease, transform .18s ease;
+      max-width: 92vw;
+      text-align:center;
+      font-weight: 900;
+      z-index: 30;
+    }
+    .toast.show{ opacity:1; transform: translateX(-50%) translateY(-2px); }
+
+    /* Result overlay */
+    .overlay{
+      position: fixed;
+      inset: 0;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index: 50;
+      background: rgba(0,0,0,.35);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+    }
+    .overlay.show{ display:flex; }
+
+    .resultCard{
+      position:relative;
+      width: min(860px, 92vw);
+      height: min(520px, 78vh);
+      border-radius: 26px;
+      border: 1px solid rgba(255,211,106,.28);
+      box-shadow: 0 30px 90px rgba(0,0,0,.55);
+      overflow:hidden;
+      background:
+        radial-gradient(900px 500px at 20% 0%, rgba(255,211,106,.18), transparent 55%),
+        linear-gradient(180deg, rgba(140,0,0,.95), rgba(35,0,0,.90));
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 18px;
+    }
+    #fxCanvas{ position:absolute; inset:0; width:100%; height:100%; }
+    .resultContent{ position:relative; z-index:2; text-align:center; padding: 14px; }
+    .resultTitle{
+      font-weight: 1000;
+      font-size: clamp(18px, 3vw, 26px);
+      color: var(--gold);
+      margin: 0 0 6px;
+      text-shadow: 0 14px 28px rgba(0,0,0,.35);
+    }
+    .resultNum{
+      font-weight: 1200;
+      font-size: clamp(72px, 10vw, 140px);
+      margin: 0;
+      color: #fff6df;
+      letter-spacing: 1px;
+      text-shadow:
+        0 0 0 3px rgba(255,211,106,.25),
+        0 22px 60px rgba(0,0,0,.55);
+    }
+    .resultHint{ margin: 10px 0 0; color: var(--muted); font-weight: 800; font-size: 13px; }
+    .overlayBtns{
+      position:absolute;
+      bottom: 14px;
+      right: 14px;
+      z-index:3;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .overlayBtns button{ width:auto; }
+    .smallBtn{ padding: 12px 12px; font-size: 14px; border-radius: 14px; }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <header>
+      <div class="title">
+        <h1>🎉 Mini Game Tất Niên Xóm 54/92 - 2025</h1>
+        <p>Chạm <b>QUAY</b> để chạy viền sáng ~15s (cuối rất chậm + “đánh lừa” vài số). Có 4 giải theo thứ tự.</p>
+      </div>
+      <div class="badge">
+        <div>
+          <div class="lbl">Lượt tiếp theo</div>
+          <div class="val" id="nextPrize">Giải 3</div>
+        </div>
+        <div class="pill">Còn lại: <b id="remain">100</b></div>
+      </div>
+    </header>
+
+    <main>
+      <section class="panel">
+        <div class="head">
+          <div>
+            <span class="h">Bảng số</span>
+            <span class="sub" id="rangeLabel">1 → 100</span>
+          </div>
+          <div class="pill">⏱️ Thời gian quay: <b>~15s</b></div>
+        </div>
+        <div class="gridWrap">
+          <div class="grid" id="grid"></div>
+        </div>
+      </section>
+
+      <aside class="panel">
+        <div class="head">
+          <div class="h">Bảng điều khiển</div>
+          <div class="pill">🎊</div>
+        </div>
+
+        <div class="controls">
+          <div class="block">
+            <div class="prizeBox">
+              <div>
+                <div class="hint">Giải đang quay</div>
+                <div class="prizeName" id="prizeName">Giải 3</div>
+              </div>
+              <div class="pill">Vòng: <b id="spinIndex">1/4</b></div>
+            </div>
+
+            <div class="field">
+              <label for="countInput">Số người / số lượng ô:</label>
+              <div class="fieldRow">
+                <input id="countInput" type="number" min="1" max="100" value="100" />
+                <button id="btnApplyCount" class="btnSecondary" style="width:auto; padding:12px 12px;">Áp dụng</button>
+              </div>
+              <div class="hint">Tự co lưới theo số người để nhìn không bị thưa.</div>
+            </div>
+
+            <!-- Vertical buttons -->
+            <button id="btnSpin">🎡 QUAY</button>
+            <button id="btnTest" class="btnSecondary">🔊 Test âm thanh</button>
+            <button id="btnUndo" class="btnSecondary" disabled>↩️ Hoàn tác lượt gần nhất</button>
+            <button id="btnReset" class="btnDanger">🧨 Reset (xóa kết quả)</button>
+
+            <div class="switch">
+              <label><input type="checkbox" id="chkNoRepeat" checked /> Không trùng số</label>
+              <label><input type="checkbox" id="chkSound" checked /> Bật âm thanh</label>
+            </div>
+
+            <div class="hint">
+              • 4 lượt: <b>Giải 3 → Giải nhì → Giải nhất → Giải đặc biệt</b><br/>
+              • iPad Safari có thể chặn âm thanh: bấm <b>Test âm thanh</b> 1 lần.
+            </div>
+          </div>
+
+          <div class="log" id="log"></div>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <!-- Result overlay -->
+  <div class="overlay" id="overlay">
+    <div class="resultCard">
+      <canvas id="fxCanvas"></canvas>
+
+      <div class="resultContent">
+        <div class="resultTitle" id="resultTitle">🎉 Chúc mừng!</div>
+        <h2 class="resultNum" id="resultNum">#00</h2>
+        <p class="resultHint">Chạm “Đóng” để quay tiếp</p>
+      </div>
+
+      <div class="overlayBtns">
+        <button class="btnSecondary smallBtn" id="btnReplayFx">🎆 Pháo hoa lại</button>
+        <button class="smallBtn" id="btnCloseOverlay">✅ Đóng</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+(() => {
+  const PRIZES = ["Giải 3", "Giải nhì", "Giải nhất", "Giải đặc biệt"];
+  const SPIN_DURATION_MS = 15000;
+  const TRICK_EXTRA_STEPS_MIN = 1;
+  const TRICK_EXTRA_STEPS_MAX = 2;
+
+  let spinCount = 0;
+  let isSpinning = false;
+
+  let maxNumber = 100;
+  let activeIndex = 0;
+
+  let used = new Set();
+  let history = [];
+
+  const gridEl = document.getElementById('grid');
+  const btnSpin = document.getElementById('btnSpin');
+  const btnTest = document.getElementById('btnTest');
+  const btnReset = document.getElementById('btnReset');
+  const btnUndo = document.getElementById('btnUndo');
+  const chkNoRepeat = document.getElementById('chkNoRepeat');
+  const chkSound = document.getElementById('chkSound');
+
+  const prizeNameEl = document.getElementById('prizeName');
+  const nextPrizeEl = document.getElementById('nextPrize');
+  const spinIndexEl = document.getElementById('spinIndex');
+  const logEl = document.getElementById('log');
+  const remainEl = document.getElementById('remain');
+  const toastEl = document.getElementById('toast');
+
+  const countInput = document.getElementById('countInput');
+  const btnApplyCount = document.getElementById('btnApplyCount');
+  const rangeLabel = document.getElementById('rangeLabel');
+
+  const overlay = document.getElementById('overlay');
+  const resultTitle = document.getElementById('resultTitle');
+  const resultNum = document.getElementById('resultNum');
+  const btnCloseOverlay = document.getElementById('btnCloseOverlay');
+  const btnReplayFx = document.getElementById('btnReplayFx');
+  const fxCanvas = document.getElementById('fxCanvas');
+  const fxCtx = fxCanvas.getContext('2d');
+
+  function toast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastEl._t);
+    toastEl._t = setTimeout(() => toastEl.classList.remove('show'), 1700);
+  }
+  function nowStr(){
+    return new Date().toLocaleString('vi-VN', { hour12:false });
+  }
+
+  function getCells(){ return gridEl.querySelectorAll('.cell'); }
+
+  function setActive(idx){
+    const cells = getCells();
+    if(!cells.length) return;
+    idx = ((idx % cells.length) + cells.length) % cells.length;
+    cells[activeIndex]?.classList.remove('active');
+    activeIndex = idx;
+    cells[activeIndex]?.classList.add('active');
+  }
+
+  function updateUI(){
+    const nextPrize = PRIZES[Math.min(spinCount, PRIZES.length-1)];
+    prizeNameEl.textContent = nextPrize;
+    nextPrizeEl.textContent = nextPrize;
+    spinIndexEl.textContent = `${Math.min(spinCount+1, PRIZES.length)}/${PRIZES.length}`;
+
+    const remain = maxNumber - used.size;
+    remainEl.textContent = String(remain);
+
+    btnUndo.disabled = history.length === 0 || isSpinning;
+    btnSpin.disabled = isSpinning || (chkNoRepeat.checked && used.size >= maxNumber);
+
+    const cells = getCells();
+    cells.forEach(c => {
+      const num = Number(c.dataset.n);
+      c.classList.toggle('used', used.has(num));
+    });
+
+    rangeLabel.textContent = `1 → ${maxNumber}`;
+  }
+
+  function addLogItem(item){
+    const wrap = document.createElement('div');
+    wrap.className = 'logItem';
+    wrap.innerHTML = `
+      <div class="left">
+        <div class="p">${item.prize}</div>
+        <div class="t">${item.time}</div>
+      </div>
+      <div class="num">#${item.number}</div>
+    `;
+    logEl.prepend(wrap);
+  }
+
+  function rebuildLog(){
+    logEl.innerHTML = '';
+    [...history].reverse().forEach(addLogItem);
+  }
+
+  // --- AUTO FIT GRID COLUMNS based on count ---
+  function computeCols(n){
+    // Aim: cell size not too huge, grid not too tall.
+    // Simple rule-of-thumb by ranges:
+    if (n <= 12) return 4;      // 1..12
+    if (n <= 20) return 5;      // 13..20
+    if (n <= 30) return 6;      // 21..30
+    if (n <= 42) return 7;      // 31..42
+    if (n <= 56) return 8;      // 43..56
+    if (n <= 72) return 9;      // 57..72
+    return 10;                  // 73..100
+  }
+
+  function buildGrid(n){
+    gridEl.innerHTML = '';
+
+    // set columns dynamically
+    const cols = computeCols(n);
+    gridEl.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+
+    for(let i=1;i<=n;i++){
+      const d = document.createElement('div');
+      d.className = 'cell';
+      d.textContent = i;
+      d.dataset.n = String(i);
+      gridEl.appendChild(d);
+    }
+
+    activeIndex = Math.floor(Math.random()*n);
+    setActive(activeIndex);
+
+    updateUI();
+  }
+
+  // ---------- Sound (Web Audio) ----------
+  let audioCtx = null;
+  function ensureAudio(){
+    if (!chkSound.checked) return null;
+    if (!audioCtx){
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+
+  function makeNoiseBuffer(duration=0.25){
+    const ctx = ensureAudio();
+    if(!ctx) return null;
+    const sr = ctx.sampleRate;
+    const len = Math.floor(sr * duration);
+    const buf = ctx.createBuffer(1, len, sr);
+    const data = buf.getChannelData(0);
+    for(let i=0;i<len;i++) data[i] = (Math.random()*2-1);
+    return buf;
+  }
+
+  function tick(){
+    const ctx = ensureAudio();
+    if(!ctx) return;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'square';
+    osc.frequency.value = 920;
+    gain.gain.value = 0.05;
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.022);
+  }
+
+  function fireworkBoom(){
+    const ctx = ensureAudio();
+    if(!ctx) return;
+    const noise = ctx.createBufferSource();
+    noise.buffer = makeNoiseBuffer(0.4);
+
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = 220;
+
+    const gain = ctx.createGain();
+    const t = ctx.currentTime;
+    gain.gain.setValueAtTime(0.001, t);
+    gain.gain.exponentialRampToValueAtTime(0.22, t + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.38);
+
+    noise.connect(lp); lp.connect(gain); gain.connect(ctx.destination);
+    noise.start();
+    noise.stop(t + 0.41);
+  }
+
+  function sparkle(){
+    const ctx = ensureAudio();
+    if(!ctx) return;
+    for(let i=0;i<6;i++){
+      const t0 = ctx.currentTime + i*0.035;
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(1200 + Math.random()*900, t0);
+      g.gain.setValueAtTime(0.001, t0);
+      g.gain.exponentialRampToValueAtTime(0.08, t0+0.01);
+      g.gain.exponentialRampToValueAtTime(0.001, t0+0.06);
+      osc.connect(g); g.connect(ctx.destination);
+      osc.start(t0);
+      osc.stop(t0+0.07);
+    }
+  }
+
+  function applause(duration=1.2){
+    const ctx = ensureAudio();
+    if(!ctx) return;
+    const endT = ctx.currentTime + duration;
+    const every = 0.045;
+    for(let t = ctx.currentTime; t < endT; t += every){
+      const src = ctx.createBufferSource();
+      src.buffer = makeNoiseBuffer(0.06);
+
+      const bp = ctx.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.frequency.value = 1800 + Math.random()*900;
+      bp.Q.value = 0.9 + Math.random()*1.5;
+
+      const g = ctx.createGain();
+      const amp = 0.06 + Math.random()*0.08;
+      g.gain.setValueAtTime(0.001, t);
+      g.gain.exponentialRampToValueAtTime(amp, t+0.008);
+      g.gain.exponentialRampToValueAtTime(0.001, t+0.055);
+
+      src.connect(bp); bp.connect(g); g.connect(ctx.destination);
+      src.start(t);
+      src.stop(t+0.07);
+    }
+  }
+
+  function celebrationSound(){
+    fireworkBoom();
+    setTimeout(() => sparkle(), 120);
+    setTimeout(() => fireworkBoom(), 520);
+    setTimeout(() => sparkle(), 650);
+    setTimeout(() => applause(1.35), 120);
+  }
+
+  // ---------- Spin logic with trick ----------
+  function pickTargetIndex(){
+    const cells = getCells();
+    if (!cells.length) return null;
+
+    if (chkNoRepeat.checked){
+      const remaining = [];
+      for(let i=0;i<cells.length;i++){
+        const num = Number(cells[i].dataset.n);
+        if (!used.has(num)) remaining.push(i);
+      }
+      if (remaining.length === 0) return null;
+      return remaining[Math.floor(Math.random()*remaining.length)];
+    }
+    return Math.floor(Math.random()*cells.length);
+  }
+
+  function buildSequenceWithTrick(baseSteps, targetIdx){
+    const cells = getCells();
+    const n = cells.length;
+
+    const trickExtras = TRICK_EXTRA_STEPS_MIN + Math.floor(Math.random()*(TRICK_EXTRA_STEPS_MAX-TRICK_EXTRA_STEPS_MIN+1));
+    const seq = [];
+    let prev = activeIndex;
+
+    const pickDifferent = (avoidSet) => {
+      let x;
+      do { x = Math.floor(Math.random()*n); }
+      while(avoidSet.has(x));
+      return x;
+    };
+
+    const reserve = 3 + trickExtras + 1;
+    const earlySteps = Math.max(20, baseSteps - reserve);
+
+    for(let i=0;i<earlySteps;i++){
+      const idx = pickDifferent(new Set([prev]));
+      seq.push(idx); prev = idx;
+    }
+
+    const fake3 = pickDifferent(new Set([prev, targetIdx]));
+    const fake2 = pickDifferent(new Set([fake3, prev, targetIdx]));
+    const fake1 = pickDifferent(new Set([fake2, fake3, prev, targetIdx]));
+    seq.push(fake3, fake2, fake1);
+    prev = fake1;
+
+    for(let i=0;i<trickExtras;i++){
+      const idx = pickDifferent(new Set([prev, targetIdx]));
+      seq.push(idx); prev = idx;
+    }
+
+    if(prev === targetIdx){
+      const idx = pickDifferent(new Set([prev]));
+      seq.push(idx);
+    }
+    seq.push(targetIdx);
+
+    return { seq, fakeStartIndex: earlySteps };
+  }
+
+  function buildDelays(seqLen, fakeStartIndex){
+    const delays = new Array(seqLen).fill(0);
+
+    const lastIdx = seqLen - 1;
+    const fake3Idx = fakeStartIndex;
+    const fake2Idx = fakeStartIndex + 1;
+    const fake1Idx = fakeStartIndex + 2;
+    const extraStart = fakeStartIndex + 3;
+    const extraEnd = lastIdx - 1;
+
+    const earlyEnd = fake3Idx - 1;
+    let earlySum = 0;
+    for(let i=0;i<=earlyEnd;i++){
+      const x = i / Math.max(1, earlyEnd);
+      const d = 24 + (1 - Math.pow(1-x, 3)) * 170;
+      delays[i] = d;
+      earlySum += d;
+    }
+
+    // 3 "giây cuối" rất chậm để đánh lừa
+    delays[fake3Idx] = 650;
+    delays[fake2Idx] = 950;
+    delays[fake1Idx] = 1400;
+
+    for(let i=extraStart;i<=extraEnd;i++){
+      delays[i] = 820 + Math.random()*280; // 820..1100
+    }
+
+    delays[lastIdx] = 1100;
+
+    const dramaticSum = delays.slice(fake3Idx).reduce((s,v)=>s+v,0);
+    const earlyTargetSum = Math.max(2200, SPIN_DURATION_MS - dramaticSum);
+    const scale = earlyTargetSum / Math.max(1, earlySum);
+
+    for(let i=0;i<=earlyEnd;i++){
+      delays[i] *= scale;
+    }
+    return delays;
+  }
+
+  async function spin(){
+    if (isSpinning) return;
+    const cells = getCells();
+    if(!cells.length) return;
+
+    const target = pickTargetIndex();
+    if (target == null){
+      toast("Hết số rồi! Reset để chơi lại nhé.");
+      return;
+    }
+
+    isSpinning = true;
+    updateUI();
+
+    const baseSteps = 120 + Math.floor(Math.random()*60);
+    const { seq, fakeStartIndex } = buildSequenceWithTrick(baseSteps, target);
+    const delays = buildDelays(seq.length, fakeStartIndex);
+
+    for(let i=0;i<seq.length;i++){
+      setActive(seq[i]);
+      tick();
+      await new Promise(r => setTimeout(r, delays[i]));
+    }
+
+    const landedNum = Number(cells[activeIndex].dataset.n);
+    used.add(landedNum);
+
+    const prize = PRIZES[Math.min(spinCount, PRIZES.length-1)];
+    const item = { prize, number: landedNum, time: nowStr(), idxInGrid: activeIndex };
+    history.push(item);
+    addLogItem(item);
+
+    spinCount += 1;
+    isSpinning = false;
+    updateUI();
+
+    showResult(prize, landedNum);
+  }
+
+  // ---------- Fireworks visuals ----------
+  let fxRunning = false;
+  let particles = [];
+  let rafId = null;
+
+  function resizeFx(){
+    const rect = fxCanvas.getBoundingClientRect();
+    const dpr = Math.max(1, window.devicePixelRatio || 1);
+    fxCanvas.width = Math.floor(rect.width * dpr);
+    fxCanvas.height = Math.floor(rect.height * dpr);
+    fxCtx.setTransform(dpr,0,0,dpr,0,0);
+  }
+
+  function spawnBurst(x, y){
+    const count = 80 + Math.floor(Math.random()*60);
+    for(let i=0;i<count;i++){
+      const a = Math.random()*Math.PI*2;
+      const sp = 2.2 + Math.random()*4.8;
+      particles.push({
+        x, y, vx: Math.cos(a)*sp, vy: Math.sin(a)*sp,
+        life: 1.0, size: 1.6 + Math.random()*2.6,
+        hue: (40 + Math.random()*120)
+      });
+    }
+  }
+
+  function fxLoop(){
+    if(!fxRunning) return;
+
+    const w = fxCanvas.getBoundingClientRect().width;
+    const h = fxCanvas.getBoundingClientRect().height;
+
+    fxCtx.clearRect(0,0,w,h);
+    fxCtx.fillStyle = "rgba(0,0,0,0.12)";
+    fxCtx.fillRect(0,0,w,h);
+
+    for(let i=particles.length-1;i>=0;i--){
+      const p = particles[i];
+      p.life -= 0.015 + Math.random()*0.004;
+      p.x += p.vx; p.y += p.vy;
+      p.vx *= 0.985; p.vy *= 0.985;
+      p.vy += 0.02;
+
+      if(p.life <= 0 || p.x < -40 || p.x > w+40 || p.y < -40 || p.y > h+60){
+        particles.splice(i,1);
+        continue;
+      }
+
+      const alpha = Math.max(0, Math.min(1, p.life));
+      fxCtx.beginPath();
+      fxCtx.fillStyle = `hsla(${p.hue}, 95%, 65%, ${alpha})`;
+      fxCtx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+      fxCtx.fill();
+    }
+
+    rafId = requestAnimationFrame(fxLoop);
+  }
+
+  function startFireworks(){
+    resizeFx();
+    particles = [];
+    fxRunning = true;
+
+    const w = fxCanvas.getBoundingClientRect().width;
+    const h = fxCanvas.getBoundingClientRect().height;
+
+    const bursts = 6;
+    for(let i=0;i<bursts;i++){
+      setTimeout(() => {
+        spawnBurst(w*(0.2 + Math.random()*0.6), h*(0.18 + Math.random()*0.45));
+      }, i*240);
+    }
+
+    cancelAnimationFrame(rafId);
+    fxLoop();
+
+    clearTimeout(startFireworks._t);
+    startFireworks._t = setTimeout(() => stopFireworks(), 3200);
+  }
+
+  function stopFireworks(){
+    fxRunning = false;
+    cancelAnimationFrame(rafId);
+    const w = fxCanvas.getBoundingClientRect().width;
+    const h = fxCanvas.getBoundingClientRect().height;
+    fxCtx.clearRect(0,0,w,h);
+    particles = [];
+  }
+
+  function showResult(prize, number){
+    resultTitle.textContent = `🎉 ${prize} — CHÚC MỪNG!`;
+    resultNum.textContent = `#${String(number).padStart(2,'0')}`;
+    overlay.classList.add('show');
+    startFireworks();
+    celebrationSound();
+  }
+
+  btnCloseOverlay.addEventListener('click', () => {
+    overlay.classList.remove('show');
+    stopFireworks();
+  });
+  btnReplayFx.addEventListener('click', () => {
+    startFireworks();
+    celebrationSound();
+  });
+  overlay.addEventListener('click', (e) => {
+    if(e.target === overlay){
+      overlay.classList.remove('show');
+      stopFireworks();
+    }
+  });
+
+  btnSpin.addEventListener('click', spin);
+
+  btnTest.addEventListener('click', () => {
+    ensureAudio();
+    tick();
+    setTimeout(() => celebrationSound(), 140);
+    toast("Âm thanh OK!");
+  });
+
+  btnReset.addEventListener('click', () => {
+    if (isSpinning) return;
+    used.clear();
+    history = [];
+    spinCount = 0;
+    rebuildLog();
+    toast("Đã reset — chơi lại từ đầu nhé!");
+    updateUI();
+  });
+
+  btnUndo.addEventListener('click', () => {
+    if (isSpinning) return;
+    const last = history.pop();
+    if (!last) return;
+    used.delete(last.number);
+    spinCount = Math.max(0, spinCount - 1);
+    setActive(last.idxInGrid);
+    rebuildLog();
+    toast(`Hoàn tác: bỏ số #${last.number}`);
+    updateUI();
+  });
+
+  btnApplyCount.addEventListener('click', () => {
+    if (isSpinning) return;
+
+    let n = Number(countInput.value || 100);
+    if (!Number.isFinite(n)) n = 100;
+    n = Math.max(1, Math.min(100, Math.floor(n)));
+
+    maxNumber = n;
+    used.clear();
+    history = [];
+    spinCount = 0;
+    rebuildLog();
+
+    buildGrid(maxNumber);
+    toast(`Đã áp dụng: hiển thị 1 → ${maxNumber}`);
+  });
+
+  countInput.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter') btnApplyCount.click();
+  });
+
+  chkNoRepeat.addEventListener('change', () => {
+    toast(chkNoRepeat.checked ? "Bật: không trùng số" : "Tắt: có thể trùng số");
+    updateUI();
+  });
+  chkSound.addEventListener('change', () => {
+    toast(chkSound.checked ? "Bật âm thanh" : "Tắt âm thanh");
+    updateUI();
+  });
+
+  window.addEventListener('resize', () => {
+    if(overlay.classList.contains('show')) resizeFx();
+  });
+
+  // init
+  buildGrid(maxNumber);
+  activeIndex = Math.floor(Math.random()*maxNumber);
+  setActive(activeIndex);
+  updateUI();
+})();
+</script>
+</body>
+</html>

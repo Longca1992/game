@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đại Tiệc Lật Ô - Hải Sản Kỳ Hà 2026</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-red: #b71c1c;
+            --gold: #ffd700;
+            --bg-pattern: #880e4f;
+            --card-back: #d32f2f;
+            --text-gold: #fbc02d;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: radial-gradient(circle, var(--primary-red), var(--bg-pattern));
+            color: white;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* --- LEFT SIDE: GAME AREA (FULL SIZE) --- */
+        .game-area {
+            flex: 1; /* Chiếm hết không gian còn lại */
+            height: 100vh;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            grid-template-rows: repeat(10, 1fr); /* Chia đều 10 dòng */
+            gap: 5px;
+            width: 100%;
+            height: 100%;
+            perspective: 1000px;
+        }
+
+        .card {
+            background-color: transparent;
+            cursor: pointer;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            width: 100%;
+            height: 100%;
+        }
+
+        .card.flipped {
+            transform: rotateY(180deg);
+            cursor: default;
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            border-radius: 4px;
+            border: 1px solid var(--gold);
+            user-select: none;
+        }
+
+        .card-front {
+            background: linear-gradient(135deg, var(--card-back), #8e0000);
+            color: var(--gold);
+            font-size: clamp(1rem, 2vw, 2.5rem); /* Tự động chỉnh cỡ chữ theo ô */
+            font-family: 'Dancing Script', cursive;
+        }
+
+        .card-back {
+            background-color: white;
+            color: black;
+            transform: rotateY(180deg);
+            font-size: clamp(0.8rem, 1.5vw, 1.2rem);
+            text-align: center;
+            padding: 2px;
+            word-break: break-word;
+        }
+        
+        .card-back.reward { background: linear-gradient(to bottom, #fff59d, #fff176); color: #d50000; }
+        .card-back.punish { background: linear-gradient(to bottom, #424242, #212121); color: #fff; }
+
+        /* --- RIGHT SIDE: SIDEBAR (Fixed Width) --- */
+        .sidebar {
+            width: 350px; /* Cố định chiều rộng sidebar */
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            border-left: 2px solid var(--gold);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            z-index: 10;
+        }
+
+        h1 {
+            font-family: 'Dancing Script', cursive;
+            color: var(--text-gold);
+            text-align: center;
+            margin: 0 0 15px 0;
+            text-shadow: 2px 2px 4px #000;
+            font-size: 2.2rem;
+            flex-shrink: 0;
+        }
+
+        /* NÚT CẤU HÌNH */
+        .config-btn {
+            background: #d32f2f;
+            color: white;
+            border: 1px solid var(--gold);
+            padding: 10px;
+            width: 100%;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            transition: 0.3s;
+        }
+        .config-btn:hover { background: #b71c1c; }
+
+        /* BẢNG THỐNG KÊ (Chiếm phần lớn không gian sidebar) */
+        .stats-container {
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            border-bottom: 1px dashed rgba(255,255,255,0.3);
+            padding-bottom: 10px;
+        }
+
+        .stats-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        .stats-table th, .stats-table td { text-align: left; padding: 6px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .stats-table th { color: var(--gold); position: sticky; top: 0; background: rgba(0,0,0,0.8); }
+        .count-badge { background: var(--primary-red); padding: 2px 6px; border-radius: 8px; font-size: 0.75rem; float: right; min-width: 25px; text-align: center;}
+
+        /* CONTROL PANEL (Nằm dưới cùng) */
+        .control-panel {
+            background: rgba(255,255,255,0.1);
+            padding: 10px;
+            border-radius: 8px;
+            flex-shrink: 0;
+        }
+        .control-group { margin-bottom: 8px; }
+        label { display: block; margin-bottom: 4px; font-size: 0.85rem; }
+        input[type="range"] { width: 100%; }
+        input[type="file"] { width: 100%; font-size: 0.75rem; }
+
+        /* --- MODAL CONFIG & POPUP --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: none; justify-content: center; align-items: center; z-index: 1000;
+        }
+
+        .modal-content {
+            background: white; padding: 30px; border-radius: 10px;
+            text-align: center; max-width: 500px; width: 90%;
+            border: 3px solid var(--gold); color: #333;
+            animation: popIn 0.3s;
+        }
+        
+        .config-modal { max-width: 800px; width: 95%; text-align: left; }
+        .config-area { display: flex; gap: 20px; margin-bottom: 20px; }
+        .config-col { flex: 1; }
+        textarea { width: 100%; height: 300px; padding: 10px; font-family: monospace; border: 1px solid #ccc; border-radius: 5px; }
+        
+        .modal-title { font-size: 2rem; margin-bottom: 10px; font-family: 'Dancing Script', cursive; color: #b71c1c; }
+        .modal-desc { font-size: 1.5rem; margin-bottom: 20px; font-weight: bold; }
+        .modal-icon { font-size: 4rem; margin-bottom: 10px; display: block;}
+        
+        .btn-action { padding: 10px 25px; border: none; border-radius: 5px; font-size: 1rem; cursor: pointer; font-weight: bold; margin: 5px; }
+        .btn-primary { background: var(--primary-red); color: white; }
+        .btn-secondary { background: #757575; color: white; }
+
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        /* Style riêng popup kết quả */
+        .result-popup.type-reward { background: #fffde7; border-color: #ffd700; }
+        .result-popup.type-punish { background: #212121; color: white; border-color: #757575; }
+        .result-popup .modal-title { color: inherit; }
+
+    </style>
+</head>
+<body>
+
+    <div class="game-area">
+        <div class="grid-container" id="grid">
+            </div>
+    </div>
+
+    <div class="sidebar">
+        <h1>Hải Sản Kỳ Hà</h1>
+
+        <button class="config-btn" onclick="openConfigModal()">⚙️ Cấu Hình Thưởng / Phạt</button>
+
+        <div class="stats-container">
+            <table class="stats-table" id="statsTable">
+                </table>
+        </div>
+        
+        <div class="control-panel">
+            <div class="control-group">
+                <label>🎵 Nhạc nền (Chọn file MP3):</label>
+                <input type="file" id="bgmInput" accept="audio/*">
+            </div>
+            <div class="control-group">
+                <label>🔊 Âm lượng:</label>
+                <input type="range" id="volControl" min="0" max="1" step="0.1" value="0.5">
+            </div>
+            <div class="control-group">
+                <label>
+                    <input type="checkbox" id="sfxToggle" checked> Bật tiếng hiệu ứng
+                </label>
+            </div>
+            <button onclick="resetGame()" style="width:100%; padding:5px; background:#444; color:#fff; border:none; border-radius:4px; cursor:pointer; margin-top:5px;">Làm mới trò chơi</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="resultModal">
+        <div class="modal-content result-popup" id="resultContent">
+            <span class="modal-icon" id="resIcon"></span>
+            <div class="modal-title" id="resTitle">TITLE</div>
+            <div class="modal-desc" id="resDesc">Content</div>
+            <button class="btn-action btn-primary" onclick="closeResultModal()">Tiếp tục chơi</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="configModal">
+        <div class="modal-content config-modal">
+            <h2 style="margin-top:0; color:#b71c1c;">Cấu Hình Nội Dung</h2>
+            <p style="font-size:0.9rem; color:#666;">Nhập theo cú pháp: <strong>Tên phần thưởng : Số lượng</strong> (Mỗi loại 1 dòng)</p>
+            
+            <div class="config-area">
+                <div class="config-col">
+                    <label style="font-weight:bold; color:#d50000">DANH SÁCH THƯỞNG (Vàng)</label>
+                    <textarea id="inputRewards"></textarea>
+                </div>
+                <div class="config-col">
+                    <label style="font-weight:bold; color:#424242">DANH SÁCH PHẠT (Đen)</label>
+                    <textarea id="inputPunishments"></textarea>
+                </div>
+            </div>
+
+            <div style="text-align: right;">
+                <button class="btn-action btn-secondary" onclick="closeConfigModal()">Hủy</button>
+                <button class="btn-action btn-primary" onclick="saveConfig()">Lưu & Làm Mới Game</button>
+            </div>
+        </div>
+    </div>
+
+    <audio id="sfx-flip" src="https://assets.mixkit.co/active_storage/sfx/2578/2578-preview.mp3"></audio>
+    <audio id="sfx-win" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3"></audio>
+    <audio id="sfx-lose" src="https://assets.mixkit.co/active_storage/sfx/950/950-preview.mp3"></audio>
+    <audio id="bgm-player" loop></audio>
+
+
+    <script>
+        // --- DỮ LIỆU MẶC ĐỊNH ---
+        let defaultRewards = [
+            { name: "500k Tiền mặt", count: 2 },
+            { name: "200k Tiền mặt", count: 5 },
+            { name: "100k Tiền mặt", count: 10 },
+            { name: "Voucher 500k", count: 5 },
+            { name: "Tràng pháo tay", count: 10 }
+        ];
+
+        let defaultPunishments = [
+            { name: "Uống 100% bia", count: 20 },
+            { name: "Uống 50% bia", count: 20 },
+            { name: "Lì xì Sếp 50k", count: 5 },
+            { name: "Hát 1 bài Xuân", count: 13 },
+            { name: "Kể chuyện cười", count: 10 }
+        ];
+
+        let currentGameData = []; // Mảng chứa 100 ô hiện tại
+        let currentRewards = [];  // Mảng cấu hình hiện tại để track số lượng
+        let currentPunishments = [];
+
+        // --- HÀM KHỞI TẠO GAME ---
+        function initGame(rewardsInput, punishmentsInput) {
+            currentRewards = JSON.parse(JSON.stringify(rewardsInput)); // Deep copy
+            currentPunishments = JSON.parse(JSON.stringify(punishmentsInput));
+
+            let items = [];
+
+            // Bung lụa dữ liệu ra mảng phẳng
+            currentRewards.forEach(item => {
+                for(let i=0; i<item.count; i++) items.push({ ...item, type: 'reward', icon: '💰' });
+            });
+            currentPunishments.forEach(item => {
+                for(let i=0; i<item.count; i++) items.push({ ...item, type: 'punish', icon: '🍺' });
+            });
+
+            // Fill cho đủ 100 ô
+            while (items.length < 100) {
+                items.push({ name: "Chúc may mắn lần sau", type: "reward", icon: "🍀", count: 1 });
+            }
+            // Cắt nếu dư
+            if (items.length > 100) items = items.slice(0, 100);
+
+            // Xáo trộn (Shuffle)
+            for (let i = items.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [items[i], items[j]] = [items[j], items[i]];
+            }
+
+            currentGameData = items;
+            renderGrid();
+            renderStats();
+        }
+
+        function renderGrid() {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+            
+            // Dùng Fragment để render nhanh hơn
+            const fragment = document.createDocumentFragment();
+
+            currentGameData.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.onclick = () => flipCard(card, index);
+
+                const front = document.createElement('div');
+                front.className = 'card-face card-front';
+                front.innerText = index + 1;
+
+                const back = document.createElement('div');
+                back.className = 'card-face card-back';
+                // Nội dung mặt sau để trống, khi lật mới điền để bảo mật (soi code HTML ko thấy)
+                
+                card.appendChild(front);
+                card.appendChild(back);
+                fragment.appendChild(card);
+            });
+            grid.appendChild(fragment);
+        }
+
+        // --- XỬ LÝ LẬT BÀI ---
+        function flipCard(card, index) {
+            if (card.classList.contains('flipped')) return;
+
+            playSound('sfx-flip');
+            const item = currentGameData[index];
+            
+            // Render nội dung mặt sau
+            const backFace = card.querySelector('.card-back');
+            backFace.innerText = item.name; // Chỉ hiện tên text
+            backFace.classList.add(item.type);
+
+            card.classList.add('flipped');
+
+            setTimeout(() => {
+                showResult(item);
+                updateStatsCount(item);
+                renderStats();
+            }, 600);
+        }
+
+        // --- THỐNG KÊ ---
+        function updateStatsCount(item) {
+            let source = item.type === 'reward' ? currentRewards : currentPunishments;
+            let found = source.find(i => i.name === item.name);
+            if(found && found.count > 0) found.count--;
+        }
+
+        function renderStats() {
+            const table = document.getElementById('statsTable');
+            let html = `<tr><th colspan="2" style="color:#ffeb3b">🎁 PHẦN THƯỞNG</th></tr>`;
+            
+            currentRewards.forEach(item => {
+                if(item.count > 0) {
+                    html += `<tr><td>${item.name}</td><td><span class="count-badge">${item.count}</span></td></tr>`;
+                }
+            });
+
+            html += `<tr><th colspan="2" style="color:#bdbdbd; padding-top:10px">😈 HÌNH PHẠT</th></tr>`;
+            currentPunishments.forEach(item => {
+                if(item.count > 0) {
+                    html += `<tr><td>${item.name}</td><td><span class="count-badge" style="background:#424242">${item.count}</span></td></tr>`;
+                }
+            });
+
+            table.innerHTML = html;
+        }
+
+        // --- CẤU HÌNH CONFIG ---
+        function openConfigModal() {
+            // Convert current data to text format
+            const rewardText = currentRewards.map(i => `${i.name} : ${i.count}`).join('\n');
+            const punishText = currentPunishments.map(i => `${i.name} : ${i.count}`).join('\n');
+
+            document.getElementById('inputRewards').value = rewardText;
+            document.getElementById('inputPunishments').value = punishText;
+            document.getElementById('configModal').style.display = 'flex';
+        }
+
+        function closeConfigModal() {
+            document.getElementById('configModal').style.display = 'none';
+        }
+
+        function saveConfig() {
+            // Parse text area back to objects
+            const parseText = (text) => {
+                return text.split('\n').filter(line => line.trim() !== '').map(line => {
+                    let parts = line.split(':');
+                    if(parts.length < 2) return null;
+                    let name = parts[0].trim();
+                    let count = parseInt(parts[1].trim());
+                    return isNaN(count) ? null : { name, count };
+                }).filter(i => i !== null);
+            };
+
+            const newRewards = parseText(document.getElementById('inputRewards').value);
+            const newPunish = parseText(document.getElementById('inputPunishments').value);
+
+            if(newRewards.length === 0 && newPunish.length === 0) {
+                alert("Vui lòng nhập đúng định dạng: Tên : Số lượng");
+                return;
+            }
+
+            initGame(newRewards, newPunish);
+            closeConfigModal();
+            alert("Đã cập nhật cấu hình và làm mới trò chơi!");
+        }
+
+        // --- POPUP KẾT QUẢ ---
+        function showResult(item) {
+            const modal = document.getElementById('resultModal');
+            const content = document.getElementById('resultContent');
+            const icon = document.getElementById('resIcon');
+            
+            content.className = 'modal-content result-popup';
+            content.classList.add(item.type === 'reward' ? 'type-reward' : 'type-punish');
+
+            document.getElementById('resTitle').innerText = item.type === 'reward' ? "CHÚC MỪNG!" : "HÌNH PHẠT";
+            document.getElementById('resDesc').innerText = item.name;
+            icon.innerText = item.icon;
+
+            modal.style.display = 'flex';
+            playSound(item.type === 'reward' ? 'sfx-win' : 'sfx-lose');
+        }
+
+        function closeResultModal() {
+            document.getElementById('resultModal').style.display = 'none';
+        }
+
+        // --- AUDIO ---
+        function playSound(id) {
+            if (!document.getElementById('sfxToggle').checked) return;
+            const audio = document.getElementById(id);
+            audio.currentTime = 0;
+            audio.play().catch(e => console.log(e));
+        }
+
+        document.getElementById('bgmInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const url = URL.createObjectURL(file);
+                const player = document.getElementById('bgm-player');
+                player.src = url;
+                player.volume = document.getElementById('volControl').value;
+                player.play();
+            }
+        });
+
+        document.getElementById('volControl').addEventListener('input', function(e) {
+            document.getElementById('bgm-player').volume = e.target.value;
+        });
+
+        function resetGame() {
+            if(confirm("Bạn có chắc muốn reset toàn bộ ô đã mở không?")) {
+                initGame(currentRewards, currentPunishments);
+            }
+        }
+
+        // --- KHỞI CHẠY ---
+        initGame(defaultRewards, defaultPunishments);
+
+    </script>
+</body>
+</html>

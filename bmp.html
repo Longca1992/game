@@ -1,0 +1,842 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>Mini Game Đọc Chữ theo Tempo Nhạc</title>
+  <style>
+    :root{--ink:#111;--muted:#555;--border:#111;--shadow:0 18px 45px rgba(0,0,0,.20);--hl:#ffd36a;--red:#e60000;--neon:#ff0055;}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,"SF Pro Display","SF Pro Text",Segoe UI,Roboto,Arial,sans-serif;color:var(--ink);height:100vh;overflow:hidden;background:radial-gradient(900px 600px at 20% 0%, rgba(255,211,106,.35), transparent 55%),radial-gradient(900px 600px at 80% 10%, rgba(255,59,48,.10), transparent 55%),linear-gradient(180deg,#f8f8f8,#efefef)}
+    .app{height:100vh;display:flex;flex-direction:column;max-width:1200px;margin:0 auto;padding:14px;gap:12px}
+    header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex:0 0 auto}
+    .title h1{margin:0;font-size:clamp(18px,2.4vw,28px);letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .title p{margin:4px 0 0;color:var(--muted);font-weight:800;font-size:12px}
+    .topRight{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+    .pill{padding:8px 12px;border:2px solid var(--border);border-radius:999px;background:rgba(255,255,255,.88);font-weight:1100;box-shadow:var(--shadow);display:inline-flex;gap:8px;align-items:center;white-space:nowrap;cursor: pointer; user-select: none;}
+    .pill b{font-weight:1200}
+    
+    main{flex:1;min-height:0;display:grid;grid-template-columns:1fr 350px;gap:12px}
+    @media (max-width:980px){main{grid-template-columns:1fr}}
+    .panel{background:rgba(255,255,255,.55);border:2px solid var(--border);border-radius:18px;box-shadow:var(--shadow);overflow:hidden;min-height:0;display:flex;flex-direction:column}
+    .panelHead{padding:12px 14px;border-bottom:2px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;background:rgba(255,255,255,.78);flex:0 0 auto}
+    .panelHead .h{font-weight:1200;letter-spacing:.2px}
+    .panelHead .sub{font-size:12px;font-weight:900;color:var(--muted)}
+    
+    .cardsArea{padding:12px 14px 10px;background:rgba(255,255,255,.72);border-bottom:2px solid var(--border);flex:0 0 auto}
+    .cardsGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;align-items:stretch}
+    
+    .card3d{perspective:900px;cursor:pointer;user-select:none;touch-action:manipulation;height:140px}
+    .cardInner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .6s cubic-bezier(.2,.9,.2,1)}
+    .card3d.revealed .cardInner{transform:rotateY(180deg)} 
+    .face{position:absolute;inset:0;border:2px solid var(--border);border-radius:18px;box-shadow:0 12px 22px rgba(0,0,0,.12);backface-visibility:hidden;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:10px;background:#fff}
+    .front{background:repeating-linear-gradient(45deg, #111 0 2px, #fff 2px 12px); display:flex; flex-direction:column; justify-content:center; align-items:center;}
+    .mysteryBox{background:#fff; border:2px solid #000; padding:10px 20px; font-size:40px; font-weight:900; border-radius:12px; box-shadow:0 8px 0 rgba(0,0,0,0.2); color: #000;}
+    .back{transform:rotateY(180deg);background:radial-gradient(900px 220px at 50% 0%, rgba(255,211,106,.32), transparent 60%),linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.78))}
+    .backContent{width:100%;height:100%;border-radius:14px;border:2px solid rgba(255,211,106,.65);background:rgba(255,255,255,.68);display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:10px;gap:8px}
+    .backContent .title{font-weight:1300;font-size:20px; color: #b50000; line-height: 1.2;}
+    .backContent .desc{font-weight:950;font-size:12px;color:var(--muted);line-height:1.15}
+    .card3d.selected .face{outline:6px solid var(--hl);outline-offset:-6px;box-shadow:0 0 0 4px rgba(255,211,106,.9),0 18px 40px rgba(0,0,0,.18)}
+    
+    .boardWrap{padding:14px;flex:1;min-height:0;display:flex;align-items:center;justify-content:center}
+    .stage{width:100%;max-width:880px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+    
+    .bigWordBox{width:100%;background:#fff;border:2px solid var(--border);border-radius:22px;padding:24px 14px;box-shadow:0 12px 26px rgba(0,0,0,.12);text-align:center; min-height: 280px; display:flex; flex-direction:column; justify-content:center;}
+    
+    .karaokeDual {
+        display: flex; width: 100%; justify-content: space-between; gap: 20px; margin-bottom: 20px;
+        align-items: center;
+    }
+    .phraseBox {
+        flex: 1; display: flex; justify-content: center; gap: 8px; flex-wrap: wrap;
+        padding: 15px 10px; border-radius: 12px; transition: all 0.2s;
+        border: 2px dashed transparent;
+    }
+    .phraseBox.dimmed { opacity: 0.3; filter: grayscale(100%); transform: scale(0.95); }
+    .phraseBox.activeBox { 
+        opacity: 1; transform: scale(1.02); 
+        background: rgba(255,211,106, 0.15); border-color: rgba(255,211,106, 0.6);
+    }
+
+    .phraseBox span {
+        font-size: clamp(24px, 4vw, 55px); font-weight: 1200; color: #ccc;
+        transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275), color 0.1s;
+        display: inline-block;
+    }
+    
+    .phraseBox span.active {
+        color: var(--red);
+        transform: scale(1.5); 
+        text-shadow: 0 4px 12px rgba(230, 0, 0, 0.3);
+    }
+    
+    .subLine{margin-top:auto;font-size:12px;font-weight:1000;color:var(--muted);display:flex;gap:12px;flex-wrap:wrap;justify-content:center; padding-top: 10px;}
+    
+    .controls{padding:12px;display:flex;flex-direction:column;gap:10px;min-height:0;overflow:auto}
+    .group{border:2px solid var(--border);border-radius:16px;padding:10px;background:rgba(255,255,255,.82)}
+    .group h3{margin:0 0 10px;font-size:13px;font-weight:1200}
+    button{width:100%;border:2px solid var(--border);border-radius:14px;padding:12px 12px;font-weight:1200;font-size:15px;background:#fff;cursor:pointer;box-shadow:0 10px 20px rgba(0,0,0,.12);transition:transform .08s ease, opacity .12s ease;touch-action:manipulation}
+    button:active{transform:translateY(1px)}
+    button:disabled{opacity:.45;cursor:not-allowed}
+    .btnPrimary{background:linear-gradient(180deg,#ffe08a,#ffbf2f)}
+    .btnPulse { animation: btnPulseAnim 1.5s infinite; border-color: #ff9900; }
+    @keyframes btnPulseAnim { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 165, 0, 0.7); } 70% { transform: scale(1.02); box-shadow: 0 0 0 10px rgba(255, 165, 0, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 165, 0, 0); } }
+
+    .btnDanger{background:linear-gradient(180deg,#ff6b6b,#d10000);color:#fff}
+    .btnSecondary{background:rgba(255,255,255,.92)}
+    .btnWarn{background:linear-gradient(180deg,#ffe9a6,#ffd36a)}
+    .gridBtn{display:grid;grid-template-columns:1fr;gap:10px}
+    .row{display:flex;gap:10px;align-items:center;justify-content:space-between;margin:8px 0}
+    input,select,textarea{width:100%;border:2px solid var(--border);border-radius:12px;padding:10px 10px;background:#fff;font-weight:1000;outline:none;font-family: inherit;}
+    
+    .overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.35);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:60}
+    .overlay.show{display:flex}
+    
+    .levelPopupBox {
+        background: #000; border: 4px solid #fff; border-radius: 20px; padding: 40px; text-align: center; color: #fff;
+        box-shadow: 0 0 20px var(--neon), 0 0 40px var(--neon), inset 0 0 20px var(--neon);
+        animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        max-width: 90vw;
+    }
+    .levelPopupBox h2 { font-size: 40px; margin: 0 0 10px; text-transform: uppercase; color: #fff; text-shadow: 0 0 10px var(--neon); }
+    .levelPopupBox p { font-size: 20px; color: #ffd36a; font-weight: bold; margin: 0; }
+    @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    @keyframes flashText { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+    .flash { animation: flashText 0.3s infinite; }
+
+    .countCard{width:min(520px,88vw);border-radius:26px;border:2px solid rgba(255,211,106,.45);box-shadow:0 30px 90px rgba(0,0,0,.45);background:radial-gradient(800px 220px at 50% 0%, rgba(255,211,106,.35), transparent 60%),linear-gradient(180deg, rgba(181,0,0,.90), rgba(35,0,0,.88));padding:22px 18px;text-align:center;color:#fff;}
+    .countNum{font-weight:1500;font-size:clamp(70px,14vw,140px);line-height:1;text-shadow:0 18px 50px rgba(0,0,0,.55);animation:pop .85s cubic-bezier(.2,.9,.2,1) both}
+    @keyframes pop{0%{transform:scale(.70);opacity:.2;filter:blur(2px)}55%{transform:scale(1.06);opacity:1;filter:blur(0)}100%{transform:scale(1);opacity:1}}
+    
+    .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;background:rgba(0,0,0,.70);border:2px solid rgba(255,211,106,.75);color:#fff;padding:10px 12px;border-radius:14px;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .18s ease;z-index:90}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(-2px)}
+    
+    .settingsPanel { background: #fff; width: 90%; max-width: 600px; padding: 20px; border-radius: 20px; border: 2px solid var(--border); display: flex; flex-direction: column; gap: 15px; max-height: 90vh; overflow-y: auto;}
+    
+    .bpmConfigRow { display: flex; gap: 8px; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .bpmConfigRow label { font-size: 13px; font-weight: bold; width: 60px; }
+    .bpmConfigRow input { width: 80px; text-align: center; }
+    
+    /* Copyright Footer */
+    .copyright {
+        position: fixed; bottom: 5px; right: 10px; font-size: 11px; font-weight: 700; color: rgba(0,0,0,0.3); pointer-events: none; z-index: 5;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="title">
+        <h1>🎵 Mini Game Đọc Chữ theo Tempo Nhạc</h1>
+        <p>Sync Nhạc • Upload MP3 • 4 Words</p>
+      </div>
+      <div class="topRight">
+        <button class="pill" id="btnToggleTick">🔊 <b id="tickStateText">ON</b></button>
+        <button class="pill" id="btnOpenSettings">⚙️ <b>Edit</b></button>
+        <div class="pill"><small>Level</small> <b id="liveText">1/5</b></div>
+        <div class="pill"><small>Mạng</small> <b class="hearts" id="lifeText">❤️❤️❤️</b></div>
+      </div>
+    </header>
+
+    <main>
+      <section class="panel">
+        <div class="panelHead">
+          <div><span class="h">Thẻ bài (Ẩn)</span> <span class="sub">Chọn 1 thẻ</span></div>
+          <div class="sub" id="statusText">Sẵn sàng</div>
+        </div>
+
+        <div class="cardsArea">
+          <div class="cardsGrid" id="cardsGrid"></div>
+          <div class="tiny" style="margin-top:8px; text-align:center;">Thẻ sẽ tự động trộn lại sau mỗi lượt.</div>
+        </div>
+
+        <div class="boardWrap">
+          <div class="stage">
+            <div class="bigWordBox">
+              <div class="karaokeDual">
+                  <div class="phraseBox activeBox" id="leftPhrase">
+                      <span>1</span> <span>...</span>
+                  </div>
+                  <div class="phraseBox dimmed" id="rightPhrase">
+                      <span>2</span> <span>...</span>
+                  </div>
+              </div>
+              
+              <div class="subLine">
+                <span>Nhịp: <b id="beatInfo">0/24</b></span>
+                <span>Thẻ: <b id="cardTitle">???</b></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="panel">
+        <div class="panelHead">
+          <div class="h">Điều khiển MC</div>
+        </div>
+
+        <div class="controls">
+          <div class="group">
+            <h3>Chạy game</h3>
+            <div class="gridBtn">
+              <button class="btnPrimary" id="btnStart">▶️ Bắt đầu Level 1</button>
+              <button class="btnSecondary" id="btnPause" disabled>⏸️ Tạm dừng</button>
+              <button class="btnWarn" id="btnLoseLife">❌ Trừ mạng (-1)</button>
+              <button class="btnDanger" id="btnReset">🔁 Reset & Trộn Thẻ</button>
+            </div>
+          </div>
+          
+          <div class="group">
+            <h3>Cài đặt Mạng</h3>
+            <div class="row">
+                <label>Số mạng tối đa:</label>
+                <select id="livesSelect">
+                    <option value="1">1 Mạng (Khó)</option>
+                    <option value="2">2 Mạng</option>
+                    <option value="3" selected>3 Mạng (Chuẩn)</option>
+                    <option value="5">5 Mạng (Dễ)</option>
+                    <option value="10">10 Mạng (Test)</option>
+                </select>
+            </div>
+          </div>
+
+          <div class="group">
+            <h3>Nhạc Nền & Sync</h3>
+            <div class="gridBtn">
+              <button id="btnUseFile" class="btnSecondary" style="background:#fff; border:2px dashed #333;">📂 Chọn MP3 từ máy</button>
+              <input id="musicFile" type="file" accept="audio/*" style="display:none" />
+            </div>
+            
+            <div class="row" style="margin-top:10px;">
+                <label>Vol:</label>
+                <input id="musicVol" type="range" min="0" max="1" step="0.05" value="0.7" />
+            </div>
+            <div class="row">
+                <label>BPM Gốc:</label>
+                <input id="baseMusicBpm" type="number" value="130" min="60" max="200" title="Nếu nhạc nhanh, tăng số này lên" />
+            </div>
+            
+             <div class="row" style="border-top:1px solid #ccc; padding-top:8px; margin-top:8px;">
+                <label>Chỉnh nhịp:</label>
+                <div style="display:flex; gap:5px; flex:1;">
+                    <button class="btnSecondary" id="btnNudgeMinus" style="padding:5px;">⏪ Sớm hơn</button>
+                    <button class="btnSecondary" id="btnNudgePlus" style="padding:5px;">Trễ hơn ⏩</button>
+                </div>
+            </div>
+            <p id="musicStatus" class="tiny" style="color:#008000; font-weight:bold; margin-top:5px;">Chưa chọn file...</p>
+          </div>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <div class="copyright">By LongCa - Hải Sản Kỳ Hà</div>
+
+  <audio id="music" loop crossorigin="anonymous" preload="auto"></audio>
+  <div class="toast" id="toast"></div>
+  <div class="overlay" id="overlay">
+    <div class="countCard">
+      <div class="countInner">
+        <div class="countTitle">Chuẩn bị...</div>
+        <div class="countNum" id="countNum">3</div>
+      </div>
+    </div>
+  </div>
+  <div class="overlay" id="levelPopup">
+    <div class="levelPopupBox">
+        <h2 id="popupTitle" class="flash">LEVEL 1</h2>
+        <p id="popupSub">Tốc độ chậm • Sẵn sàng!</p>
+    </div>
+  </div>
+  
+  <div class="overlay" id="settingsModal">
+      <div class="settingsPanel">
+          <h2>⚙️ Cài đặt Game</h2>
+          
+          <div style="border-bottom:2px dashed #eee; padding-bottom:15px; margin-bottom:15px;">
+              <h3 style="margin:0 0 10px;">1. Cấu hình Tốc Độ (BPM)</h3>
+              <div id="bpmConfigArea"></div>
+          </div>
+          
+          <div>
+              <h3 style="margin:0 0 10px;">2. Nội dung Thẻ</h3>
+              <p class="tiny">Nhập: <b>Từ A - Từ B</b> (đảo) hoặc <b>1 A - 2 B - 3 C - 4 D</b> (thủ công)</p>
+              <textarea id="textInput" style="height:120px; font-family:monospace; white-space:pre;" placeholder="Rồng - Lộn&#10;Dồn - Lỗ"></textarea>
+          </div>
+
+          <div class="gridBtn" style="margin-top:15px;">
+              <button class="btnPrimary" id="btnSaveSettings">💾 Lưu Cấu Hình</button>
+              <button class="btnSecondary" id="btnCloseSettings">Đóng</button>
+          </div>
+      </div>
+  </div>
+
+<script>
+(() => {
+  // --- CORE DATA ---
+  let LIVE_BPM = [100, 130, 145, 160, 180]; // Mặc định mới
+  
+  const DEFAULT_CARDS = [
+    { name:"Rồng - Lộn", desc:"Cặp đôi", mode:"swapPairs", groupA:["Rồng","Lộn"], groupB:["Lộn","Rồng"] },
+    { name:"Buổi - Trưa", desc:"Cặp đôi", mode:"swapPairs", groupA:["Buổi","Trưa"], groupB:["Bưởi","Chua"] },
+    { name:"Rổ - Mỡ", desc:"Cặp đôi", mode:"swapPairs", groupA:["Rổ","Mỡ"], groupB:["Rỡ","Mổ"] },
+    { name:"Dồn - Lỗ", desc:"Cặp đôi", mode:"swapPairs", groupA:["Dồn","Lỗ"], groupB:["Lỗ","Dồn"] }
+  ];
+
+  let CARDS = [];
+  const TOTAL_LIVES = 5;
+  let live = 0;
+  let beatsPerLive = 24; 
+  let bpm = 100; // Start with Lvl 1
+  
+  let running=false, countingDown=false;
+  let beatIndex=0;
+  let lastRenderedBeat = -1; // Optimization to prevent re-render same beat
+  let selectedCardIndex=null; 
+  let rafId=null, basePerf=0, lastBeatNumber=-1;
+  let maxLives=3, lives=maxLives;
+  let isTickOn = true;
+  let audioCtx=null;
+  let baseAudioTime = 0;
+  let userBeatOffset = 0; 
+
+  // DOM Elements
+  const cardsGrid = document.getElementById("cardsGrid");
+  const leftPhraseEl = document.getElementById("leftPhrase");
+  const rightPhraseEl = document.getElementById("rightPhrase");
+  const beatInfoEl = document.getElementById("beatInfo");
+  const cardTitleEl = document.getElementById("cardTitle");
+  const statusText = document.getElementById("statusText");
+  const liveText = document.getElementById("liveText");
+  const lifeText = document.getElementById("lifeText");
+  const btnStart = document.getElementById("btnStart");
+  const btnPause = document.getElementById("btnPause");
+  const btnLoseLife = document.getElementById("btnLoseLife");
+  const btnReset = document.getElementById("btnReset");
+  const livesSelect = document.getElementById("livesSelect"); 
+  const levelPopup = document.getElementById("levelPopup");
+  const popupTitle = document.getElementById("popupTitle");
+  const popupSub = document.getElementById("popupSub");
+  const overlay = document.getElementById("overlay");
+  const countNum = document.getElementById("countNum");
+  const btnToggleTick = document.getElementById("btnToggleTick");
+  const tickStateText = document.getElementById("tickStateText");
+  const settingsModal = document.getElementById("settingsModal");
+  const textInput = document.getElementById("textInput");
+  const bpmConfigArea = document.getElementById("bpmConfigArea");
+  
+  // Music DOM
+  const music = document.getElementById("music");
+  const btnUseFile = document.getElementById("btnUseFile");
+  const musicFile = document.getElementById("musicFile");
+  const musicVol = document.getElementById("musicVol");
+  const baseMusicBpm = document.getElementById("baseMusicBpm");
+  const musicStatus = document.getElementById("musicStatus");
+  const btnNudgeMinus = document.getElementById("btnNudgeMinus");
+  const btnNudgePlus = document.getElementById("btnNudgePlus");
+
+  // === AUDIO CORE OPTIMIZATION ===
+  // Only create AudioContext once and reuse it.
+  function ensureAudio(){
+    if (!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    if (audioCtx.state==="suspended") audioCtx.resume();
+    return audioCtx;
+  }
+
+  function tickSound(accent=false){
+    if(!isTickOn) return;
+    const ctx=ensureAudio();
+    
+    // Low latency scheduling
+    const t = ctx.currentTime;
+    const osc=ctx.createOscillator();
+    const gain=ctx.createGain();
+    
+    osc.type="square";
+    osc.frequency.setValueAtTime(accent?1400:1000, t);
+    
+    gain.gain.setValueAtTime(0.001, t);
+    gain.gain.exponentialRampToValueAtTime(0.09, t+0.005);
+    gain.gain.exponentialRampToValueAtTime(0.001, t+0.05);
+    
+    osc.connect(gain); 
+    gain.connect(ctx.destination);
+    
+    osc.start(t); 
+    osc.stop(t+0.06);
+    
+    // Clean up nodes is handled by GC, but setting null helps
+    osc.onended = () => { osc.disconnect(); gain.disconnect(); }
+  }
+
+  function toast(msg){
+    const t = document.getElementById("toast");
+    t.textContent = msg; t.classList.add("show");
+    clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove("show"),1700);
+  }
+  
+  function shuffle(arr){
+    for(let i=arr.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [arr[i],arr[j]]=[arr[j],arr[i]];
+    }
+    return arr;
+  }
+
+  // === GAME LOGIC ===
+  function buildTokensFromCard(card){
+    let result = [];
+    if(card.mode === "swapPairs"){
+        for(let i=1; i<=8; i++){
+            result.push(String(i)); 
+            if(i % 2 !== 0) {
+               result.push(card.groupA[0]); 
+               result.push(card.groupA[1]); 
+            } else {
+               result.push(card.groupB[0]); 
+               result.push(card.groupB[1]); 
+            }
+        }
+    }
+    else if (card.mode === "manual4"){
+        const words = card.words; 
+        for(let i=1; i<=8; i++){
+            result.push(String(i));
+            if(i % 2 !== 0) {
+                result.push(words[0]);
+                result.push(words[1]);
+            } else {
+                result.push(words[2]);
+                result.push(words[3]);
+            }
+        }
+    }
+    return result; 
+  }
+
+  function updatePhraseHTML(element, tokens) {
+      // Direct DOM update - expensive, so do it only when needed
+      element.innerHTML = "";
+      tokens.forEach(word => {
+          const span = document.createElement("span");
+          span.textContent = word;
+          element.appendChild(span);
+      });
+  }
+  
+  function getPhraseTokens(allTokens, phraseIndex) {
+      const start = phraseIndex * 3;
+      if(!allTokens || start >= allTokens.length) return ["...", "...", "..."]; 
+      return allTokens.slice(start, start + 3);
+  }
+
+  function renderKaraokeDual(allTokens, currentBeatIndex) {
+      // OPTIMIZATION: Don't re-render if we already processed this beat
+      if (currentBeatIndex === lastRenderedBeat) return;
+      lastRenderedBeat = currentBeatIndex;
+
+      const currentPhraseIdx = Math.floor(currentBeatIndex / 3);
+      const isRightSide = (currentPhraseIdx % 2 !== 0);
+      
+      const activeEl = isRightSide ? rightPhraseEl : leftPhraseEl;
+      const inactiveEl = isRightSide ? leftPhraseEl : rightPhraseEl;
+      
+      // Toggle Classes (Cheap operation)
+      if(activeEl.classList.contains("dimmed")) {
+          activeEl.classList.remove("dimmed");
+          activeEl.classList.add("activeBox");
+          inactiveEl.classList.add("dimmed");
+          inactiveEl.classList.remove("activeBox");
+      }
+      
+      // Update word highlight
+      const wordIdx = currentBeatIndex % 3;
+      const spans = activeEl.children;
+      for(let i=0; i<spans.length; i++){
+          if(i === wordIdx) spans[i].classList.add("active");
+          else spans[i].classList.remove("active");
+      }
+      
+      // Look Ahead Update
+      if(currentBeatIndex % 3 === 0) {
+          const nextPhraseIdx = currentPhraseIdx + 1;
+          const nextTokens = getPhraseTokens(allTokens, nextPhraseIdx);
+          // Only update innerHTML for the inactive side
+          updatePhraseHTML(inactiveEl, nextTokens); 
+      }
+  }
+  
+  function setupDualKaraoke(allTokens) {
+      updatePhraseHTML(leftPhraseEl, getPhraseTokens(allTokens, 0));
+      updatePhraseHTML(rightPhraseEl, getPhraseTokens(allTokens, 1));
+      leftPhraseEl.classList.remove("dimmed", "activeBox");
+      rightPhraseEl.classList.add("dimmed");
+      rightPhraseEl.classList.remove("activeBox");
+  }
+
+  function resetKaraokeForStart(idx) {
+      const c = CARDS[idx];
+      if(c && c.tokens) {
+          setupDualKaraoke(c.tokens);
+          leftPhraseEl.className = "phraseBox activeBox";
+          rightPhraseEl.className = "phraseBox dimmed";
+      }
+  }
+
+  function renderCards(){
+    cardsGrid.innerHTML="";
+    CARDS.forEach((c,idx)=>{
+      const wrap=document.createElement("div");
+      wrap.className="card3d";
+      if(selectedCardIndex === idx) wrap.classList.add("revealed","selected");
+
+      wrap.innerHTML=`
+        <div class="cardInner">
+          <div class="face front">
+             <div class="mysteryBox">?</div>
+          </div>
+          <div class="face back">
+            <div class="backContent">
+              <div class="title">${c.name}</div>
+              <div class="desc">${c.desc}</div>
+            </div>
+          </div>
+        </div>`;
+      
+      wrap.addEventListener("click",()=>{
+        if(running || countingDown || selectedCardIndex !== null) {
+            if(selectedCardIndex === idx) return; 
+            toast("Đã chọn thẻ rồi. Hãy bấm Reset nếu muốn chọn lại.");
+            return;
+        }
+        
+        selectedCardIndex = idx;
+        renderCards();
+        loadCardData(idx);
+        toast(`Đã mở: ${c.name}`);
+        btnStart.textContent = "▶️ Bắt đầu Level 1";
+        btnStart.classList.add("btnPulse"); 
+      });
+      cardsGrid.appendChild(wrap);
+    });
+  }
+  
+  function loadCardData(idx){
+    const c = CARDS[idx];
+    cardTitleEl.textContent = c.name;
+    c.tokens = buildTokensFromCard(c);
+    setupDualKaraoke(c.tokens);
+    live = 0; 
+    applyLive(live);
+  }
+
+  function resetAndShuffle(){
+    stopAll();
+    if(!music.paused) music.pause();
+    
+    selectedCardIndex = null;
+    live = 0;
+    applyLive(0);
+    maxLives = parseInt(livesSelect.value);
+    lives = maxLives;
+    userBeatOffset = 0; 
+    
+    CARDS = shuffle(CARDS);
+    renderCards();
+    
+    leftPhraseEl.innerHTML = "<span>1</span> <span>...</span>";
+    rightPhraseEl.innerHTML = "<span>2</span> <span>...</span>";
+    leftPhraseEl.className = "phraseBox activeBox";
+    rightPhraseEl.className = "phraseBox dimmed";
+    
+    cardTitleEl.textContent = "???";
+    statusText.textContent = "Sẵn sàng chọn thẻ";
+    btnStart.textContent = "▶️ Chọn thẻ trước";
+    btnStart.classList.remove("btnPulse");
+    toast("Đã trộn thẻ ngẫu nhiên!");
+  }
+
+  function applyLive(lv){
+    const idx = Math.max(0, Math.min(LIVE_BPM.length - 1, lv));
+    bpm = LIVE_BPM[idx];
+    updateMusicRate(); // Sync audio immediately when level changes
+    liveText.textContent=`${lv+1}/${TOTAL_LIVES}`;
+  }
+  
+  function updateMusicRate(){
+    if(!music.src) return;
+    const base = parseInt(baseMusicBpm.value) || 130;
+    // Calculate rate to match game BPM
+    const rate = Math.max(0.5, Math.min(3.0, bpm / base));
+    music.playbackRate = rate;
+  }
+
+  function beatMs(){ return 60000/Math.max(1,bpm); }
+
+  function beatLoop(){
+    if(!running) return;
+    const useAudioClock = music?.src && !music.paused;
+    const totalOffsetMs = 40 + userBeatOffset;
+    
+    let bn;
+    if(useAudioClock){
+      const t=music.currentTime;
+      const beat0=baseAudioTime+(totalOffsetMs/1000);
+      bn=Math.floor(((t-beat0)*bpm)/60);
+    } else {
+      const now=performance.now();
+      const beat0=basePerf+totalOffsetMs;
+      bn=Math.floor((now-beat0)/beatMs());
+    }
+    
+    if(bn>lastBeatNumber){
+      // Loop catch-up logic
+      // Only process the latest beat to prevent UI flooding if lag happened
+      const processStart = Math.max(lastBeatNumber + 1, bn); 
+      // Actually, for rhythm game logic, we need to process triggers. 
+      // But for visual update, we only care about current state.
+      
+      onBeat(bn); // Process current beat
+      lastBeatNumber=bn;
+    }
+    rafId=requestAnimationFrame(beatLoop);
+  }
+
+  function onBeat(k){
+    if(!running) return;
+    tickSound(k%3===0); 
+
+    const c = CARDS[selectedCardIndex];
+    if(c && c.tokens){
+        renderKaraokeDual(c.tokens, beatIndex);
+    }
+
+    beatIndex = k + 1; // Sync index
+    beatInfoEl.textContent = `${Math.min(beatIndex,beatsPerLive)}/${beatsPerLive}`;
+
+    if(beatIndex >= beatsPerLive){
+      stopAll(); 
+      music.pause(); 
+      
+      if(live >= TOTAL_LIVES-1){
+        toast("🏆 ĐÃ PHÁ ĐẢO!");
+        statusText.textContent="Hoàn thành xuất sắc!";
+        setTimeout(() => resetAndShuffle(), 4000);
+        return;
+      }
+
+      statusText.textContent = `Xong Level ${live+1}. Chờ MC...`;
+      btnStart.textContent = `▶️ Lên Level ${live+2}`;
+      btnStart.classList.add("btnPulse"); 
+      live += 1; 
+      applyLive(live); // Update BPM display immediately for next level
+    }
+  }
+
+  function stopAll(){
+    running=false; countingDown=false;
+    overlay.classList.remove("show");
+    levelPopup.classList.remove("show");
+    cancelAnimationFrame(rafId);
+    setControlsUI();
+  }
+  
+  function setControlsUI(){
+      btnPause.disabled = !running;
+      btnLoseLife.disabled = (selectedCardIndex === null);
+      lifeText.textContent="❤️".repeat(Math.max(0,lives))+"🤍".repeat(Math.max(0,maxLives-lives));
+  }
+
+  async function showLevelIntro(){
+      // applyLive(live) already called before
+      popupTitle.textContent = `LEVEL ${live+1}`;
+      popupSub.textContent = `Tốc độ: ${bpm} BPM`;
+      levelPopup.classList.add("show");
+      await new Promise(r => setTimeout(r, 2000));
+      levelPopup.classList.remove("show");
+  }
+
+  async function startSequence(){
+     // --- VALIDATION START ---
+     if (selectedCardIndex === null) {
+         toast("⚠️ Vui lòng chọn 1 thẻ bài trước!");
+         return;
+     }
+     
+     // Kiểm tra xem đã có nhạc chưa (File hoặc link mặc định)
+     // Ở đây code cho phép link mặc định, nhưng nếu muốn bắt buộc file:
+     // if (!music.src || music.src === "" || music.src === window.location.href) ...
+     
+     // Code hiện tại tự động gán link nếu chưa có (trong sự kiện click cũ)
+     // Nhưng để chắc chắn, ta kiểm tra:
+     if (!music.src || music.src === "") {
+         toast("⚠️ Vui lòng chọn File Nhạc trước khi bắt đầu!");
+         btnUseFile.style.borderColor = "red";
+         setTimeout(() => btnUseFile.style.borderColor = "#333", 1000);
+         return;
+     }
+     // --- VALIDATION END ---
+     
+     if(running) return;
+     
+     // IMPORTANT: Apply current level bpm again just to be safe
+     applyLive(live);
+
+     resetKaraokeForStart(selectedCardIndex);
+     await showLevelIntro();
+
+     countingDown=true; ensureAudio(); 
+     overlay.classList.add("show");
+     btnStart.classList.remove("btnPulse");
+     
+     for(const n of [3,2,1]){
+       countNum.textContent=String(n);
+       countNum.style.animation="none";
+       void countNum.offsetHeight; countNum.style.animation=""; 
+       await new Promise(r=>setTimeout(r,800));
+     }
+     overlay.classList.remove("show");
+     countingDown=false;
+
+     updateMusicRate();
+     if(music.src){
+         try{
+             await music.play();
+             baseAudioTime = music.currentTime;
+         }catch(e){ toast("Lỗi phát nhạc (Chưa chọn file?)"); }
+     }
+     
+     beatIndex=0; 
+     lastRenderedBeat = -1; // Reset render tracker
+     basePerf=performance.now();
+     lastBeatNumber=-1;
+     running=true;
+     statusText.textContent = `Đang chạy Level ${live+1}`;
+     setControlsUI();
+     
+     rafId=requestAnimationFrame(beatLoop);
+  }
+
+  // --- EVENTS ---
+  btnUseFile.addEventListener("click", () => musicFile.click());
+  musicFile.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if(file){
+          const url = URL.createObjectURL(file);
+          music.src = url;
+          musicStatus.textContent = "Đã chọn: " + file.name;
+          toast("Đã nạp file nhạc!");
+      }
+  });
+  musicVol.addEventListener("input", ()=>music.volume=Number(musicVol.value));
+  baseMusicBpm.addEventListener("change", updateMusicRate);
+
+  btnNudgeMinus.addEventListener("click", ()=>{
+      userBeatOffset -= 50; 
+      toast(`Sớm hơn (-50ms) -> ${userBeatOffset}`);
+  });
+  btnNudgePlus.addEventListener("click", ()=>{
+      userBeatOffset += 50; 
+      toast(`Trễ hơn (+50ms) -> ${userBeatOffset}`);
+  });
+
+  livesSelect.addEventListener("change", ()=>{
+      maxLives = parseInt(livesSelect.value);
+      lives = maxLives;
+      setControlsUI();
+  });
+
+  // --- SETTINGS UI ---
+  function renderBpmInputs() {
+      bpmConfigArea.innerHTML = "";
+      LIVE_BPM.forEach((val, idx) => {
+          const row = document.createElement("div");
+          row.className = "bpmConfigRow";
+          row.innerHTML = `
+            <label>Level ${idx+1}</label>
+            <input type="number" value="${val}" data-idx="${idx}" class="bpmInput" />
+            <span>BPM</span>
+          `;
+          bpmConfigArea.appendChild(row);
+      });
+  }
+
+  document.getElementById("btnOpenSettings").addEventListener("click", ()=>{
+      // 1. Text Config
+      const text = CARDS.map(c => {
+          if(c.mode === "swapPairs") return `${c.groupA[0]} - ${c.groupA[1]}`;
+          if(c.mode === "manual4") return `${c.words.join(" - ")}`;
+          return "";
+      }).filter(s => s).join("\n");
+      textInput.value = text;
+      
+      // 2. BPM Config
+      renderBpmInputs();
+      
+      settingsModal.classList.add("show");
+  });
+  
+  document.getElementById("btnCloseSettings").addEventListener("click", ()=>settingsModal.classList.remove("show"));
+  
+  document.getElementById("btnSaveSettings").addEventListener("click", ()=>{
+      // Save Text
+      const raw = textInput.value.trim();
+      if(!raw) { alert("Chưa nhập nội dung!"); return; }
+      
+      const lines = raw.split("\n");
+      const newCards = [];
+      lines.forEach(line => {
+         const parts = line.split("-").map(s => s.trim()).filter(s => s);
+         if(parts.length === 2) {
+             const w1 = parts[0]; const w2 = parts[1];
+             newCards.push({ name: `${w1} - ${w2}`, desc: "Cặp đôi", mode: "swapPairs", groupA: [w1, w2], groupB: [w2, w1] });
+         } else if(parts.length === 4) {
+             newCards.push({ name: `${parts[0]}...`, desc: "Thủ công", mode: "manual4", words: parts });
+         }
+      });
+      if(newCards.length === 0) { alert("Sai cú pháp!"); return; }
+      CARDS = newCards;
+      
+      // Save BPM
+      const inputs = document.querySelectorAll(".bpmInput");
+      inputs.forEach(inp => {
+          const idx = parseInt(inp.dataset.idx);
+          const val = parseInt(inp.value);
+          if(!isNaN(val) && val > 0) LIVE_BPM[idx] = val;
+      });
+      
+      resetAndShuffle();
+      settingsModal.classList.remove("show");
+      toast("Đã lưu Cấu hình & BPM!");
+  });
+
+  btnStart.addEventListener("click", startSequence);
+  btnReset.addEventListener("click", resetAndShuffle);
+  btnPause.addEventListener("click", ()=>{ 
+      stopAll(); music.pause(); 
+      statusText.textContent = "Đã tạm dừng";
+      btnStart.textContent = "▶️ Tiếp tục";
+  });
+  btnLoseLife.addEventListener("click", ()=>{
+      if(lives>0) lives--;
+      setControlsUI();
+      toast("Đã trừ 1 mạng 💔");
+      if(lives===0) {
+          toast("GAME OVER!");
+          resetAndShuffle();
+      }
+  });
+  btnToggleTick.addEventListener("click", ()=>{
+      isTickOn = !isTickOn;
+      tickStateText.textContent = isTickOn ? "ON" : "OFF";
+      toast(isTickOn ? "Đã bật tiếng Tít" : "Đã tắt tiếng Tít");
+  });
+
+  // Init
+  CARDS = shuffle(JSON.parse(JSON.stringify(DEFAULT_CARDS)));
+  renderCards();
+})();
+</script>
+</body>
+</html>

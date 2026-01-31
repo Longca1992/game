@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Đại Chiến Hải Sản - iPad Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Roboto:wght@700&display=swap" rel="stylesheet">
+    <style>
+        /* CHỐNG ZOOM & CUỘN TRÊN IPAD */
+        html, body {
+            margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
+            touch-action: none; /* Quan trọng: Chặn các thao tác cuộn/zoom */
+            -webkit-user-select: none; /* Chặn bôi đen văn bản khi bấm nhanh */
+            user-select: none;
+            font-family: 'Roboto', sans-serif;
+            background: #222;
+        }
+
+        /* --- SÂN ĐẤU --- */
+        .arena {
+            display: flex; height: 100%; width: 100%; position: relative;
+        }
+
+        .side {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+            /* Hiệu ứng khi chạm */
+            transition: background 0.1s; 
+        }
+
+        .side-left { background: #d32f2f; border-right: 2px solid rgba(0,0,0,0.2); }
+        .side-right { background: #1976d2; border-left: 2px solid rgba(0,0,0,0.2); }
+        
+        /* Hiệu ứng active khi chạm/bấm */
+        .side-left.active { background: #ff5252; }
+        .side-right.active { background: #448aff; }
+
+        /* --- UI & TEXT --- */
+        .player-info {
+            color: white; text-align: center; font-size: clamp(1.5rem, 4vw, 3rem);
+            text-transform: uppercase; text-shadow: 2px 2px 0 #000; pointer-events: none;
+        }
+
+        .tap-hint {
+            font-size: clamp(1rem, 3vw, 1.5rem);
+            background: rgba(0,0,0,0.3); padding: 10px 20px; border-radius: 20px;
+            margin-top: 10px; border: 2px solid white; display: inline-block;
+        }
+
+        /* --- DÂY KÉO --- */
+        .game-center {
+            position: absolute; top: 50%; left: 0; width: 100%; height: 0;
+            display: flex; align-items: center; z-index: 10;
+        }
+        
+        .rope-line {
+            width: 100%; height: 8px; background: white; position: absolute; top: 0;
+            box-shadow: 0 5px 5px rgba(0,0,0,0.3);
+        }
+
+        .character-marker {
+            position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+            width: clamp(80px, 15vw, 150px); height: clamp(80px, 15vw, 150px);
+            background: white; border-radius: 50%; border: 6px solid #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-size: clamp(40px, 8vw, 80px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+            transition: left 0.1s linear;
+            z-index: 20;
+        }
+
+        /* --- OVERLAYS --- */
+        .overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 100;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            color: white; text-align: center;
+        }
+        
+        .hidden { display: none !important; }
+
+        .btn-start {
+            font-size: 2rem; padding: 15px 40px; background: #4caf50; color: white;
+            border: none; border-radius: 50px; font-family: 'Bangers', cursive;
+            margin-top: 20px; cursor: pointer;
+        }
+
+        #countdown { font-size: 10rem; font-family: 'Bangers', cursive; color: #ffeb3b; }
+    </style>
+</head>
+<body>
+
+    <div class="overlay" id="overlay">
+        <h1 style="font-family: 'Bangers'; font-size: clamp(3rem, 6vw, 5rem); margin: 0; color: #ffeb3b; line-height: 1;">ĐẠI CHIẾN<br>HẢI SẢN</h1>
+        <p style="font-size: 1.2rem; margin: 20px; color: #ccc;">Chạm nhanh vào phần sân của mình để kéo thắng!</p>
+        <button class="btn-start" onclick="startCountdown()">VÀO TRẬN (START)</button>
+    </div>
+
+    <div class="overlay hidden" id="cntOverlay">
+        <div id="countdown">3</div>
+    </div>
+
+    <div class="arena">
+        <div class="side side-left" id="zoneLeft">
+            <div class="player-info">
+                TEAM TÔM 🦞<br>
+                <div class="tap-hint">Bấm S hoặc CHẠM</div>
+            </div>
+        </div>
+
+        <div class="side side-right" id="zoneRight">
+            <div class="player-info">
+                TEAM CUA 🦀<br>
+                <div class="tap-hint">Bấm K hoặc CHẠM</div>
+            </div>
+        </div>
+
+        <div class="game-center">
+            <div class="rope-line"></div>
+            <div class="character-marker" id="fighter">🔥</div>
+        </div>
+    </div>
+
+    <audio id="sfx-tap" src="https://assets.mixkit.co/active_storage/sfx/2578/2578-preview.mp3"></audio>
+    <audio id="sfx-win" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3"></audio>
+    <audio id="sfx-whistle" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3"></audio>
+
+    <script>
+        // --- CẤU HÌNH ---
+        const STEP_VAL = 2.5; // Mỗi lần chạm nhảy 2.5% (Giảm xuống nếu muốn chơi lâu hơn)
+        
+        let gameActive = false;
+        let position = 50; // 50% là ở giữa
+
+        const fighter = document.getElementById('fighter');
+        const overlay = document.getElementById('overlay');
+        const cntOverlay = document.getElementById('cntOverlay');
+        const cntText = document.getElementById('countdown');
+        const zoneLeft = document.getElementById('zoneLeft');
+        const zoneRight = document.getElementById('zoneRight');
+
+        const sfxTap = document.getElementById('sfx-tap');
+        const sfxWin = document.getElementById('sfx-win');
+        const sfxWhistle = document.getElementById('sfx-whistle');
+
+        // Hàm phát tiếng tap (clone để không bị ngắt quãng khi bấm nhanh)
+        function playTapSound() {
+            const sound = sfxTap.cloneNode();
+            sound.volume = 0.3;
+            sound.play().catch(() => {});
+        }
+
+        function startCountdown() {
+            overlay.classList.add('hidden');
+            cntOverlay.classList.remove('hidden');
+            let count = 3;
+            cntText.innerText = count;
+
+            const interval = setInterval(() => {
+                count--;
+                if(count > 0) {
+                    cntText.innerText = count;
+                    playTapSound();
+                } else {
+                    clearInterval(interval);
+                    cntText.innerText = "FIGHT!";
+                    sfxWhistle.play();
+                    setTimeout(() => {
+                        cntOverlay.classList.add('hidden');
+                        startGame();
+                    }, 500);
+                }
+            }, 1000);
+        }
+
+        function startGame() {
+            gameActive = true;
+            position = 50;
+            updateVisuals();
+        }
+
+        function updateVisuals() {
+            fighter.style.left = position + "%";
+            
+            // Đổi icon theo phe thắng thế
+            if (position < 40) fighter.innerHTML = "🦞";
+            else if (position > 60) fighter.innerHTML = "🦀";
+            else fighter.innerHTML = "🔥";
+        }
+
+        function checkWin() {
+            if(position <= 5) endGame("TEAM TÔM 🦞 THẮNG!");
+            else if(position >= 95) endGame("TEAM CUA 🦀 THẮNG!");
+        }
+
+        function endGame(msg) {
+            gameActive = false;
+            sfxWin.play();
+            overlay.innerHTML = `
+                <h1 style="font-family:'Bangers'; color:#ffeb3b; font-size:3rem;">${msg}</h1>
+                <div style="font-size:4rem; margin:10px;">🏆</div>
+                <button class="btn-start" onclick="location.reload()">ĐẤU LẠI</button>
+            `;
+            overlay.classList.remove('hidden');
+        }
+
+        // --- HÀM XỬ LÝ DI CHUYỂN ---
+        function moveLeft() {
+            if(!gameActive) return;
+            position -= STEP_VAL;
+            playTapSound();
+            
+            // Hiệu ứng nháy màu
+            zoneLeft.classList.add('active');
+            setTimeout(() => zoneLeft.classList.remove('active'), 50);
+            
+            updateVisuals();
+            checkWin();
+        }
+
+        function moveRight() {
+            if(!gameActive) return;
+            position += STEP_VAL;
+            playTapSound();
+
+            zoneRight.classList.add('active');
+            setTimeout(() => zoneRight.classList.remove('active'), 50);
+
+            updateVisuals();
+            checkWin();
+        }
+
+        // --- SỰ KIỆN CẢM ỨNG (TOUCH) ---
+        // Passive: false để cho phép preventDefault chặn zoom
+        zoneLeft.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Chặn zoom/scroll
+            // Hỗ trợ đa điểm: Nếu chạm 3 ngón tay cùng lúc thì tính 3 lần
+            for(let i=0; i < e.changedTouches.length; i++) moveLeft(); 
+        }, { passive: false });
+
+        zoneRight.addEventListener('touchstart', (e) => {
+            e.preventDefault(); 
+            for(let i=0; i < e.changedTouches.length; i++) moveRight();
+        }, { passive: false });
+
+        // --- SỰ KIỆN BÀN PHÍM (LAPTOP) ---
+        document.addEventListener('keydown', (e) => {
+            if(!gameActive) return;
+            if(e.code === 'KeyS' || e.key === 's' || e.key === 'S') moveLeft();
+            if(e.code === 'KeyK' || e.key === 'k' || e.key === 'K') moveRight();
+        });
+
+    </script>
+</body>
+</html>

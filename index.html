@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hải Sản Kỳ Hà - Game Center</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Roboto:wght@700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0; padding: 20px;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #2c3e50, #000000);
+            font-family: 'Roboto', sans-serif;
+            color: white; text-align: center;
+        }
+
+        h1 {
+            font-family: 'Bangers', cursive;
+            font-size: clamp(2.5rem, 6vw, 5rem);
+            color: #ffeb3b;
+            text-shadow: 0 0 10px #ff9800;
+            margin-bottom: 30px;
+        }
+
+        .grid-menu {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 20px;
+            padding: 30px;
+            text-decoration: none;
+            color: white;
+            transition: 0.3s;
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.2);
+            border-color: #ffeb3b;
+            box-shadow: 0 0 30px rgba(255, 235, 59, 0.3);
+        }
+
+        .icon { font-size: 4rem; margin-bottom: 15px; }
+        .title { font-size: 1.5rem; font-weight: bold; text-transform: uppercase; margin-bottom: 5px; color: #ffeb3b; }
+        .desc { font-size: 0.9rem; color: #ccc; }
+
+        /* Màu riêng cho nút Master */
+        .card.master { border-color: #f44336; background: rgba(244, 67, 54, 0.1); }
+        .card.master:hover { background: rgba(244, 67, 54, 0.3); box-shadow: 0 0 30px rgba(244, 67, 54, 0.4); }
+    </style>
+</head>
+<body>
+
+    <img src="https://cdn-icons-png.flaticon.com/512/2972/2972454.png" width="80" style="margin-bottom:10px">
+    <h1>KỲ HÀ GAME CENTER</h1>
+
+    <div class="grid-menu">
+        <a href="sieutritue.html" class="card">
+            <div class="icon">🧠</div>
+            <div class="title">Siêu Trí Tuệ</div>
+            <div class="desc">Lật hình tìm cặp giống nhau</div>
+        </a>
+
+        <a href="doikhang.html" class="card">
+            <div class="icon">🦞⚔️🦀</div>
+            <div class="title">Đối Kháng Tôm Cua</div>
+            <div class="desc">Bấm nhanh tay đoạt cúp</div>
+        </a>
+
+        <a href="100solucky.html" class="card">
+            <div class="icon">💯</div>
+            <div class="title">100 Ô May Mắn</div>
+            <div class="desc">Thử vận may đầu năm</div>
+        </a>
+
+        <a href="9otraloi.html" class="card">
+            <div class="icon">❓</div>
+            <div class="title">9 Ô Bí Ẩn</div>
+            <div class="desc">Trả lời câu hỏi nhận quà</div>
+        </a>
+
+        <a href="bmp.html" class="card">
+            <div class="icon">🎵</div>
+            <div class="title">Đọc Theo Điệu Nhạc</div>
+            <div class="desc">Thử thách Rapper Kỳ Hà</div>
+        </a>
+
+        <a href="master.html" class="card master">
+            <div class="icon">👑</div>
+            <div class="title">Game Master</div>
+            <div class="desc">Bảng điều khiển (Dành cho MC)</div>
+        </a>
+    </div>
+
+</body>
+</html>
