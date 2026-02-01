@@ -3,13 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Đọc Theo Hình - V22 (Tỷ Lệ 3:4)</title>
+    <title>Đọc Theo Hình - V32 (Standard Embed)</title>
     <link href="https://fonts.googleapis.com/css2?family=Anton&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --red: #D32F2F;
             --gold: #FFD700;
             --green: #2e7d32;
+            --blue: #1565c0;
+            --gray: #607d8b;
         }
 
         * { box-sizing: border-box; user-select: none; }
@@ -44,25 +46,21 @@
 
         .grid-container {
             display: grid;
-            /* Giữ chiều rộng tối thiểu 150px để ô dọc nhìn to đẹp */
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 20px;
             width: 100%; max-width: 1200px;
             padding: 10px;
         }
 
-        /* Ô BÍ ẨN - TỶ LỆ 3:4 */
+        /* Ô BÍ ẨN (3:4) */
         .box {
-            aspect-ratio: 3/4; /* QUAN TRỌNG: Tỷ lệ dọc (Portrait) */
-            
+            aspect-ratio: 3/4; 
             background: linear-gradient(135deg, #FFD700, #FFA000); 
             background-size: cover; background-position: center; background-repeat: no-repeat;
-            
             border-radius: 12px;
             display: flex; align-items: center; justify-content: center;
             cursor: pointer;
             position: relative;
-            /* Bóng đổ dày hơn cho cảm giác 3D */
             box-shadow: 0 10px 20px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.3);
             transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
             transform-style: preserve-3d;
@@ -71,25 +69,13 @@
         .box:hover { transform: translateY(-8px) scale(1.02); box-shadow: 0 20px 40px rgba(0,0,0,0.5); border-color: var(--gold); }
         .box:active { transform: scale(0.95); }
         
-        .box-content {
-            font-family: 'Anton', sans-serif;
-            font-size: clamp(3rem, 6vw, 5rem); 
-            color: var(--red);
-            text-shadow: 1px 1px 0 rgba(255,255,255,0.4);
-            z-index: 2;
-        }
-
-        /* Ẩn dấu hỏi nếu có ảnh */
-        .box.has-image .box-content { display: none; }
+        .box-content { display: none; }
 
         /* HIỆU ỨNG */
         .box.flipping { transform: rotateY(180deg) scale(1.2); opacity: 0; }
         .box.shuffling { transform: scale(0) rotate(360deg); opacity: 0; }
         .box.appearing { animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
-        
         @keyframes popIn { 0% { transform: scale(0); opacity: 0; } 80% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
-        
-        /* DISABLED */
         .box.disabled { pointer-events: none; filter: grayscale(1); opacity: 0.5; }
 
         /* MODAL VIDEO */
@@ -101,25 +87,66 @@
         }
         .modal-overlay.show { display: flex; opacity: 1; }
 
-        .video-wrapper {
-            width: 90%; max-width: 1100px; aspect-ratio: 16/9;
-            background: #000; border: 4px solid var(--gold);
-            box-shadow: 0 0 60px rgba(255, 215, 0, 0.4);
-            border-radius: 15px; overflow: hidden;
-            transform: scale(0.8); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        .video-container-outer {
+            width: 90%; max-width: 1100px;
+            display: flex; flex-direction: column; gap: 10px;
         }
-        .modal-overlay.show .video-wrapper { transform: scale(1); }
-        iframe { width: 100%; height: 100%; border: none; }
 
-        .modal-controls { margin-top: 20px; display: flex; gap: 20px; }
+        .level-badge {
+            align-self: center;
+            background: var(--red); color: var(--gold);
+            padding: 5px 20px; border-radius: 50px;
+            font-family: 'Anton'; font-size: 1.5rem; letter-spacing: 1px;
+            border: 2px solid var(--gold);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+            text-transform: uppercase;
+        }
+
+        /* KHUNG VIDEO 16:9 CHUẨN */
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%; /* 16:9 */
+            height: 0;
+            background: #000; 
+            border: 4px solid var(--gold);
+            box-shadow: 0 0 60px rgba(255, 215, 0, 0.4);
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        
+        .video-wrapper iframe {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            border: none;
+        }
+        
+        /* MENU CHỌN TRONG VIDEO */
+        .level-menu-overlay {
+            position: absolute; inset: 0;
+            background: rgba(0,0,0,0.9);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 20px; z-index: 10;
+        }
+        .level-menu-overlay.hidden { display: none; }
+
+        .modal-controls { margin-top: 10px; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;}
         .btn {
-            padding: 12px 30px; border-radius: 50px; border: none;
+            padding: 12px 25px; border-radius: 50px; border: none;
             font-family: 'Anton'; font-size: 1.1rem; cursor: pointer;
             text-transform: uppercase; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 5px;
+            min-width: 140px;
         }
         .btn-close { background: #444; color: white; border: 1px solid #777; }
-        .btn-fullscreen { background: var(--red); color: var(--gold); border: 2px solid var(--gold); animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(211, 47, 47, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(211, 47, 47, 0); } 100% { box-shadow: 0 0 0 0 rgba(211, 47, 47, 0); } }
+        .btn-next { background: var(--gold); color: #d32f2f; border: 2px solid #fff; animation: pulse 2s infinite; font-weight: bold; }
+        .btn-fullscreen { background: var(--blue); color: white; border: 1px solid #fff; }
+        .btn-fallback { background: transparent; border: 1px dashed #777; color: #aaa; font-size: 0.8rem; text-transform: none; font-family: sans-serif; }
+        
+        .btn-preview { background: var(--gray); color: white; border: 2px solid #fff; font-size: 1.3rem; padding: 15px 40px; }
+        .btn-play { background: var(--green); color: white; border: 2px solid #fff; font-size: 1.5rem; padding: 20px 50px; animation: pulse 1.5s infinite; }
+        
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
 
         /* SETTINGS */
         .settings-btn {
@@ -135,7 +162,7 @@
         .settings-panel {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: #fff; color: #333;
-            padding: 20px; border-radius: 15px; width: 95%; max-width: 450px;
+            padding: 20px; border-radius: 15px; width: 95%; max-width: 500px;
             max-height: 95vh; display: flex; flex-direction: column; gap: 10px;
             z-index: 2001; box-shadow: 0 20px 60px rgba(0,0,0,0.8);
             border: 4px solid var(--gold); display: none; overflow-y: auto;
@@ -144,12 +171,19 @@
         
         .setting-group { border-bottom: 1px dashed #ccc; padding-bottom: 10px; margin-bottom: 5px; }
         .setting-label { font-weight: bold; display: block; margin-bottom: 5px; color: var(--red); }
+        .link-list { max-height: 300px; overflow-y: auto; border: 1px solid #eee; padding: 5px; background: #f9f9f9; }
         
-        .link-list { max-height: 150px; overflow-y: auto; border: 1px solid #eee; padding: 5px; background: #f9f9f9; }
-        .link-row { display: flex; gap: 5px; margin-bottom: 5px; }
-        .link-row input { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
-        .link-row span { width: 35px; text-align: center; font-weight: bold; line-height: 35px; background: #eee; border-radius: 4px; font-size: 0.8rem; }
-        
+        .box-config-item {
+            background: #eee; padding: 10px; border-radius: 8px; margin-bottom: 10px;
+            border: 1px solid #ddd;
+        }
+        .box-config-header { font-weight: bold; margin-bottom: 5px; color: #333; }
+        .lvl-input-row { display: flex; gap: 5px; margin-bottom: 3px; align-items: center; }
+        .lvl-label { width: 60px; font-size: 0.8rem; font-weight: bold; }
+        .lvl-input { flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9rem; }
+        .lvl-1 { color: #2e7d32; }
+        .lvl-2 { color: #c62828; }
+
         .copyright {
             position: fixed; bottom: 5px; right: 10px;
             font-size: 11px; color: rgba(255,255,255,0.2);
@@ -162,6 +196,8 @@
         .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
         input:checked + .slider { background-color: var(--red); }
         input:checked + .slider:before { transform: translateX(20px); }
+        
+        #debugInfo { color: #aaa; font-size: 0.7rem; font-family: monospace; margin-top: 5px; text-align: center; }
     </style>
 </head>
 <body>
@@ -173,12 +209,27 @@
     </div>
 
     <div class="modal-overlay" id="videoModal">
-        <div class="video-wrapper" id="videoContainer">
-            <div id="playerPlaceholder" style="color:white; display:flex; align-items:center; justify-content:center; height:100%">Loading...</div>
-        </div>
-        <div class="modal-controls">
-            <button class="btn btn-close" onclick="closeVideo()">✖ Đóng & Trộn</button>
-            <button class="btn btn-fullscreen" onclick="goFullscreen()">📺 Fullscreen</button>
+        <div class="video-container-outer">
+            <div class="level-badge" id="levelBadge">CẤP ĐỘ 1</div>
+            
+            <div class="video-wrapper" id="videoContainer">
+                
+                <div class="level-menu-overlay" id="levelMenu">
+                    <button class="btn btn-preview" onclick="playSelectedLevel(true)">👁️ XEM THỬ</button>
+                    <button class="btn btn-play" onclick="playSelectedLevel(false)">▶️ CHƠI THẬT</button>
+                </div>
+
+                </div>
+            
+            <div id="debugInfo"></div>
+
+            <div class="modal-controls">
+                <button class="btn btn-close" onclick="closeVideo()">✖ DỪNG & ĐÓNG</button>
+                <button class="btn btn-fullscreen" onclick="goFullscreen()">📺 Fullscreen</button>
+                <button class="btn btn-next" id="btnNextLevel" style="display:none" onclick="advanceToNextLevel()">QUA CẤP ĐỘ KHÓ >></button>
+            </div>
+            
+            <a href="#" id="fallbackLink" target="_blank" class="btn btn-fallback" style="display:none; align-self:center; margin-top:5px;">↗️ Mở bằng ứng dụng Youtube (Nếu lỗi)</a>
         </div>
     </div>
 
@@ -195,7 +246,7 @@
             <div style="display:flex; gap:5px; align-items:center;">
                 <div style="width:50px; height:66px; border:1px solid #ccc; background-size:cover; background-position:center; background-color:#eee; border-radius:5px; flex-shrink:0;" id="previewIcon"></div>
                 <div style="flex:1; display:flex; flex-direction:column; gap:5px;">
-                    <input type="text" id="iconUrlInput" placeholder="Dán link ảnh vào đây..." style="width:100%; padding:5px; border:1px solid #ccc; font-size:0.8rem">
+                    <input type="text" id="iconUrlInput" placeholder="Dán link ảnh nền..." style="width:100%; padding:5px; border:1px solid #ccc; font-size:0.8rem">
                     <div style="display:flex; gap:5px;">
                         <label class="btn" style="flex:1; font-size:0.8rem; background:#444; color:#fff; padding:5px;">
                             📂 Úp ảnh
@@ -236,20 +287,27 @@
     <div class="copyright">Tools by Longca Hải Sản Kỳ Hà</div>
 
     <script>
-        const DEFAULT_LINKS = ["https://www.youtube.com/watch?v=HuC0k8t7R_k", "https://www.youtube.com/watch?v=S01c6hW8O4Q", "https://www.youtube.com/watch?v=kYtGl1dX5qI", "https://www.youtube.com/watch?v=L9Y19d9-cQI"];
+        // DỮ LIỆU MẪU MỚI (V32 - Link Chuẩn 100%)
+        const DEFAULT_LINKS = [
+            { l1: "https://www.youtube.com/watch?v=Zdx5Huif2sY", l2: "https://www.youtube.com/watch?v=12ZatgQmDI0" },
+            { l1: "https://www.youtube.com/watch?v=MfGNzjI4Awg", l2: "https://www.youtube.com/watch?v=pGVMlylF_Hg" },
+            { l1: "https://www.youtube.com/watch?v=H7pY1UxUVog", l2: "https://www.youtube.com/watch?v=I5yD_vYfNFo" },
+            { l1: "https://www.youtube.com/watch?v=8BikOjRbyWA", l2: "https://www.youtube.com/watch?v=-e8VN5OWJlM" }
+        ];
         
-        // --- ẢNH MỚI TỶ LỆ DỌC ---
         const DEFAULT_BOX_IMAGE = "https://cdn.hstatic.net/files/200000273197/file/b52e33c1c1027c58278cae225786b77d_17_1759851378356_25.jpeg";
 
-        // Sử dụng Key v22
+        // KEY V32
         let gameConfig = { 
             title: "❓ ĐỌC THEO HÌNH ❓", 
             shuffle: true, repeat: true, totalBoxes: 4, 
             boxImage: DEFAULT_BOX_IMAGE, 
-            links: [...DEFAULT_LINKS] 
+            links: JSON.parse(JSON.stringify(DEFAULT_LINKS))
         };
         let openedBoxes = [];
         let displayOrder = [];
+        let currentPlayingBoxIndex = -1;
+        let currentLevel = 1;
 
         // DOM
         const gridContainer = document.getElementById('gridContainer');
@@ -258,18 +316,22 @@
         const settingsPanel = document.getElementById('settingsPanel');
         const previewIcon = document.getElementById('previewIcon');
         const iconUrlInput = document.getElementById('iconUrlInput');
+        const levelBadge = document.getElementById('levelBadge');
+        const btnNextLevel = document.getElementById('btnNextLevel');
+        const levelMenu = document.getElementById('levelMenu');
+        const debugInfo = document.getElementById('debugInfo');
+        const fallbackLink = document.getElementById('fallbackLink');
 
         function init() {
             try {
-                const savedConfig = JSON.parse(localStorage.getItem('dth_config_v22'));
-                const savedOpened = JSON.parse(localStorage.getItem('dth_opened_v22'));
-                const savedOrder = JSON.parse(localStorage.getItem('dth_order_v22'));
+                const savedConfig = JSON.parse(localStorage.getItem('dth_config_v32'));
+                const savedOpened = JSON.parse(localStorage.getItem('dth_opened_v32'));
+                const savedOrder = JSON.parse(localStorage.getItem('dth_order_v32'));
                 if(savedConfig) gameConfig = savedConfig;
                 if(savedOpened) openedBoxes = savedOpened;
                 if(savedOrder) displayOrder = savedOrder;
             } catch(e) {}
 
-            // UI Init
             document.getElementById('mainTitle').innerText = gameConfig.title || "❓ ĐỌC THEO HÌNH ❓";
             document.getElementById('gameTitleInput').value = gameConfig.title || "";
             document.getElementById('chkShuffle').checked = gameConfig.shuffle;
@@ -298,7 +360,6 @@
             }
         }
 
-        // --- XỬ LÝ ẢNH ---
         function handleFileUpload(input) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
@@ -337,7 +398,6 @@
             document.getElementById('iconFileInput').value = "";
         }
 
-        // --- CORE GAME ---
         function resetDisplayOrder() {
             displayOrder = Array.from({length: gameConfig.totalBoxes}, (_, i) => i);
             saveState();
@@ -358,7 +418,6 @@
             displayOrder.forEach((realIndex, i) => {
                 const box = document.createElement('div');
                 box.className = 'box';
-                
                 box.style.backgroundImage = `url(${gameConfig.boxImage})`;
                 box.classList.add('has-image');
 
@@ -377,39 +436,101 @@
         }
 
         function openBox(boxEl, index) {
-            const link = gameConfig.links[index] || "";
-            if (!link && !confirm("Ô này trống. Mở không?")) return;
+            const boxData = gameConfig.links[index] || { l1:"", l2:"" };
+            if (!boxData.l1 && !confirm("Ô này chưa có Link Level 1. Mở không?")) return;
 
             boxEl.classList.add('flipping');
 
             setTimeout(() => {
                 if (!openedBoxes.includes(index)) {
                     openedBoxes.push(index);
-                    localStorage.setItem('dth_opened_v22', JSON.stringify(openedBoxes));
+                    localStorage.setItem('dth_opened_v32', JSON.stringify(openedBoxes));
                 }
-
-                if(link) {
-                    const videoId = getYouTubeID(link);
-                    if (videoId) {
-                        videoModal.classList.add('show');
-                        videoWrapper.innerHTML = `
-                            <iframe width="100%" height="100%" 
-                            src="https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0" 
-                            title="Video Player" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-                        `;
-                    } else {
-                        alert("Link lỗi!");
-                        boxEl.classList.remove('flipping');
-                    }
-                } else {
-                     boxEl.classList.remove('flipping');
-                }
+                currentPlayingBoxIndex = index;
+                showLevelMenu(1); 
+                videoModal.classList.add('show');
             }, 300); 
+        }
+
+        function showLevelMenu(lvl) {
+            currentLevel = lvl;
+            const existingIframe = videoWrapper.querySelector('iframe');
+            if(existingIframe) existingIframe.remove();
+
+            levelMenu.classList.remove('hidden');
+            btnNextLevel.style.display = "none"; 
+            debugInfo.innerText = "";
+            fallbackLink.style.display = 'none';
+
+            if(lvl === 1) {
+                levelBadge.innerText = "CẤP ĐỘ 1: DỄ";
+                levelBadge.style.backgroundColor = "#2e7d32"; 
+            } else {
+                levelBadge.innerText = "CẤP ĐỘ 2: KHÓ";
+                levelBadge.style.backgroundColor = "#c62828"; 
+            }
+        }
+
+        function getYouTubeID(url) {
+            if(!url) return null;
+            try {
+                // Hỗ trợ link youtu.be, youtube.com/watch?v=, youtube.com/shorts/
+                const regExp = /(?:youtu\.be\/|youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtube\.com\/shorts\/)([^"&?\/\s]{11})/;
+                const match = url.match(regExp);
+                return (match && match[1]) ? match[1] : null;
+            } catch (e) { console.log(e); return null; }
+        }
+
+        function playSelectedLevel(isPreview) {
+            const boxData = gameConfig.links[currentPlayingBoxIndex] || {};
+            let url = (currentLevel === 1) ? boxData.l1 : boxData.l2;
+
+            if(!url) { alert("Chưa có link video!"); return; }
+
+            const videoId = getYouTubeID(url);
+            
+            debugInfo.innerText = `ID: ${videoId}`;
+            fallbackLink.href = url;
+            fallbackLink.style.display = 'block';
+
+            if (!videoId) { alert("Lỗi: Không tìm thấy ID Youtube từ link này!"); return; }
+
+            levelMenu.classList.add('hidden');
+            
+            const iframe = document.createElement('iframe');
+            
+            // --- FIX FINAL: DÙNG DOMAIN CHUẨN, KHÔNG DÙNG NO-COOKIE, BỎ REFERRER ---
+            iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&controls=1&rel=0&playsinline=1&modestbranding=1`;
+            iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+            iframe.allowFullscreen = true;
+            // Xóa referrerPolicy để tránh lỗi 153 trên một số browser
+            // iframe.setAttribute('referrerPolicy', 'no-referrer'); 
+            
+            videoWrapper.appendChild(iframe);
+
+            if (isPreview) {
+                btnNextLevel.style.display = "none";
+            } else {
+                if(currentLevel === 1 && boxData.l2) {
+                    btnNextLevel.style.display = "flex";
+                } else {
+                    btnNextLevel.style.display = "none";
+                }
+            }
+        }
+
+        function advanceToNextLevel() {
+            const iframe = videoWrapper.querySelector('iframe');
+            if(iframe) iframe.remove();
+            showLevelMenu(2);
         }
 
         function closeVideo() {
             videoModal.classList.remove('show');
-            videoWrapper.innerHTML = '';
+            const iframe = videoWrapper.querySelector('iframe');
+            if(iframe) iframe.remove();
+            
+            currentPlayingBoxIndex = -1;
             if (document.fullscreenElement) document.exitFullscreen();
 
             if (gameConfig.shuffle) {
@@ -424,7 +545,7 @@
         function restartGame() {
             if(confirm("BẮT ĐẦU LẠI TỪ ĐẦU?")) {
                 openedBoxes = [];
-                localStorage.setItem('dth_opened_v22', JSON.stringify(openedBoxes));
+                localStorage.setItem('dth_opened_v32', JSON.stringify(openedBoxes));
                 const boxes = document.querySelectorAll('.box');
                 boxes.forEach(b => b.classList.add('shuffling'));
                 setTimeout(() => { renderGrid(true); }, 400);
@@ -438,24 +559,29 @@
             else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
         }
 
-        function getYouTubeID(url) {
-            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-            const match = url.match(regExp);
-            return (match && match[2].length === 11) ? match[2] : null;
-        }
-
         function toggleSettings() { settingsPanel.classList.toggle('show'); }
 
         function renderLinkInputs() {
             const container = document.getElementById('linkInputsList');
             container.innerHTML = '';
             const count = parseInt(document.getElementById('numBoxes').value) || 4;
+            
             for (let i = 0; i < count; i++) {
-                const row = document.createElement('div');
-                row.className = 'link-row';
-                const val = gameConfig.links[i] || "";
-                row.innerHTML = `<span>${i + 1}</span><input type="text" id="link_${i}" value="${val}" placeholder="Link YouTube...">`;
-                container.appendChild(row);
+                const data = gameConfig.links[i] || { l1:"", l2:"" };
+                const item = document.createElement('div');
+                item.className = 'box-config-item';
+                item.innerHTML = `
+                    <div class="box-config-header">Ô SỐ ${i + 1}</div>
+                    <div class="lvl-input-row">
+                        <span class="lvl-label lvl-1">Cấp 1 (Dễ)</span>
+                        <input type="text" class="lvl-input inp-l1" id="link_${i}_l1" value="${data.l1 || ''}" placeholder="Link Youtube Level 1...">
+                    </div>
+                    <div class="lvl-input-row">
+                        <span class="lvl-label lvl-2">Cấp 2 (Khó)</span>
+                        <input type="text" class="lvl-input inp-l2" id="link_${i}_l2" value="${data.l2 || ''}" placeholder="Link Youtube Level 2...">
+                    </div>
+                `;
+                container.appendChild(item);
             }
         }
 
@@ -470,8 +596,9 @@
 
             const newLinks = [];
             for (let i = 0; i < count; i++) {
-                const val = document.getElementById(`link_${i}`).value.trim();
-                newLinks.push(val);
+                const l1 = document.getElementById(`link_${i}_l1`).value.trim();
+                const l2 = document.getElementById(`link_${i}_l2`).value.trim();
+                newLinks.push({ l1, l2 });
             }
 
             const oldTotal = gameConfig.totalBoxes;
@@ -481,17 +608,17 @@
             gameConfig.repeat = repeat;
             gameConfig.links = newLinks;
             
-            localStorage.setItem('dth_config_v22', JSON.stringify(gameConfig));
+            localStorage.setItem('dth_config_v32', JSON.stringify(gameConfig));
 
             document.getElementById('mainTitle').innerText = title;
             if (oldTotal !== count) resetDisplayOrder();
             renderGrid(false);
             toggleSettings();
-            alert("Đã lưu!");
+            alert("Đã lưu cấu hình 2 cấp độ!");
         }
         
         function saveState() {
-            localStorage.setItem('dth_order_v22', JSON.stringify(displayOrder));
+            localStorage.setItem('dth_order_v32', JSON.stringify(displayOrder));
         }
 
         init();
