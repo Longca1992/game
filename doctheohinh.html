@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Đọc Theo Hình - V22 (Tỷ Lệ 3:4)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --red: #D32F2F;
+            --gold: #FFD700;
+            --green: #2e7d32;
+        }
+
+        * { box-sizing: border-box; user-select: none; }
+
+        body {
+            margin: 0; padding: 0; height: 100vh;
+            font-family: 'Roboto', sans-serif;
+            background: radial-gradient(circle at center, #8b0000 0%, #1a0000 100%);
+            color: #fff;
+            display: flex; flex-direction: column; align-items: center;
+            overflow: hidden; 
+        }
+
+        /* HEADER */
+        h1 {
+            font-family: 'Anton', sans-serif; 
+            font-size: clamp(2rem, 5vh, 4rem);
+            color: var(--gold); text-transform: uppercase; margin: 10px 0;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5), 3px 3px 0 #000;
+            letter-spacing: 2px; flex-shrink: 0;
+            animation: glow 2s infinite alternate;
+            text-align: center; padding: 0 10px;
+        }
+        @keyframes glow { from { text-shadow: 0 0 10px rgba(255,215,0,0.2), 3px 3px 0 #000; } to { text-shadow: 0 0 20px rgba(255,215,0,0.6), 3px 3px 0 #000; } }
+
+        /* LƯỚI Ô */
+        .grid-wrapper {
+            flex: 1; width: 100%; 
+            display: flex; align-items: center; justify-content: center;
+            padding: 20px; overflow-y: auto; perspective: 1000px;
+        }
+
+        .grid-container {
+            display: grid;
+            /* Giữ chiều rộng tối thiểu 150px để ô dọc nhìn to đẹp */
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            width: 100%; max-width: 1200px;
+            padding: 10px;
+        }
+
+        /* Ô BÍ ẨN - TỶ LỆ 3:4 */
+        .box {
+            aspect-ratio: 3/4; /* QUAN TRỌNG: Tỷ lệ dọc (Portrait) */
+            
+            background: linear-gradient(135deg, #FFD700, #FFA000); 
+            background-size: cover; background-position: center; background-repeat: no-repeat;
+            
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            position: relative;
+            /* Bóng đổ dày hơn cho cảm giác 3D */
+            box-shadow: 0 10px 20px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.3);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
+            transform-style: preserve-3d;
+            border: 2px solid #fff;
+        }
+        .box:hover { transform: translateY(-8px) scale(1.02); box-shadow: 0 20px 40px rgba(0,0,0,0.5); border-color: var(--gold); }
+        .box:active { transform: scale(0.95); }
+        
+        .box-content {
+            font-family: 'Anton', sans-serif;
+            font-size: clamp(3rem, 6vw, 5rem); 
+            color: var(--red);
+            text-shadow: 1px 1px 0 rgba(255,255,255,0.4);
+            z-index: 2;
+        }
+
+        /* Ẩn dấu hỏi nếu có ảnh */
+        .box.has-image .box-content { display: none; }
+
+        /* HIỆU ỨNG */
+        .box.flipping { transform: rotateY(180deg) scale(1.2); opacity: 0; }
+        .box.shuffling { transform: scale(0) rotate(360deg); opacity: 0; }
+        .box.appearing { animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        
+        @keyframes popIn { 0% { transform: scale(0); opacity: 0; } 80% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+        
+        /* DISABLED */
+        .box.disabled { pointer-events: none; filter: grayscale(1); opacity: 0.5; }
+
+        /* MODAL VIDEO */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); z-index: 2000;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .modal-overlay.show { display: flex; opacity: 1; }
+
+        .video-wrapper {
+            width: 90%; max-width: 1100px; aspect-ratio: 16/9;
+            background: #000; border: 4px solid var(--gold);
+            box-shadow: 0 0 60px rgba(255, 215, 0, 0.4);
+            border-radius: 15px; overflow: hidden;
+            transform: scale(0.8); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .modal-overlay.show .video-wrapper { transform: scale(1); }
+        iframe { width: 100%; height: 100%; border: none; }
+
+        .modal-controls { margin-top: 20px; display: flex; gap: 20px; }
+        .btn {
+            padding: 12px 30px; border-radius: 50px; border: none;
+            font-family: 'Anton'; font-size: 1.1rem; cursor: pointer;
+            text-transform: uppercase; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 5px;
+        }
+        .btn-close { background: #444; color: white; border: 1px solid #777; }
+        .btn-fullscreen { background: var(--red); color: var(--gold); border: 2px solid var(--gold); animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(211, 47, 47, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(211, 47, 47, 0); } 100% { box-shadow: 0 0 0 0 rgba(211, 47, 47, 0); } }
+
+        /* SETTINGS */
+        .settings-btn {
+            position: fixed; bottom: 20px; left: 20px;
+            width: 50px; height: 50px; background: rgba(255,255,255,0.1);
+            border-radius: 50%; color: white; font-size: 24px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; border: 2px solid rgba(255,255,255,0.3); z-index: 100;
+            transition: 0.3s;
+        }
+        .settings-btn:hover { background: var(--red); border-color: var(--gold); transform: rotate(180deg); }
+        
+        .settings-panel {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: #fff; color: #333;
+            padding: 20px; border-radius: 15px; width: 95%; max-width: 450px;
+            max-height: 95vh; display: flex; flex-direction: column; gap: 10px;
+            z-index: 2001; box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+            border: 4px solid var(--gold); display: none; overflow-y: auto;
+        }
+        .settings-panel.show { display: flex; }
+        
+        .setting-group { border-bottom: 1px dashed #ccc; padding-bottom: 10px; margin-bottom: 5px; }
+        .setting-label { font-weight: bold; display: block; margin-bottom: 5px; color: var(--red); }
+        
+        .link-list { max-height: 150px; overflow-y: auto; border: 1px solid #eee; padding: 5px; background: #f9f9f9; }
+        .link-row { display: flex; gap: 5px; margin-bottom: 5px; }
+        .link-row input { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        .link-row span { width: 35px; text-align: center; font-weight: bold; line-height: 35px; background: #eee; border-radius: 4px; font-size: 0.8rem; }
+        
+        .copyright {
+            position: fixed; bottom: 5px; right: 10px;
+            font-size: 11px; color: rgba(255,255,255,0.2);
+            pointer-events: none; z-index: 10; font-family: sans-serif;
+        }
+        
+        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--red); }
+        input:checked + .slider:before { transform: translateX(20px); }
+    </style>
+</head>
+<body>
+
+    <h1 id="mainTitle">❓ ĐỌC THEO HÌNH ❓</h1>
+
+    <div class="grid-wrapper">
+        <div class="grid-container" id="gridContainer"></div>
+    </div>
+
+    <div class="modal-overlay" id="videoModal">
+        <div class="video-wrapper" id="videoContainer">
+            <div id="playerPlaceholder" style="color:white; display:flex; align-items:center; justify-content:center; height:100%">Loading...</div>
+        </div>
+        <div class="modal-controls">
+            <button class="btn btn-close" onclick="closeVideo()">✖ Đóng & Trộn</button>
+            <button class="btn btn-fullscreen" onclick="goFullscreen()">📺 Fullscreen</button>
+        </div>
+    </div>
+
+    <div class="settings-btn" onclick="toggleSettings()">⚙️</div>
+    <div class="settings-panel" id="settingsPanel">
+        <h2 style="text-align:center; margin:0; font-family:'Anton'; color:var(--red)">CẤU HÌNH</h2>
+        
+        <button class="btn" style="width:100%; background:var(--green); color:white; margin-bottom:10px;" onclick="restartGame()">🔄 CHƠI LẠI TỪ ĐẦU</button>
+
+        <div class="setting-group">
+            <div class="setting-label">Tên Game & Icon Ô:</div>
+            <input type="text" id="gameTitleInput" placeholder="Tên trò chơi..." style="width:100%; padding:8px; margin-bottom:5px; border:1px solid #ccc; text-align:center; font-weight:bold;">
+            
+            <div style="display:flex; gap:5px; align-items:center;">
+                <div style="width:50px; height:66px; border:1px solid #ccc; background-size:cover; background-position:center; background-color:#eee; border-radius:5px; flex-shrink:0;" id="previewIcon"></div>
+                <div style="flex:1; display:flex; flex-direction:column; gap:5px;">
+                    <input type="text" id="iconUrlInput" placeholder="Dán link ảnh vào đây..." style="width:100%; padding:5px; border:1px solid #ccc; font-size:0.8rem">
+                    <div style="display:flex; gap:5px;">
+                        <label class="btn" style="flex:1; font-size:0.8rem; background:#444; color:#fff; padding:5px;">
+                            📂 Úp ảnh
+                            <input type="file" id="iconFileInput" accept="image/*" style="display:none" onchange="handleFileUpload(this)">
+                        </label>
+                        <button class="btn" style="flex:1; font-size:0.8rem; background:#aaa; color:#000; padding:5px;" onclick="resetIcon()">Mặc định</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="setting-group">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:5px">
+                <span style="font-weight:bold">🔀 Tự động Xáo trộn</span>
+                <label class="switch"><input type="checkbox" id="chkShuffle" checked><span class="slider"></span></label>
+            </div>
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+                <span style="font-weight:bold">🔄 Cho phép chọn lại</span>
+                <label class="switch"><input type="checkbox" id="chkRepeat" checked><span class="slider"></span></label>
+            </div>
+        </div>
+
+        <div>
+            <div style="display:flex; gap:10px; margin-bottom:5px; align-items:center;">
+                <span style="font-weight:bold">Số ô:</span>
+                <input type="number" id="numBoxes" value="4" min="1" max="50" style="width:60px; padding:5px; text-align:center; font-weight:bold">
+                <button onclick="renderLinkInputs()" style="padding:5px 10px; cursor:pointer; background:#eee; border:1px solid #ccc">Update</button>
+            </div>
+            <div class="link-list" id="linkInputsList"></div>
+        </div>
+
+        <div style="display:flex; gap:10px; margin-top:10px;">
+            <button class="btn" style="flex:1; background:var(--red); color:white;" onclick="saveSettings()">LƯU</button>
+            <button class="btn" style="flex:1; background:#444; color:white;" onclick="toggleSettings()">ĐÓNG</button>
+        </div>
+    </div>
+
+    <div class="copyright">Tools by Longca Hải Sản Kỳ Hà</div>
+
+    <script>
+        const DEFAULT_LINKS = ["https://www.youtube.com/watch?v=HuC0k8t7R_k", "https://www.youtube.com/watch?v=S01c6hW8O4Q", "https://www.youtube.com/watch?v=kYtGl1dX5qI", "https://www.youtube.com/watch?v=L9Y19d9-cQI"];
+        
+        // --- ẢNH MỚI TỶ LỆ DỌC ---
+        const DEFAULT_BOX_IMAGE = "https://cdn.hstatic.net/files/200000273197/file/b52e33c1c1027c58278cae225786b77d_17_1759851378356_25.jpeg";
+
+        // Sử dụng Key v22
+        let gameConfig = { 
+            title: "❓ ĐỌC THEO HÌNH ❓", 
+            shuffle: true, repeat: true, totalBoxes: 4, 
+            boxImage: DEFAULT_BOX_IMAGE, 
+            links: [...DEFAULT_LINKS] 
+        };
+        let openedBoxes = [];
+        let displayOrder = [];
+
+        // DOM
+        const gridContainer = document.getElementById('gridContainer');
+        const videoModal = document.getElementById('videoModal');
+        const videoWrapper = document.getElementById('videoContainer');
+        const settingsPanel = document.getElementById('settingsPanel');
+        const previewIcon = document.getElementById('previewIcon');
+        const iconUrlInput = document.getElementById('iconUrlInput');
+
+        function init() {
+            try {
+                const savedConfig = JSON.parse(localStorage.getItem('dth_config_v22'));
+                const savedOpened = JSON.parse(localStorage.getItem('dth_opened_v22'));
+                const savedOrder = JSON.parse(localStorage.getItem('dth_order_v22'));
+                if(savedConfig) gameConfig = savedConfig;
+                if(savedOpened) openedBoxes = savedOpened;
+                if(savedOrder) displayOrder = savedOrder;
+            } catch(e) {}
+
+            // UI Init
+            document.getElementById('mainTitle').innerText = gameConfig.title || "❓ ĐỌC THEO HÌNH ❓";
+            document.getElementById('gameTitleInput').value = gameConfig.title || "";
+            document.getElementById('chkShuffle').checked = gameConfig.shuffle;
+            document.getElementById('chkRepeat').checked = gameConfig.repeat;
+            document.getElementById('numBoxes').value = gameConfig.totalBoxes;
+            
+            updatePreviewIcon();
+
+            if (!displayOrder || displayOrder.length !== gameConfig.totalBoxes) resetDisplayOrder();
+            renderGrid(false);
+            renderLinkInputs();
+        }
+
+        function updatePreviewIcon() {
+            if(gameConfig.boxImage) {
+                previewIcon.style.backgroundImage = `url(${gameConfig.boxImage})`;
+                previewIcon.innerText = '';
+                if(gameConfig.boxImage.startsWith('http')) {
+                    iconUrlInput.value = gameConfig.boxImage;
+                } else {
+                    iconUrlInput.value = "";
+                }
+            } else {
+                previewIcon.style.backgroundImage = 'none';
+                previewIcon.innerText = '?';
+            }
+        }
+
+        // --- XỬ LÝ ẢNH ---
+        function handleFileUpload(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    resizeImage(e.target.result, 500, (compressedData) => {
+                        gameConfig.boxImage = compressedData;
+                        updatePreviewIcon();
+                    });
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function resizeImage(base64Str, maxWidth, callback) {
+            const img = new Image();
+            img.src = base64Str;
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                if (width > maxWidth) {
+                    height *= maxWidth / width;
+                    width = maxWidth;
+                }
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                callback(canvas.toDataURL('image/jpeg', 0.8)); 
+            }
+        }
+
+        function resetIcon() {
+            gameConfig.boxImage = DEFAULT_BOX_IMAGE;
+            updatePreviewIcon();
+            document.getElementById('iconFileInput').value = "";
+        }
+
+        // --- CORE GAME ---
+        function resetDisplayOrder() {
+            displayOrder = Array.from({length: gameConfig.totalBoxes}, (_, i) => i);
+            saveState();
+        }
+
+        function shuffleDisplayOrder() {
+            for (let i = displayOrder.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [displayOrder[i], displayOrder[j]] = [displayOrder[j], displayOrder[i]];
+            }
+            saveState();
+        }
+
+        function renderGrid(animate = true) {
+            gridContainer.innerHTML = '';
+            if(!displayOrder || displayOrder.length === 0) resetDisplayOrder();
+
+            displayOrder.forEach((realIndex, i) => {
+                const box = document.createElement('div');
+                box.className = 'box';
+                
+                box.style.backgroundImage = `url(${gameConfig.boxImage})`;
+                box.classList.add('has-image');
+
+                if(animate) {
+                    box.classList.add('appearing');
+                    box.style.animationDelay = `${i * 0.05}s`; 
+                }
+
+                const isOpened = openedBoxes.includes(realIndex);
+                if (isOpened && !gameConfig.repeat) box.classList.add('disabled');
+
+                box.innerHTML = `<div class="box-content">?</div>`;
+                box.onclick = () => openBox(box, realIndex);
+                gridContainer.appendChild(box);
+            });
+        }
+
+        function openBox(boxEl, index) {
+            const link = gameConfig.links[index] || "";
+            if (!link && !confirm("Ô này trống. Mở không?")) return;
+
+            boxEl.classList.add('flipping');
+
+            setTimeout(() => {
+                if (!openedBoxes.includes(index)) {
+                    openedBoxes.push(index);
+                    localStorage.setItem('dth_opened_v22', JSON.stringify(openedBoxes));
+                }
+
+                if(link) {
+                    const videoId = getYouTubeID(link);
+                    if (videoId) {
+                        videoModal.classList.add('show');
+                        videoWrapper.innerHTML = `
+                            <iframe width="100%" height="100%" 
+                            src="https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0" 
+                            title="Video Player" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                        `;
+                    } else {
+                        alert("Link lỗi!");
+                        boxEl.classList.remove('flipping');
+                    }
+                } else {
+                     boxEl.classList.remove('flipping');
+                }
+            }, 300); 
+        }
+
+        function closeVideo() {
+            videoModal.classList.remove('show');
+            videoWrapper.innerHTML = '';
+            if (document.fullscreenElement) document.exitFullscreen();
+
+            if (gameConfig.shuffle) {
+                const boxes = document.querySelectorAll('.box');
+                boxes.forEach(b => b.classList.add('shuffling'));
+                setTimeout(() => { shuffleDisplayOrder(); renderGrid(true); }, 400);
+            } else {
+                renderGrid(false);
+            }
+        }
+
+        function restartGame() {
+            if(confirm("BẮT ĐẦU LẠI TỪ ĐẦU?")) {
+                openedBoxes = [];
+                localStorage.setItem('dth_opened_v22', JSON.stringify(openedBoxes));
+                const boxes = document.querySelectorAll('.box');
+                boxes.forEach(b => b.classList.add('shuffling'));
+                setTimeout(() => { renderGrid(true); }, 400);
+                toggleSettings();
+            }
+        }
+
+        function goFullscreen() {
+            const elem = videoWrapper;
+            if (elem.requestFullscreen) elem.requestFullscreen();
+            else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
+        }
+
+        function getYouTubeID(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+
+        function toggleSettings() { settingsPanel.classList.toggle('show'); }
+
+        function renderLinkInputs() {
+            const container = document.getElementById('linkInputsList');
+            container.innerHTML = '';
+            const count = parseInt(document.getElementById('numBoxes').value) || 4;
+            for (let i = 0; i < count; i++) {
+                const row = document.createElement('div');
+                row.className = 'link-row';
+                const val = gameConfig.links[i] || "";
+                row.innerHTML = `<span>${i + 1}</span><input type="text" id="link_${i}" value="${val}" placeholder="Link YouTube...">`;
+                container.appendChild(row);
+            }
+        }
+
+        function saveSettings() {
+            const title = document.getElementById('gameTitleInput').value.trim() || "❓ ĐỌC THEO HÌNH ❓";
+            const count = parseInt(document.getElementById('numBoxes').value) || 4;
+            const shuffle = document.getElementById('chkShuffle').checked;
+            const repeat = document.getElementById('chkRepeat').checked;
+            const urlImg = document.getElementById('iconUrlInput').value.trim();
+            
+            if(urlImg) gameConfig.boxImage = urlImg; 
+
+            const newLinks = [];
+            for (let i = 0; i < count; i++) {
+                const val = document.getElementById(`link_${i}`).value.trim();
+                newLinks.push(val);
+            }
+
+            const oldTotal = gameConfig.totalBoxes;
+            gameConfig.title = title;
+            gameConfig.totalBoxes = count;
+            gameConfig.shuffle = shuffle;
+            gameConfig.repeat = repeat;
+            gameConfig.links = newLinks;
+            
+            localStorage.setItem('dth_config_v22', JSON.stringify(gameConfig));
+
+            document.getElementById('mainTitle').innerText = title;
+            if (oldTotal !== count) resetDisplayOrder();
+            renderGrid(false);
+            toggleSettings();
+            alert("Đã lưu!");
+        }
+        
+        function saveState() {
+            localStorage.setItem('dth_order_v22', JSON.stringify(displayOrder));
+        }
+
+        init();
+    </script>
+</body>
+</html>
