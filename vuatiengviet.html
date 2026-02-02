@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vua Tiếng Việt - V3 Team Battle</title>
+    <title>Vua Tiếng Việt - V4 Speed Master</title>
     <link href="https://fonts.googleapis.com/css2?family=Anton&family=Be+Vietnam+Pro:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -14,6 +14,7 @@
             --cream: #FFF8E1;
             --blue-team: #2196F3;
             --red-team: #F44336;
+            --green-btn: #4CAF50;
         }
 
         * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
@@ -62,6 +63,15 @@
         }
         button:active { transform: scale(0.95); }
         button.secondary { background: rgba(255,255,255,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.5); }
+        
+        /* Nút Chốt Đáp Án (Màu Xanh) */
+        button.action-btn {
+            background: linear-gradient(180deg, #66BB6A, #2E7D32);
+            color: white; border-color: #A5D6A7;
+            font-size: 1.3rem; padding: 15px 40px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
 
         /* --- SETTINGS SCREEN --- */
         .settings-panel {
@@ -108,6 +118,7 @@
             border: 2px dashed rgba(255,215,0,0.3);
             width: 95%; max-width: 900px;
             margin: 10px 0;
+            text-transform: none !important; /* QUAN TRỌNG: Giữ nguyên chữ thường/hoa */
         }
 
         /* HINT BOX */
@@ -116,14 +127,19 @@
             font-size: 1.2rem; color: var(--yellow);
             font-weight: bold; text-align: center;
             text-shadow: 1px 1px 0 #000;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
             opacity: 0; transition: opacity 0.5s;
         }
         .hint-box.show { opacity: 1; animation: popIn 0.5s; }
         
+        .action-area {
+            width: 100%; display: flex; justify-content: center;
+            margin-bottom: 10px; min-height: 60px;
+        }
+
         .result-area {
             display: none; flex-direction: column; align-items: center;
-            animation: popIn 0.5s; width: 100%;
+            animation: popIn 0.3s; width: 100%;
         }
         .correct-answer {
             font-size: clamp(1.5rem, 5vw, 2.5rem); color: #2e7d32;
@@ -132,6 +148,7 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             text-align: center; font-weight: 900;
             width: 90%; max-width: 600px;
+            text-transform: none; /* Giữ nguyên định dạng chữ */
         }
 
         /* --- SCOREBOARD --- */
@@ -239,9 +256,13 @@ Cây Mai - 10 - Hoa ngày Tết miền Nam"></textarea>
         
         <div class="hint-box" id="hint-box"></div>
 
-        <div class="result-area" id="result-area">
-            <div class="correct-answer" id="correct-answer">ĐÁP ÁN</div>
-            <button onclick="nextQuestion()">CÂU TIẾP THEO ➜</button>
+        <div class="action-area">
+            <button id="btn-stop" class="action-btn" onclick="endLevel()">✅ CHỐT ĐÁP ÁN NGAY</button>
+            
+            <div class="result-area" id="result-area">
+                <div class="correct-answer" id="correct-answer">ĐÁP ÁN</div>
+                <button onclick="nextQuestion()">CÂU TIẾP THEO ➜</button>
+            </div>
         </div>
 
         <div class="scoreboard">
@@ -271,7 +292,6 @@ Cây Mai - 10 - Hoa ngày Tết miền Nam"></textarea>
     
     <script>
         // --- DATA ---
-        // Format: a: Answer, s: Scrambled (auto if null), t: Time, h: Hint
         const defaultData = [
             { a: "Thái Độ", t: 7, h: "Cách cư xử" },
             { a: "Kiểm Soát", t: 15, h: "Nắm quyền điều hành" },
@@ -285,11 +305,11 @@ Cây Mai - 10 - Hoa ngày Tết miền Nam"></textarea>
             { a: "Nhộn Nhịp", t: 7, h: "Đông vui, tấp nập" },
             { a: "Bề Thế", t: 7, h: "To lớn, sang trọng" },
             { a: "Bản địa", t: 7, h: "Người gốc ở vùng đó" },
-            { a: "Im lìm", t: 7, h: "Không một tiếng động" }, // Đã sửa viết hoa
+            { a: "im lìm", t: 7, h: "Không một tiếng động" }, // Viết thường hoàn toàn
             { a: "Khám xét", t: 10, h: "Kiểm tra kỹ lưỡng" },
             { a: "Tài sản", t: 7, h: "Của cải vật chất" },
             // Extra words
-            { a: "Việt Nam Vô Địch", t: 15, h: "Câu hô hào bóng đá" }, // Đã sửa cho đúng nghĩa
+            { a: "Việt Nam Vô Địch", t: 15, h: "Câu hô hào bóng đá" },
             { a: "Xóm 54/92", t: 7, h: "Địa chỉ thân thương" },
             { a: "Ít Nhậu Thôi", t: 12, h: "Lời khuyên sức khỏe" },
             { a: "Đánh Pickleball", t: 12, h: "Môn thể thao đang hot" },
@@ -321,7 +341,9 @@ Cây Mai - 10 - Hoa ngày Tết miền Nam"></textarea>
                 const j = Math.floor(Math.random() * (i + 1));
                 [chars[i], chars[j]] = [chars[j], chars[i]];
             }
-            return chars.join('/').toLowerCase();
+            // Không lowercase toàn bộ nữa để giữ nguyên chữ I hoa nếu có (tùy ý)
+            // Nhưng với yêu cầu im lìm, ta đã chỉnh data đầu vào.
+            return chars.join('/').toLowerCase(); 
         }
 
         function createTickSound() {
@@ -362,7 +384,6 @@ Cây Mai - 10 - Hoa ngày Tết miền Nam"></textarea>
             if (customText) {
                 const lines = customText.split('\n');
                 lines.forEach(line => {
-                    // Syntax: Word - Time - Hint
                     const parts = line.split('-').map(p => p.trim());
                     if (parts.length >= 1 && parts[0]) {
                         const word = parts[0];
@@ -431,8 +452,10 @@ Cây Mai - 10 - Hoa ngày Tết miền Nam"></textarea>
             document.getElementById('word-display').innerText = currentItem.s;
             document.getElementById('correct-answer').innerText = currentItem.a;
             
-            // Reset UI
+            // Reset UI for new round
             document.getElementById('result-area').style.display = 'none';
+            document.getElementById('btn-stop').style.display = 'block'; // Hiển thị lại nút Chốt
+            
             const hintBox = document.getElementById('hint-box');
             hintBox.innerText = "";
             hintBox.classList.remove('show');
@@ -445,7 +468,6 @@ Cây Mai - 10 - Hoa ngày Tết miền Nam"></textarea>
             timeLeft = currentItem.t;
             timerDisplay.innerText = timeLeft;
             
-            // Determine Hint Trigger Time (5s usually, 3s for short questions)
             const hintTriggerTime = currentItem.t <= 10 ? 3 : 5;
             let hintShown = false;
 
@@ -454,14 +476,12 @@ Cây Mai - 10 - Hoa ngày Tết miền Nam"></textarea>
                 timeLeft--;
                 timerDisplay.innerText = timeLeft;
 
-                // Trigger Hint
                 if (timeLeft <= hintTriggerTime && !hintShown) {
                     hintBox.innerText = "GỢI Ý: " + currentItem.h;
                     hintBox.classList.add('show');
                     hintShown = true;
                 }
 
-                // Urgent ticking
                 if (timeLeft <= 3 && timeLeft > 0) {
                     timerDisplay.classList.add('urgent');
                     timerDisplay.style.color = "var(--red)";
@@ -476,8 +496,18 @@ Cây Mai - 10 - Hoa ngày Tết miền Nam"></textarea>
 
         function endLevel() {
             clearInterval(timerInterval);
-            document.getElementById('timer-display').innerText = "HẾT GIỜ!";
-            document.getElementById('timer-display').classList.remove('urgent');
+            // Hide Stop Button
+            document.getElementById('btn-stop').style.display = 'none';
+            
+            const timerDisplay = document.getElementById('timer-display');
+            // Nếu hết giờ thì hiện HẾT GIỜ, nếu bấm chốt sớm thì giữ nguyên số giây còn lại (hoặc hiện STOP)
+            if(timeLeft <= 0) {
+                timerDisplay.innerText = "HẾT GIỜ!";
+            } else {
+                // Giữ nguyên số giây để biết trả lời nhanh bao nhiêu
+            }
+            
+            timerDisplay.classList.remove('urgent');
             document.getElementById('result-area').style.display = 'flex';
         }
 
@@ -512,6 +542,18 @@ Cây Mai - 10 - Hoa ngày Tết miền Nam"></textarea>
                 }
             }
         }
+
+        // Hotkey Space để chốt đáp án
+        document.addEventListener('keydown', function(event) {
+            if (event.code === 'Space') {
+                // Chỉ kích hoạt khi màn hình game đang active và chưa hiện kết quả
+                if (document.getElementById('screen-game').classList.contains('active') &&
+                    document.getElementById('result-area').style.display === 'none' && 
+                    document.getElementById('popup-overlay').style.display === 'none') {
+                    endLevel();
+                }
+            }
+        });
 
         document.getElementById('volume-slider').addEventListener('input', function(e) {
             const audio = document.getElementById('bg-audio');
