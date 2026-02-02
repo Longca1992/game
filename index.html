@@ -16,15 +16,25 @@
 
         h1 {
             font-family: 'Bangers', cursive;
-            font-size: clamp(2.5rem, 6vw, 5rem);
+            font-size: clamp(2rem, 5vw, 4rem); /* Giảm size tiêu đề chút */
             color: #ffeb3b;
             text-shadow: 0 0 10px #ff9800;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
         }
 
-        /* Nút Tải Nhạc */
+        /* Khu vực nút tải nhạc */
+        .download-area {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
         .btn-download {
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid #fff;
             color: #ccc;
@@ -32,15 +42,15 @@
             border-radius: 20px;
             text-decoration: none;
             font-size: 0.9rem;
-            margin-bottom: 30px;
             transition: 0.3s;
         }
         .btn-download:hover { background: white; color: black; }
 
         .grid-menu {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
+            /* Giảm kích thước min từ 280px -> 160px để hiện nhiều ô hơn */
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 15px; /* Giảm khoảng cách giữa các ô */
             max-width: 1200px;
             margin: 0 auto;
         }
@@ -48,9 +58,9 @@
         .card {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
-            border: 2px solid rgba(255,255,255,0.2);
-            border-radius: 20px;
-            padding: 30px;
+            border: 1px solid rgba(255,255,255,0.2); /* Viền mỏng lại */
+            border-radius: 15px; /* Bo góc nhỏ hơn */
+            padding: 15px; /* Giảm padding từ 30px -> 15px */
             text-decoration: none;
             color: white;
             transition: 0.3s;
@@ -58,15 +68,16 @@
         }
 
         .card:hover {
-            transform: translateY(-10px);
+            transform: translateY(-5px);
             background: rgba(255, 255, 255, 0.2);
             border-color: #ffeb3b;
-            box-shadow: 0 0 30px rgba(255, 235, 59, 0.3);
+            box-shadow: 0 0 20px rgba(255, 235, 59, 0.3);
         }
 
-        .icon { font-size: 4rem; margin-bottom: 15px; }
-        .title { font-size: 1.5rem; font-weight: bold; text-transform: uppercase; margin-bottom: 5px; color: #ffeb3b; }
-        .desc { font-size: 0.9rem; color: #ccc; }
+        /* Thu nhỏ Icon và Chữ */
+        .icon { font-size: 2.5rem; margin-bottom: 8px; } /* Giảm từ 4rem -> 2.5rem */
+        .title { font-size: 1.1rem; font-weight: bold; text-transform: uppercase; margin-bottom: 2px; color: #ffeb3b; line-height: 1.2; }
+        .desc { font-size: 0.75rem; color: #ccc; }
 
         /* Style riêng cho ô Mua Hàng */
         .card.shop {
@@ -83,17 +94,22 @@
         /* Style riêng cho Game Mới (Nổi bật) */
         .card.new-game { border-color: #ff9800; }
         .card.new-game .icon { animation: bounce 2s infinite; }
-        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
     </style>
 </head>
 <body>
 
-    <img src="https://cdn-icons-png.flaticon.com/512/2972/2972454.png" width="80" style="margin-bottom:10px">
+    <img src="https://cdn-icons-png.flaticon.com/512/2972/2972454.png" width="60" style="margin-bottom:5px">
     <h1>KỲ HÀ GAME CENTER</h1>
 
-    <a href="kyha.MP3" download class="btn-download">
-        ⬇️ Tải Nhạc Beat (MP3)
-    </a>
+    <div class="download-area">
+        <a href="kyha.MP3" download class="btn-download">
+            ⬇️ Nhạc Beat (MP3)
+        </a>
+        <a href="xoso.mp3" download class="btn-download" style="border-color: #ff9800; color: #ff9800;">
+            🎵 Nhạc Xổ Số (MP3)
+        </a>
+    </div>
 
     <div class="grid-menu">
         
@@ -105,32 +121,32 @@
 
         <a href="quay.html" class="card new-game">
             <div class="icon">🎡</div>
-            <div class="title">Vòng Quay Chia Đội (VIP)</div>
-            <div class="desc">Giao diện Tết - Không Popup</div>
+            <div class="title">Vòng Quay (VIP)</div>
+            <div class="desc">Chia đội ngẫu nhiên</div>
         </a>
 
         <a href="duathuyenrong.html" class="card new-game">
             <div class="icon">🚣🐉</div>
             <div class="title">Đua Thuyền Rồng</div>
-            <div class="desc">Đua tiếp sức - Time Attack</div>
+            <div class="desc">Đua tiếp sức tốc độ</div>
         </a>
 
         <a href="tamsao.html" class="card new-game">
             <div class="icon">🎭🗣️</div>
             <div class="title">Hải Sản Tam Sao</div>
-            <div class="desc">Nhìn hình đoán ý đồng đội</div>
+            <div class="desc">Đoán ý đồng đội</div>
         </a>
 
         <a href="sieutritue.html" class="card">
             <div class="icon">🧠</div>
             <div class="title">Siêu Trí Tuệ</div>
-            <div class="desc">Lật hình tìm cặp giống nhau</div>
+            <div class="desc">Lật hình tìm cặp</div>
         </a>
 
         <a href="doikhang.html" class="card">
             <div class="icon">🦞⚔️🦀</div>
             <div class="title">Đối Kháng Tôm Cua</div>
-            <div class="desc">Bấm nhanh tay đoạt cúp</div>
+            <div class="desc">Bấm nhanh đoạt cúp</div>
         </a>
 
         <a href="100solucky.html" class="card">
@@ -142,25 +158,25 @@
         <a href="9otraloi.html" class="card">
             <div class="icon">❓</div>
             <div class="title">9 Ô Bí Ẩn</div>
-            <div class="desc">Trả lời câu hỏi nhận quà</div>
+            <div class="desc">Trả lời nhận quà</div>
         </a>
 
         <a href="bmp.html" class="card">
             <div class="icon">🎵</div>
-            <div class="title">Đọc Theo Điệu Nhạc</div>
-            <div class="desc">Thử thách Rapper Kỳ Hà</div>
+            <div class="title">Đọc Theo Nhạc</div>
+            <div class="desc">Thử thách Rapper</div>
         </a>
 
         <a href="https://haisankyha.vn" target="_blank" class="card shop">
             <div class="icon">🛒</div>
-            <div class="title">MUA HÀNG ONLINE</div>
-            <div class="desc">Ghé thăm Website chính thức</div>
+            <div class="title">MUA HÀNG</div>
+            <div class="desc">Website chính thức</div>
         </a>
 
         <a href="master.html" class="card master">
             <div class="icon">👑</div>
             <div class="title">Game Master</div>
-            <div class="desc">Bảng điều khiển (Dành cho MC)</div>
+            <div class="desc">Bảng điều khiển MC</div>
         </a>
     </div>
 
