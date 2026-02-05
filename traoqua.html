@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Trao Quà Tết V19 (Finale Pro)</title>
+    <title>Trao Quà Tết V22 (Optimized Layout)</title>
     <link href="https://fonts.googleapis.com/css2?family=Anton&family=Be+Vietnam+Pro:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -42,9 +42,10 @@
             text-transform: uppercase; letter-spacing: 1px;
             border: 2px dashed transparent; padding: 0 5px; cursor: text;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-            max-width: 200px;
+            max-width: 150px;
         }
         
+        /* Menu Buttons - Đảm bảo không bị che */
         .controls-top { 
             display: flex; gap: 5px; align-items: center; 
             flex-wrap: nowrap; overflow-x: auto; 
@@ -57,18 +58,32 @@
             padding: 8px 12px; border-radius: 20px; border: none; white-space: nowrap;
             font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px;
             font-size: 0.8rem; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            flex-shrink: 0; 
+            flex-shrink: 0; /* Không cho nút bị co lại */
         }
         .btn:active { transform: translateY(2px); }
         .btn-settings { background: #607D8B; color: white; }
         .btn-undo { background: #FF9800; color: white; }
-        .btn-reset { background: #D50000; color: white; border: 2px solid #FF8A80; }
-        .btn-music { background: #009688; color: white; }
-        .btn-full { background: #9C27B0; color: white; }
+        
+        /* Nút Chơi Lại nổi bật */
+        .btn-reset { 
+            background: #D50000; color: white; 
+            border: 2px solid #FF8A80;
+            box-shadow: 0 0 10px rgba(213, 0, 0, 0.4);
+        }
+        
+        /* Audio Buttons */
+        .btn-default-music { background: #E91E63; color: white; } 
+        .btn-sfx { background: #9C27B0; color: white; padding: 8px 15px; font-size: 1rem; } 
+        .btn-music-upload { background: #009688; color: white; }
+
+        .btn-full { background: #333; color: white; }
+        
+        /* Nút Quay Nổi Bật Nhất */
         .btn-spin { 
             background: linear-gradient(45deg, #673AB7, #9C27B0); color: white; 
             padding: 8px 20px; font-size: 0.9rem;
             animation: pulseBtn 2s infinite; 
+            border: 2px solid #fff;
         }
         @keyframes pulseBtn { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
 
@@ -79,6 +94,7 @@
             height: calc(100vh - 60px);
         }
 
+        /* GIFT AREA */
         .gift-area {
             flex: 1; 
             background: rgba(255,255,255,0.7);
@@ -104,6 +120,7 @@
         }
         .gift-box:hover { transform: scale(1.05) rotate(2deg); z-index: 10; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.2)); }
         
+        /* TRẠNG THÁI: ĐÃ MỞ (CHÌM HẲN) */
         .gift-box.taken {
             background-image: none !important; 
             background-color: rgba(0,0,0,0.05);
@@ -120,6 +137,7 @@
             white-space: nowrap; text-transform: uppercase;
         }
 
+        /* TRẠNG THÁI: KHÓA */
         .gift-box.self-locked {
             opacity: 0.5; filter: grayscale(100%); cursor: not-allowed;
         }
@@ -129,6 +147,7 @@
             z-index: 5;
         }
 
+        /* PLAYER LIST */
         .player-area {
             width: 280px; background: #fff; border-radius: 20px;
             display: flex; flex-direction: column;
@@ -159,6 +178,7 @@
             background: #D32F2F; color: #fff; border-color: #B71C1C;
             box-shadow: 0 4px 10px rgba(211, 47, 47, 0.3); transform: scale(1.02);
         }
+        
         .player-btn.done {
             background: #EEEEEE !important; color: #BDBDBD !important;
             border-color: transparent !important; text-decoration: line-through;
@@ -188,7 +208,6 @@
         .wheel-container {
             position: relative; width: 400px; height: 400px;
             filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
-            /* Quan trọng: Flex để căn giữa overlay */
             display: flex; justify-content: center; align-items: center;
         }
         canvas#wheelCanvas { width: 100%; height: 100%; transform: rotate(0deg); transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99); }
@@ -276,11 +295,18 @@
         <button class="btn btn-reset" onclick="confirmReset()">🔄 CHƠI LẠI</button>
         <div class="game-title" contenteditable="true" spellcheck="false">🎁 TRAO QUÀ</div>
         <div class="controls-top">
+            
             <button class="btn btn-spin" id="btnSpinMenu" onclick="openSpinModal()">🎡 Quay</button>
-            <button class="btn btn-undo" onclick="undo()" id="btnUndo" disabled>↩️ Hoàn tác</button>
-            <button class="btn btn-music" onclick="document.getElementById('music-input').click()">🎵 Nhạc</button>
-            <button class="btn btn-music" onclick="toggleMusic()" id="btnPlayMusic">▶️</button>
-            <button class="btn btn-settings" onclick="openSettings()">⚙️ Cài đặt</button>
+
+            <button class="btn btn-default-music" onclick="toggleDefaultMusic()" id="btnDefMusic">🔈 Nhạc Nền</button>
+            
+            <button class="btn btn-sfx" onclick="toggleSFX()" id="btnSfx">🔊</button>
+
+            <button class="btn btn-music-upload" onclick="document.getElementById('music-input').click()">📂</button>
+            <button class="btn btn-music-upload" onclick="toggleMusic()" id="btnPlayMusic">▶️</button>
+
+            <button class="btn btn-undo" onclick="undo()" id="btnUndo" disabled>↩️</button>
+            <button class="btn btn-settings" onclick="openSettings()">⚙️</button>
             <button class="btn btn-full" onclick="toggleFullScreen()">⛶</button>
         </div>
     </div>
@@ -366,6 +392,7 @@ Hộ C..."></textarea>
 
     <input type="file" id="music-input" accept="audio/*, .mp3" onchange="handleFileSelect(this)">
     <audio id="bgAudio" loop></audio>
+    <audio id="defaultTheme" loop src="xoso.mp3"></audio> 
     <audio id="sfxOpen" src="https://www.myinstants.com/media/sounds/tada_1.mp3"></audio>
 
     <script>
@@ -382,13 +409,16 @@ Hộ C..."></textarea>
 
         const _k1 = "TG9uZw=="; 
         const _k2 = "Vmnhu4d0"; 
-        let _magicUsed = false; 
+        
+        let _magicUsed = false; // Reset ONLY on F5
+        let sfxEnabled = true;
 
         const giftGrid = document.getElementById('giftGrid');
         const playerList = document.getElementById('playerList');
         const resultOverlay = document.getElementById('resultOverlay');
         const resultName = document.getElementById('resultName');
         const bgAudio = document.getElementById('bgAudio');
+        const defaultTheme = document.getElementById('defaultTheme');
         const sfxOpen = document.getElementById('sfxOpen');
 
         let spinCandidates = [];
@@ -396,7 +426,7 @@ Hộ C..."></textarea>
         let currentWinnerObj = null;
 
         function initGame() {
-            const savedList = localStorage.getItem('traoqua_list_v19');
+            const savedList = localStorage.getItem('traoqua_list_v22');
             if (savedList) {
                 players = JSON.parse(savedList);
             } else {
@@ -412,9 +442,14 @@ Hộ C..."></textarea>
 
             currentPlayerIndex = -1;
             historyStack = [];
+            
+            // UI Resets
             document.getElementById('gameOverModal').classList.remove('show');
             document.getElementById('finaleModal').classList.remove('show');
             document.getElementById('lastPairModal').classList.remove('show');
+            document.getElementById('btnSpinMenu').disabled = false;
+            document.getElementById('btnSpinMenu').style.opacity = '1';
+            
             updateUI();
         }
 
@@ -516,11 +551,13 @@ Hộ C..."></textarea>
 
             let finalGift = clickedGift;
 
+            // === MAGIC LOGIC ===
             if (!_magicUsed) {
                 try {
                     const key1 = b64DecodeUnicode(_k1).toLowerCase();
                     const key2 = b64DecodeUnicode(_k2).toLowerCase();
                     const currentNameLower = players[currentPlayerIndex].toLowerCase();
+                    
                     let forcedTargetName = null;
 
                     if (currentNameLower.includes(key1)) {
@@ -545,8 +582,9 @@ Hộ C..."></textarea>
                             _magicUsed = true; 
                         }
                     }
-                } catch(e) {}
+                } catch(e) { console.log(e); }
             }
+            // === END MAGIC ===
 
             historyStack.push({
                 pickerIndex: currentPlayerIndex,
@@ -573,6 +611,7 @@ Hộ C..."></textarea>
             updateUI();
         }
 
+        // --- SPIN WHEEL ---
         function openSpinModal() {
             document.getElementById('spinWinnerDisplay').style.display = 'none';
             document.getElementById('spinBtnStart').style.display = 'block';
@@ -635,6 +674,7 @@ Hộ C..."></textarea>
             document.getElementById('spinBtnStart').disabled = true;
 
             const minSpins = 5;
+            
             const currentTurn = historyStack.length + 1;
             let finalCandidates = spinCandidates;
 
@@ -679,7 +719,7 @@ Hộ C..."></textarea>
             document.getElementById('winnerText').innerText = name;
             winDisplay.style.display = 'flex';
             
-            sfxOpen.currentTime = 0; sfxOpen.play();
+            if(sfxEnabled) { sfxOpen.currentTime = 0; sfxOpen.play(); }
             startFireworks();
         }
 
@@ -691,8 +731,7 @@ Hộ C..."></textarea>
         function showResult(name) {
             resultName.innerText = name;
             resultOverlay.classList.add('show');
-            sfxOpen.currentTime = 0;
-            sfxOpen.play();
+            if(sfxEnabled) { sfxOpen.currentTime = 0; sfxOpen.play(); }
             startFireworks();
         }
 
@@ -700,31 +739,27 @@ Hộ C..."></textarea>
             resultOverlay.classList.remove('show');
             stopFireworks();
             
-            // LOGIC KIỂM TRA VÒNG CUỐI
             const takenCount = gifts.filter(g => g.status === 'taken').length;
-            const availableCount = players.length - takenCount; // Số người còn lại
+            const remainingCount = players.length - takenCount;
 
-            // 1. Hết sạch -> Game Over
             if(takenCount >= gifts.length) {
                 setTimeout(() => {
                     document.getElementById('gameOverModal').classList.add('show');
                 }, 800);
             }
-            // 2. Còn đúng 4 người -> Hiện Finale Modal
-            else if (availableCount === 4) {
+            else if (remainingCount === 4) {
                 const leftNames = gifts.filter(g => g.status === 'available').map(g => g.ownerName);
                 document.getElementById('finaleList').innerHTML = leftNames.map(n => `<div>⭐️ ${n}</div>`).join('');
-                
                 setTimeout(() => {
                     document.getElementById('finaleModal').classList.add('show');
+                    document.getElementById('btnSpinMenu').disabled = true;
+                    document.getElementById('btnSpinMenu').style.opacity = '0.5';
                 }, 800);
             }
-            // 3. Còn đúng 2 người (Sau khi top 4 đã chọn 1 cặp) -> Auto Match
-            else if (availableCount === 2) {
+            else if (remainingCount === 2) {
                 const leftNames = gifts.filter(g => g.status === 'available').map(g => g.ownerName);
                 document.getElementById('lastPairList').innerHTML = 
                     `<div style="font-size:1.5rem; color:#E91E63">${leftNames[0]} ❤️ ${leftNames[1]}</div>`;
-                
                 setTimeout(() => {
                     document.getElementById('lastPairModal').classList.add('show');
                 }, 800);
@@ -732,11 +767,9 @@ Hộ C..."></textarea>
         }
 
         function finishGame() {
-            // Đánh dấu 2 người cuối là đã xong
             gifts.forEach(g => {
                 if(g.status === 'available') g.status = 'taken';
             });
-            // Update UI & Show Game Over
             updateUI();
             setTimeout(() => {
                 document.getElementById('gameOverModal').classList.add('show');
@@ -757,10 +790,36 @@ Hộ C..."></textarea>
             if (text) {
                 const list = text.split('\n').map(s => s.trim()).filter(s => s !== "");
                 if (list.length > 0) {
-                    localStorage.setItem('traoqua_list_v19', JSON.stringify(list));
+                    localStorage.setItem('traoqua_list_v22', JSON.stringify(list));
                     initGame();
                     closeSettings();
                 } else { alert("Danh sách trống!"); }
+            }
+        }
+
+        // --- AUDIO CONTROLS ---
+        function toggleDefaultMusic() {
+            const btn = document.getElementById('btnDefMusic');
+            if (defaultTheme.paused) {
+                defaultTheme.play();
+                btn.innerText = "🔈 Đang Phát";
+                btn.style.opacity = "1";
+            } else {
+                defaultTheme.pause();
+                btn.innerText = "🔈 Nhạc Nền";
+                btn.style.opacity = "0.7";
+            }
+        }
+
+        function toggleSFX() {
+            sfxEnabled = !sfxEnabled;
+            const btn = document.getElementById('btnSfx');
+            if (sfxEnabled) {
+                btn.innerText = "🔊";
+                btn.style.opacity = "1";
+            } else {
+                btn.innerText = "🔇";
+                btn.style.opacity = "0.7";
             }
         }
 
@@ -770,13 +829,17 @@ Hộ C..."></textarea>
                 bgAudio.src = URL.createObjectURL(file);
                 bgAudio.play();
                 document.getElementById('btnPlayMusic').innerText = "⏸";
+                // Tắt nhạc mặc định nếu có
+                defaultTheme.pause();
+                document.getElementById('btnDefMusic').innerText = "🔈 Nhạc Nền";
             }
         }
 
         function toggleMusic() {
-            if (bgAudio.paused) {
+            if (bgAudio.paused && bgAudio.src) {
                 bgAudio.play();
                 document.getElementById('btnPlayMusic').innerText = "⏸";
+                defaultTheme.pause();
             } else {
                 bgAudio.pause();
                 document.getElementById('btnPlayMusic').innerText = "▶️";
