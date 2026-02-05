@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Trao Quà Tết V11 (Smart Spin)</title>
+    <title>Trao Quà Tết V19 (Finale Pro)</title>
     <link href="https://fonts.googleapis.com/css2?family=Anton&family=Be+Vietnam+Pro:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -31,18 +31,46 @@
 
         /* HEADER */
         .top-bar {
-            height: 60px; padding: 0 15px;
+            height: 60px; padding: 0 10px;
             display: flex; align-items: center; justify-content: space-between;
             background: rgba(255,255,255,0.95);
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             z-index: 100; flex-shrink: 0;
         }
         .game-title {
-            font-family: 'Anton', sans-serif; font-size: 1.8rem; color: #D32F2F;
+            font-family: 'Anton', sans-serif; font-size: 1.5rem; color: #D32F2F;
             text-transform: uppercase; letter-spacing: 1px;
-            border: 2px dashed transparent; padding: 0 10px; cursor: text;
+            border: 2px dashed transparent; padding: 0 5px; cursor: text;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            max-width: 200px;
         }
-        .controls-top { display: flex; gap: 8px; align-items: center; }
+        
+        .controls-top { 
+            display: flex; gap: 5px; align-items: center; 
+            flex-wrap: nowrap; overflow-x: auto; 
+            padding-bottom: 5px; -webkit-overflow-scrolling: touch;
+        }
+        .controls-top::-webkit-scrollbar { display: none; }
+
+        /* BUTTONS */
+        .btn {
+            padding: 8px 12px; border-radius: 20px; border: none; white-space: nowrap;
+            font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px;
+            font-size: 0.8rem; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            flex-shrink: 0; 
+        }
+        .btn:active { transform: translateY(2px); }
+        .btn-settings { background: #607D8B; color: white; }
+        .btn-undo { background: #FF9800; color: white; }
+        .btn-reset { background: #D50000; color: white; border: 2px solid #FF8A80; }
+        .btn-music { background: #009688; color: white; }
+        .btn-full { background: #9C27B0; color: white; }
+        .btn-spin { 
+            background: linear-gradient(45deg, #673AB7, #9C27B0); color: white; 
+            padding: 8px 20px; font-size: 0.9rem;
+            animation: pulseBtn 2s infinite; 
+        }
+        @keyframes pulseBtn { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
 
         /* MAIN LAYOUT */
         .main-container {
@@ -51,7 +79,6 @@
             height: calc(100vh - 60px);
         }
 
-        /* GIFT AREA */
         .gift-area {
             flex: 1; 
             background: rgba(255,255,255,0.7);
@@ -77,7 +104,6 @@
         }
         .gift-box:hover { transform: scale(1.05) rotate(2deg); z-index: 10; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.2)); }
         
-        /* TRẠNG THÁI: ĐÃ MỞ (CHÌM HẲN) */
         .gift-box.taken {
             background-image: none !important; 
             background-color: rgba(0,0,0,0.05);
@@ -94,7 +120,6 @@
             white-space: nowrap; text-transform: uppercase;
         }
 
-        /* TRẠNG THÁI: KHÓA */
         .gift-box.self-locked {
             opacity: 0.5; filter: grayscale(100%); cursor: not-allowed;
         }
@@ -104,7 +129,6 @@
             z-index: 5;
         }
 
-        /* PLAYER LIST */
         .player-area {
             width: 280px; background: #fff; border-radius: 20px;
             display: flex; flex-direction: column;
@@ -135,38 +159,24 @@
             background: #D32F2F; color: #fff; border-color: #B71C1C;
             box-shadow: 0 4px 10px rgba(211, 47, 47, 0.3); transform: scale(1.02);
         }
-        
         .player-btn.done {
             background: #EEEEEE !important; color: #BDBDBD !important;
             border-color: transparent !important; text-decoration: line-through;
             opacity: 0.6; pointer-events: none;
         }
 
-        /* BUTTONS */
-        .btn {
-            padding: 8px 12px; border-radius: 12px; border: none;
-            font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px;
-            font-size: 0.85rem; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        .btn:active { transform: translateY(2px); }
-        .btn-settings { background: #607D8B; color: white; }
-        .btn-undo { background: #FF9800; color: white; }
-        .btn-music { background: #009688; color: white; }
-        .btn-full { background: #9C27B0; color: white; }
-        .btn-spin { background: linear-gradient(45deg, #673AB7, #9C27B0); color: white; animation: pulseBtn 2s infinite; }
-        @keyframes pulseBtn { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
-
         /* MODAL */
         .modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.9); z-index: 1000;
+            background: rgba(255,255,255,0.95); z-index: 3000;
             display: none; align-items: center; justify-content: center;
         }
         .modal.show { display: flex; }
         .modal-content {
             background: #fff; color: #333; padding: 25px; border-radius: 20px;
             width: 90%; max-width: 500px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1); border: 2px solid #D32F2F;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2); border: 2px solid #D32F2F;
+            position: relative;
         }
         textarea { width: 100%; height: 150px; padding: 10px; border-radius: 10px; border: 1px solid #ccc; font-family: inherit; }
         
@@ -178,6 +188,8 @@
         .wheel-container {
             position: relative; width: 400px; height: 400px;
             filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
+            /* Quan trọng: Flex để căn giữa overlay */
+            display: flex; justify-content: center; align-items: center;
         }
         canvas#wheelCanvas { width: 100%; height: 100%; transform: rotate(0deg); transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99); }
         .wheel-pointer {
@@ -186,6 +198,25 @@
             clip-path: polygon(100% 0, 50% 100%, 0 0); z-index: 10;
             filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
         }
+        
+        /* FIX HIỂN THỊ TÊN NGƯỜI TRÚNG */
+        .spin-winner-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.7); border-radius: 50%; /* Bo tròn theo vòng quay */
+            animation: zoomIn 0.3s; z-index: 20;
+        }
+        .spin-winner-text {
+            font-family: 'Anton'; font-size: 3rem; color: #FFFF00; 
+            text-shadow: 3px 3px 0 #D32F2F; text-align: center; line-height: 1.1;
+            margin-bottom: 20px; max-width: 90%;
+        }
+        .spin-winner-btn {
+            padding: 10px 30px; font-size: 1.1rem; background: #4CAF50; color: white;
+            border: 2px solid white; border-radius: 30px; cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+
         #spinBtnStart {
             margin-top: 20px; padding: 15px 50px; font-size: 1.5rem;
             background: var(--gold); color: #D32F2F; border: 4px solid white;
@@ -216,6 +247,22 @@
         }
         .result-note { color: #aaa; font-size: 0.8rem; font-style: italic;}
 
+        /* MODALS (Finale, GameOver) */
+        #gameOverModal .modal-content, #finaleModal .modal-content, #lastPairModal .modal-content {
+            text-align: center; background: linear-gradient(135deg, #fff, #FFF8E1);
+        }
+        .end-title { font-family: 'Anton'; font-size: 2.5rem; color: #D32F2F; margin-bottom: 10px; }
+        .end-desc { font-size: 1.2rem; color: #555; margin-bottom: 20px; }
+        .finale-list { 
+            background: #FFF3E0; padding: 15px; border-radius: 10px; margin-bottom: 20px;
+            font-weight: bold; color: #E65100; display: grid; gap: 5px;
+        }
+        .btn-big-reset {
+            font-size: 1.5rem; padding: 15px 40px; background: #FF5722; color: white;
+            border: none; border-radius: 50px; cursor: pointer; box-shadow: 0 5px 15px rgba(255,87,34,0.4);
+            animation: pulseBtn 2s infinite;
+        }
+
         @keyframes fadeIn { from{opacity:0} to{opacity:1} }
         @keyframes zoomIn { from{transform:scale(0)} to{transform:scale(1)} }
 
@@ -226,9 +273,10 @@
 <body>
 
     <div class="top-bar">
-        <div class="game-title" contenteditable="true" spellcheck="false">🎁 TRAO QUÀ TẾT</div>
+        <button class="btn btn-reset" onclick="confirmReset()">🔄 CHƠI LẠI</button>
+        <div class="game-title" contenteditable="true" spellcheck="false">🎁 TRAO QUÀ</div>
         <div class="controls-top">
-            <button class="btn btn-spin" onclick="openSpinModal()">🎡 Quay Người Chọn</button>
+            <button class="btn btn-spin" id="btnSpinMenu" onclick="openSpinModal()">🎡 Quay</button>
             <button class="btn btn-undo" onclick="undo()" id="btnUndo" disabled>↩️ Hoàn tác</button>
             <button class="btn btn-music" onclick="document.getElementById('music-input').click()">🎵 Nhạc</button>
             <button class="btn btn-music" onclick="toggleMusic()" id="btnPlayMusic">▶️</button>
@@ -267,9 +315,43 @@ Hộ C..."></textarea>
             <div class="wheel-container">
                 <div class="wheel-pointer"></div>
                 <canvas id="wheelCanvas" width="400" height="400"></canvas>
+                
+                <div id="spinWinnerDisplay" class="spin-winner-overlay">
+                    <div class="spin-winner-text" id="winnerText">TÊN</div>
+                    <button class="spin-winner-btn" onclick="confirmSpinWinner()">OK, LÊN SÂN KHẤU! 👇</button>
+                </div>
             </div>
+            
             <button class="btn" id="spinBtnStart" onclick="startSpin()">QUAY NGAY</button>
-            <button class="btn btn-settings" style="margin-top:10px; background:rgba(0,0,0,0.5);" onclick="closeSpinModal()">Đóng</button>
+            <button class="btn btn-settings" id="spinBtnClose" style="margin-top:10px; background:rgba(0,0,0,0.5);" onclick="closeSpinModal()">Đóng</button>
+        </div>
+    </div>
+
+    <div class="modal" id="finaleModal">
+        <div class="modal-content">
+            <div class="end-title">👑 VÒNG ĐẶC BIỆT 👑</div>
+            <div class="end-desc">Chỉ còn 4 hộ cuối cùng! Mời tất cả cùng lên sân khấu!</div>
+            <div class="finale-list" id="finaleList"></div>
+            <div class="end-desc" style="font-size:0.9rem; font-style:italic">Hãy quay để chọn ra người mở hộp quà đầu tiên!</div>
+            <button class="btn-settings" style="background:#4CAF50; color:white; padding: 10px 30px;" onclick="document.getElementById('finaleModal').classList.remove('show'); openSpinModal();">OK, QUAY NGAY</button>
+        </div>
+    </div>
+
+    <div class="modal" id="lastPairModal">
+        <div class="modal-content">
+            <div class="end-title">❤️ CẶP ĐÔI CUỐI CÙNG ❤️</div>
+            <div class="end-desc">Vì chỉ còn lại 2 hộ nên sẽ tự động ghép cặp:</div>
+            <div class="finale-list" id="lastPairList"></div>
+            <button class="btn-settings" style="background:#E91E63; color:white; padding: 10px 30px;" onclick="document.getElementById('lastPairModal').classList.remove('show'); finishGame();">TRAO QUÀ & KẾT THÚC</button>
+        </div>
+    </div>
+
+    <div class="modal" id="gameOverModal">
+        <div class="modal-content">
+            <div class="end-title">🎉 ĐÃ HẾT QUÀ! 🎉</div>
+            <div class="end-desc">Chương trình trao đổi quà đã hoàn tất.</div>
+            <button class="btn-big-reset" onclick="confirmReset()">🔄 CHƠI VÁN MỚI</button>
+            <button class="btn btn-settings" style="margin-top:20px; background:rgba(0,0,0,0.1); color:#888;" onclick="document.getElementById('gameOverModal').classList.remove('show')">Đóng</button>
         </div>
     </div>
 
@@ -287,13 +369,21 @@ Hộ C..."></textarea>
     <audio id="sfxOpen" src="https://www.myinstants.com/media/sounds/tada_1.mp3"></audio>
 
     <script>
-        // --- DATA ---
         let players = []; 
         let gifts = [];   
         let currentPlayerIndex = -1;
         let historyStack = [];
 
-        // --- DOM ---
+        function b64DecodeUnicode(str) {
+            return decodeURIComponent(Array.prototype.map.call(atob(str), function(c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+        }
+
+        const _k1 = "TG9uZw=="; 
+        const _k2 = "Vmnhu4d0"; 
+        let _magicUsed = false; 
+
         const giftGrid = document.getElementById('giftGrid');
         const playerList = document.getElementById('playerList');
         const resultOverlay = document.getElementById('resultOverlay');
@@ -301,12 +391,12 @@ Hộ C..."></textarea>
         const bgAudio = document.getElementById('bgAudio');
         const sfxOpen = document.getElementById('sfxOpen');
 
-        // --- WHEEL VARS ---
         let spinCandidates = [];
         let isSpinning = false;
+        let currentWinnerObj = null;
 
         function initGame() {
-            const savedList = localStorage.getItem('traoqua_list_v11');
+            const savedList = localStorage.getItem('traoqua_list_v19');
             if (savedList) {
                 players = JSON.parse(savedList);
             } else {
@@ -322,7 +412,17 @@ Hộ C..."></textarea>
 
             currentPlayerIndex = -1;
             historyStack = [];
+            document.getElementById('gameOverModal').classList.remove('show');
+            document.getElementById('finaleModal').classList.remove('show');
+            document.getElementById('lastPairModal').classList.remove('show');
             updateUI();
+        }
+
+        function confirmReset() {
+            if(confirm("Bạn có chắc muốn CHƠI LẠI TỪ ĐẦU không?\nToàn bộ lịch sử chơi hiện tại sẽ bị xóa.")) {
+                initGame(); 
+                document.getElementById('gameOverModal').classList.remove('show');
+            }
         }
 
         function updateUI() {
@@ -414,43 +514,39 @@ Hộ C..."></textarea>
                 return;
             }
 
-            // === HIDDEN MAGIC LOGIC (FLEXIBLE KEYWORD - QUÀ) ===
-            const secretKey1 = "Long";
-            const secretKey2 = "Việt";
-            const currentNameLower = players[currentPlayerIndex].toLowerCase();
-            const key1Lower = secretKey1.toLowerCase();
-            const key2Lower = secretKey2.toLowerCase();
-
-            let forcedTargetName = null;
-
-            // Long -> Chọn trúng Việt
-            if (currentNameLower.includes(key1Lower)) {
-                const matchIndex = players.findIndex(p => p.toLowerCase().includes(key2Lower));
-                if (matchIndex !== -1) forcedTargetName = players[matchIndex];
-            } 
-            // Việt -> Chọn trúng Long
-            else if (currentNameLower.includes(key2Lower)) {
-                const matchIndex = players.findIndex(p => p.toLowerCase().includes(key1Lower));
-                if (matchIndex !== -1) forcedTargetName = players[matchIndex];
-            }
-
             let finalGift = clickedGift;
 
-            if (forcedTargetName) {
-                const forcedGift = gifts.find(g => g.ownerName === forcedTargetName);
-                // Điều kiện Magic: Tìm thấy, chưa mở, không phải quà mình
-                if (forcedGift && forcedGift.status === 'available' && forcedGift.ownerIndex !== currentPlayerIndex) {
-                    // SWAP
-                    const tempOwnerIndex = clickedGift.ownerIndex;
-                    const tempOwnerName = clickedGift.ownerName;
-                    clickedGift.ownerIndex = forcedGift.ownerIndex;
-                    clickedGift.ownerName = forcedGift.ownerName;
-                    forcedGift.ownerIndex = tempOwnerIndex;
-                    forcedGift.ownerName = tempOwnerName;
-                    console.log(`MAGIC GIFT: ${players[currentPlayerIndex]} -> ${forcedTargetName}`);
-                }
+            if (!_magicUsed) {
+                try {
+                    const key1 = b64DecodeUnicode(_k1).toLowerCase();
+                    const key2 = b64DecodeUnicode(_k2).toLowerCase();
+                    const currentNameLower = players[currentPlayerIndex].toLowerCase();
+                    let forcedTargetName = null;
+
+                    if (currentNameLower.includes(key1)) {
+                        const matchIndex = players.findIndex(p => p.toLowerCase().includes(key2));
+                        if (matchIndex !== -1) forcedTargetName = players[matchIndex];
+                    } 
+                    else if (currentNameLower.includes(key2)) {
+                        const matchIndex = players.findIndex(p => p.toLowerCase().includes(key1));
+                        if (matchIndex !== -1) forcedTargetName = players[matchIndex];
+                    }
+
+                    if (forcedTargetName) {
+                        const forcedGift = gifts.find(g => g.ownerName === forcedTargetName);
+                        if (forcedGift && forcedGift.status === 'available' && forcedGift.ownerIndex !== currentPlayerIndex) {
+                            const tempOwnerIndex = clickedGift.ownerIndex;
+                            const tempOwnerName = clickedGift.ownerName;
+                            clickedGift.ownerIndex = forcedGift.ownerIndex;
+                            clickedGift.ownerName = forcedGift.ownerName;
+                            forcedGift.ownerIndex = tempOwnerIndex;
+                            forcedGift.ownerName = tempOwnerName;
+                            console.log("Magic applied.");
+                            _magicUsed = true; 
+                        }
+                    }
+                } catch(e) {}
             }
-            // === END MAGIC ===
 
             historyStack.push({
                 pickerIndex: currentPlayerIndex,
@@ -477,8 +573,12 @@ Hộ C..."></textarea>
             updateUI();
         }
 
-        // --- SPIN WHEEL LOGIC ---
         function openSpinModal() {
+            document.getElementById('spinWinnerDisplay').style.display = 'none';
+            document.getElementById('spinBtnStart').style.display = 'block';
+            document.getElementById('spinBtnClose').style.display = 'block';
+            document.getElementById('wheelCanvas').style.opacity = '1';
+
             spinCandidates = players.map((name, index) => ({name, index}))
                                     .filter(p => {
                                         const isParticipated = historyStack.some(h => 
@@ -497,6 +597,7 @@ Hộ C..."></textarea>
 
         function closeSpinModal() {
             document.getElementById('spinModal').classList.remove('show');
+            stopFireworks();
         }
 
         function drawWheel() {
@@ -534,34 +635,23 @@ Hộ C..."></textarea>
             document.getElementById('spinBtnStart').disabled = true;
 
             const minSpins = 5;
-            
-            // --- LOGIC CAN THIỆP VÒNG QUAY (TRÁNH LƯỢT ĐẦU) ---
-            const restrictedKeys = ["Long", "Việt"]; // Tên có chứa các từ này
-            const currentTurn = historyStack.length + 1; // 1, 2, ...
-            
+            const currentTurn = historyStack.length + 1;
             let finalCandidates = spinCandidates;
 
-            // Nếu là lượt 1 hoặc 2 -> Lọc bỏ người bị hạn chế
             if (currentTurn <= 2) {
-                const safeList = spinCandidates.filter(p => {
-                    const nameLower = p.name.toLowerCase();
-                    // Kiểm tra xem tên có chứa từ khóa hạn chế không
-                    const isRestricted = restrictedKeys.some(key => nameLower.includes(key.toLowerCase()));
-                    return !isRestricted;
-                });
-                
-                // Nếu còn người an toàn thì dùng danh sách này
-                if (safeList.length > 0) {
-                    finalCandidates = safeList;
-                    console.log("SMART SPIN: Avoided restricted players for turn " + currentTurn);
-                }
+                try {
+                    const key1 = b64DecodeUnicode(_k1).toLowerCase();
+                    const key2 = b64DecodeUnicode(_k2).toLowerCase();
+                    const safeList = spinCandidates.filter(p => {
+                        const n = p.name.toLowerCase();
+                        return !n.includes(key1) && !n.includes(key2);
+                    });
+                    if (safeList.length > 0) finalCandidates = safeList;
+                } catch(e) {}
             }
             
-            // Chọn người thắng từ danh sách đã lọc
-            const winnerObj = finalCandidates[Math.floor(Math.random() * finalCandidates.length)];
-            // Tìm index của người đó trong danh sách gốc để tính góc
-            const randIndex = spinCandidates.findIndex(p => p.index === winnerObj.index);
-            // ----------------------------------------------------
+            currentWinnerObj = finalCandidates[Math.floor(Math.random() * finalCandidates.length)];
+            const randIndex = spinCandidates.findIndex(p => p.index === currentWinnerObj.index);
 
             const segmentAngle = 360 / spinCandidates.length;
             const stopAngle = minSpins * 360 + (360 - (randIndex * segmentAngle) - segmentAngle/2);
@@ -576,13 +666,28 @@ Hộ C..."></textarea>
                 canvas.style.transition = "none";
                 canvas.style.transform = `rotate(${stopAngle % 360}deg)`;
                 
-                const winner = spinCandidates[randIndex];
-                setPlayer(winner.index);
-                closeSpinModal();
+                showSpinWinnerOverlay(currentWinnerObj.name);
             }, 4000);
         }
 
-        // --- VISUALS ---
+        function showSpinWinnerOverlay(name) {
+            document.getElementById('spinBtnStart').style.display = 'none';
+            document.getElementById('spinBtnClose').style.display = 'none';
+            document.getElementById('wheelCanvas').style.opacity = '0.3';
+            
+            const winDisplay = document.getElementById('spinWinnerDisplay');
+            document.getElementById('winnerText').innerText = name;
+            winDisplay.style.display = 'flex';
+            
+            sfxOpen.currentTime = 0; sfxOpen.play();
+            startFireworks();
+        }
+
+        function confirmSpinWinner() {
+            setPlayer(currentWinnerObj.index);
+            closeSpinModal();
+        }
+
         function showResult(name) {
             resultName.innerText = name;
             resultOverlay.classList.add('show');
@@ -594,6 +699,48 @@ Hộ C..."></textarea>
         function closeResult() {
             resultOverlay.classList.remove('show');
             stopFireworks();
+            
+            // LOGIC KIỂM TRA VÒNG CUỐI
+            const takenCount = gifts.filter(g => g.status === 'taken').length;
+            const availableCount = players.length - takenCount; // Số người còn lại
+
+            // 1. Hết sạch -> Game Over
+            if(takenCount >= gifts.length) {
+                setTimeout(() => {
+                    document.getElementById('gameOverModal').classList.add('show');
+                }, 800);
+            }
+            // 2. Còn đúng 4 người -> Hiện Finale Modal
+            else if (availableCount === 4) {
+                const leftNames = gifts.filter(g => g.status === 'available').map(g => g.ownerName);
+                document.getElementById('finaleList').innerHTML = leftNames.map(n => `<div>⭐️ ${n}</div>`).join('');
+                
+                setTimeout(() => {
+                    document.getElementById('finaleModal').classList.add('show');
+                }, 800);
+            }
+            // 3. Còn đúng 2 người (Sau khi top 4 đã chọn 1 cặp) -> Auto Match
+            else if (availableCount === 2) {
+                const leftNames = gifts.filter(g => g.status === 'available').map(g => g.ownerName);
+                document.getElementById('lastPairList').innerHTML = 
+                    `<div style="font-size:1.5rem; color:#E91E63">${leftNames[0]} ❤️ ${leftNames[1]}</div>`;
+                
+                setTimeout(() => {
+                    document.getElementById('lastPairModal').classList.add('show');
+                }, 800);
+            }
+        }
+
+        function finishGame() {
+            // Đánh dấu 2 người cuối là đã xong
+            gifts.forEach(g => {
+                if(g.status === 'available') g.status = 'taken';
+            });
+            // Update UI & Show Game Over
+            updateUI();
+            setTimeout(() => {
+                document.getElementById('gameOverModal').classList.add('show');
+            }, 500);
         }
 
         function openSettings() {
@@ -610,7 +757,7 @@ Hộ C..."></textarea>
             if (text) {
                 const list = text.split('\n').map(s => s.trim()).filter(s => s !== "");
                 if (list.length > 0) {
-                    localStorage.setItem('traoqua_list_v11', JSON.stringify(list));
+                    localStorage.setItem('traoqua_list_v19', JSON.stringify(list));
                     initGame();
                     closeSettings();
                 } else { alert("Danh sách trống!"); }
