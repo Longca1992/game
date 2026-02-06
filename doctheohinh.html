@@ -27,7 +27,7 @@
 
         /* HEADER */
         h1 {
-            font-family: 'Anton', sans-serif; 
+            font-family: 'Anton', sans-serif;
             font-size: clamp(2rem, 5vh, 4rem);
             color: var(--gold); text-transform: uppercase; margin: 10px 0;
             text-shadow: 0 0 10px rgba(255, 215, 0, 0.5), 3px 3px 0 #000;
@@ -35,7 +35,10 @@
             animation: glow 2s infinite alternate;
             text-align: center; padding: 0 10px;
         }
-        @keyframes glow { from { text-shadow: 0 0 10px rgba(255,215,0,0.2), 3px 3px 0 #000; } to { text-shadow: 0 0 20px rgba(255,215,0,0.6), 3px 3px 0 #000; } }
+        @keyframes glow { 
+            from { text-shadow: 0 0 10px rgba(255,215,0,0.2), 3px 3px 0 #000; } 
+            to { text-shadow: 0 0 20px rgba(255,215,0,0.6), 3px 3px 0 #000; } 
+        }
 
         /* LƯỚI Ô */
         .grid-wrapper {
@@ -54,13 +57,12 @@
 
         /* Ô BÍ ẨN (3:4) */
         .box {
-            aspect-ratio: 3/4; 
+            aspect-ratio: 3/4;
             background: linear-gradient(135deg, #FFD700, #FFA000); 
             background-size: cover; background-position: center; background-repeat: no-repeat;
             border-radius: 12px;
             display: flex; align-items: center; justify-content: center;
-            cursor: pointer;
-            position: relative;
+            cursor: pointer; position: relative;
             box-shadow: 0 10px 20px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.3);
             transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
             transform-style: preserve-3d;
@@ -75,10 +77,14 @@
         .box.flipping { transform: rotateY(180deg) scale(1.2); opacity: 0; }
         .box.shuffling { transform: scale(0) rotate(360deg); opacity: 0; }
         .box.appearing { animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
-        @keyframes popIn { 0% { transform: scale(0); opacity: 0; } 80% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes popIn { 
+            0% { transform: scale(0); opacity: 0; } 
+            80% { transform: scale(1.1); opacity: 1; } 
+            100% { transform: scale(1); opacity: 1; } 
+        }
         .box.disabled { pointer-events: none; filter: grayscale(1); opacity: 0.5; }
 
-        /* MODAL VIDEO */
+        /* MODAL VIDEO - ĐÃ CHỈNH SỬA CHO IPAD */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.95); z-index: 2000;
@@ -88,8 +94,12 @@
         .modal-overlay.show { display: flex; opacity: 1; }
 
         .video-container-outer {
-            width: 90%; max-width: 1100px;
+            width: 90%;
+            max-width: 1100px;
+            /* Thêm max-height để không bị tràn màn hình */
+            max-height: 95vh;
             display: flex; flex-direction: column; gap: 10px;
+            align-items: center; /* Căn giữa nội dung */
         }
 
         .level-badge {
@@ -100,26 +110,38 @@
             border: 2px solid var(--gold);
             box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
             text-transform: uppercase;
+            white-space: nowrap; /* Không cho xuống dòng */
+            z-index: 2;
         }
 
-        /* KHUNG VIDEO 16:9 CHUẨN */
+        /* KHUNG VIDEO 16:9 CHUẨN - FIX LỖI IPAD */
         .video-wrapper {
             position: relative;
             width: 100%;
-            padding-bottom: 56.25%; /* 16:9 */
-            height: 0;
+            /* Bỏ padding-bottom cũ */
+            padding-bottom: 0; 
+            height: auto;
+            
+            /* Dùng aspect-ratio để giữ tỷ lệ 16:9 */
+            aspect-ratio: 16/9; 
+            
+            /* QUAN TRỌNG: Giới hạn chiều cao video chỉ chiếm tối đa 65% màn hình 
+               để chừa chỗ cho nút bấm ở dưới và tiêu đề ở trên */
+            max-height: 65vh; 
+            
             background: #000; 
             border: 4px solid var(--gold);
             box-shadow: 0 0 60px rgba(255, 215, 0, 0.4);
             border-radius: 15px;
             overflow: hidden;
+            display: flex; justify-content: center; /* Căn giữa iframe */
         }
         
         .video-wrapper iframe {
-            position: absolute;
-            top: 0; left: 0;
+            /* Bỏ absolute cũ */
             width: 100%; height: 100%;
             border: none;
+            object-fit: cover;
         }
         
         /* MENU CHỌN TRONG VIDEO */
@@ -131,12 +153,15 @@
         }
         .level-menu-overlay.hidden { display: none; }
 
-        .modal-controls { margin-top: 10px; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;}
+        .modal-controls { 
+            margin-top: 5px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; 
+            width: 100%;
+        }
         .btn {
             padding: 12px 25px; border-radius: 50px; border: none;
             font-family: 'Anton'; font-size: 1.1rem; cursor: pointer;
-            text-transform: uppercase; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 5px;
-            min-width: 140px;
+            text-transform: uppercase; transition: 0.2s; display: flex; align-items: center; justify-content: center;
+            gap: 5px; min-width: 140px;
         }
         .btn-close { background: #444; color: white; border: 1px solid #777; }
         .btn-next { background: var(--gold); color: #d32f2f; border: 2px solid #fff; animation: pulse 2s infinite; font-weight: bold; }
@@ -145,7 +170,20 @@
         .btn-preview { background: var(--gray); color: white; border: 2px solid #fff; font-size: 1.3rem; padding: 15px 40px; }
         .btn-play { background: var(--green); color: white; border: 2px solid #fff; font-size: 1.5rem; padding: 20px 50px; animation: pulse 1.5s infinite; }
         
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        @keyframes pulse { 
+            0% { transform: scale(1); } 
+            50% { transform: scale(1.05); } 
+            100% { transform: scale(1); } 
+        }
+
+        /* MEDIA QUERY CHO MÀN HÌNH THẤP (IPAD XOAY NGANG) */
+        @media (max-height: 600px) {
+            .level-badge { font-size: 1.2rem; padding: 2px 15px; }
+            .video-wrapper { max-height: 60vh; /* Thu nhỏ video hơn nữa */ }
+            .btn { padding: 8px 15px; font-size: 0.9rem; min-width: 100px; }
+            .modal-controls { gap: 5px; }
+            h1 { font-size: 2.5rem; margin: 5px 0; }
+        }
 
         /* SETTINGS */
         .settings-btn {
@@ -164,7 +202,8 @@
             padding: 20px; border-radius: 15px; width: 95%; max-width: 500px;
             max-height: 95vh; display: flex; flex-direction: column; gap: 10px;
             z-index: 2001; box-shadow: 0 20px 60px rgba(0,0,0,0.8);
-            border: 4px solid var(--gold); display: none; overflow-y: auto;
+            border: 4px solid var(--gold);
+            display: none; overflow-y: auto;
         }
         .settings-panel.show { display: flex; }
         
@@ -210,13 +249,11 @@
             <div class="level-badge" id="levelBadge">CẤP ĐỘ 1</div>
             
             <div class="video-wrapper" id="videoContainer">
-                
                 <div class="level-menu-overlay" id="levelMenu">
                     <button class="btn btn-preview" onclick="playSelectedLevel(true)">👁️ XEM THỬ</button>
                     <button class="btn btn-play" onclick="playSelectedLevel(false)">▶️ CHƠI THẬT</button>
                 </div>
-
-                </div>
+            </div>
             
             <div class="modal-controls">
                 <button class="btn btn-close" onclick="closeVideo()">✖ DỪNG & ĐÓNG</button>
@@ -329,7 +366,6 @@
             document.getElementById('numBoxes').value = gameConfig.totalBoxes;
             
             updatePreviewIcon();
-
             if (!displayOrder || displayOrder.length !== gameConfig.totalBoxes) resetDisplayOrder();
             renderGrid(false);
             renderLinkInputs();
@@ -378,7 +414,7 @@
                 canvas.height = height;
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
-                callback(canvas.toDataURL('image/jpeg', 0.8)); 
+                callback(canvas.toDataURL('image/jpeg', 0.8));
             }
         }
 
@@ -430,7 +466,6 @@
             if (!boxData.l1 && !confirm("Ô này chưa có Link Level 1. Mở không?")) return;
 
             boxEl.classList.add('flipping');
-
             setTimeout(() => {
                 if (!openedBoxes.includes(index)) {
                     openedBoxes.push(index);
@@ -439,7 +474,7 @@
                 currentPlayingBoxIndex = index;
                 showLevelMenu(1); 
                 videoModal.classList.add('show');
-            }, 300); 
+            }, 300);
         }
 
         function showLevelMenu(lvl) {
@@ -448,8 +483,7 @@
             if(existingIframe) existingIframe.remove();
 
             levelMenu.classList.remove('hidden');
-            btnNextLevel.style.display = "none"; 
-
+            btnNextLevel.style.display = "none";
             if(lvl === 1) {
                 levelBadge.innerText = "CẤP ĐỘ 1: DỄ";
                 levelBadge.style.backgroundColor = "#2e7d32"; 
@@ -490,20 +524,17 @@
             if(!url) { alert("Chưa có link video!"); return; }
 
             const videoId = getYouTubeID(url);
-            
             if (!videoId) { alert("Lỗi: Không tìm thấy ID Youtube!"); return; }
 
             levelMenu.classList.add('hidden');
             
             const iframe = document.createElement('iframe');
-            
             // FINAL PRO: AUTOPLAY + CONTROLS (Chạy ngon trên Web)
             iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&controls=1&rel=0&playsinline=1&modestbranding=1`;
             iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
             iframe.allowFullscreen = true;
             
             videoWrapper.appendChild(iframe);
-
             if (isPreview) {
                 btnNextLevel.style.display = "none";
             } else {
@@ -528,7 +559,6 @@
             
             currentPlayingBoxIndex = -1;
             if (document.fullscreenElement) document.exitFullscreen();
-
             if (gameConfig.shuffle) {
                 const boxes = document.querySelectorAll('.box');
                 boxes.forEach(b => b.classList.add('shuffling'));
