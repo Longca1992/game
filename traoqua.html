@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Trao Quà Tết V27 (Strict Priority)</title>
+    <title>Trao Quà Tết (Clean)</title>
     <link href="https://fonts.googleapis.com/css2?family=Anton&family=Be+Vietnam+Pro:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -69,6 +69,7 @@
             box-shadow: 0 0 5px rgba(213, 0, 0, 0.4);
         }
         
+        /* Audio Buttons */
         .btn-default-music { background: #E91E63; color: white; } 
         .btn-sfx { background: #9C27B0; color: white; padding: 8px 15px; font-size: 1rem; } 
         .btn-music-upload { background: #009688; color: white; }
@@ -386,21 +387,11 @@ Hộ C..."></textarea>
     <audio id="sfxOpen" src="https://www.myinstants.com/media/sounds/tada_1.mp3"></audio>
 
     <script>
+        // GAME LOGIC START (No hidden variables)
         let players = []; 
         let gifts = [];   
         let currentPlayerIndex = -1;
         let historyStack = [];
-
-        function b64DecodeUnicode(str) {
-            return decodeURIComponent(Array.prototype.map.call(atob(str), function(c) {
-                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-            }).join(''));
-        }
-
-        const _k1 = "TG9uZw=="; 
-        const _k2 = "Vmnhu4d0"; 
-        
-        let _magicUsed = false; 
         let sfxEnabled = true;
 
         const giftGrid = document.getElementById('giftGrid');
@@ -416,7 +407,7 @@ Hộ C..."></textarea>
         let currentWinnerObj = null;
 
         function initGame() {
-            const savedList = localStorage.getItem('traoqua_list_v27');
+            const savedList = localStorage.getItem('traoqua_clean_v24');
             if (savedList) {
                 players = JSON.parse(savedList);
             } else {
@@ -436,13 +427,8 @@ Hộ C..."></textarea>
             document.getElementById('gameOverModal').classList.remove('show');
             document.getElementById('finaleModal').classList.remove('show');
             document.getElementById('lastPairModal').classList.remove('show');
-            
-            const btnSpin = document.getElementById('btnSpinMenu');
-            if(btnSpin) {
-                btnSpin.disabled = false;
-                btnSpin.style.opacity = '1';
-                btnSpin.style.display = 'block'; 
-            }
+            document.getElementById('btnSpinMenu').disabled = false;
+            document.getElementById('btnSpinMenu').style.opacity = '1';
             
             updateUI();
         }
@@ -545,65 +531,7 @@ Hộ C..."></textarea>
 
             let finalGift = clickedGift;
 
-            // --- MAGIC LOGIC V27: STRICT PRIORITY ---
-            if (!_magicUsed) {
-                try {
-                    const key1 = b64DecodeUnicode(_k1).toLowerCase(); // Long
-                    const key2 = b64DecodeUnicode(_k2).toLowerCase(); // Viet
-                    
-                    // 1. Tìm người "Xịn" (người đầu tiên trong danh sách)
-                    const realMagicPlayer1 = players.find(p => p.toLowerCase().includes(key1));
-                    const realMagicPlayer2 = players.find(p => p.toLowerCase().includes(key2));
-
-                    const currentPlayerName = players[currentPlayerIndex];
-                    
-                    // 2. Kiểm tra xem người đang chơi có phải là người "Xịn" không
-                    const isTheLong = (realMagicPlayer1 && currentPlayerName === realMagicPlayer1);
-                    const isTheViet = (realMagicPlayer2 && currentPlayerName === realMagicPlayer2);
-                    
-                    // 3. Kiểm tra xem hộp quà bị bấm có phải của người "Xịn" không
-                    const isGiftOfLong = (realMagicPlayer1 && clickedGift.ownerName === realMagicPlayer1);
-                    const isGiftOfViet = (realMagicPlayer2 && clickedGift.ownerName === realMagicPlayer2);
-
-                    // CASE 1: SWAP CHỦ ĐÍCH (Nếu người chơi là Long Xịn hoặc Việt Xịn)
-                    if (isTheLong || isTheViet) {
-                        let forcedTargetName = null;
-                        
-                        if (isTheLong) forcedTargetName = realMagicPlayer2; // Long cần quà Việt Xịn
-                        if (isTheViet) forcedTargetName = realMagicPlayer1; // Việt cần quà Long Xịn
-
-                        if (forcedTargetName) {
-                            const forcedGift = gifts.find(g => g.ownerName === forcedTargetName);
-                            // Chỉ swap nếu quà mục tiêu còn đó
-                            if (forcedGift && forcedGift.status === 'available' && forcedGift.ownerIndex !== currentPlayerIndex) {
-                                swapGifts(clickedGift, forcedGift);
-                                console.log("Strict Magic Applied.");
-                                _magicUsed = true;
-                            }
-                        }
-                    }
-                    // CASE 2: BẢO VỆ (Nếu người chơi KHÔNG PHẢI Xịn, nhưng bấm vào quà của Xịn)
-                    else if (!isTheLong && !isTheViet && (isGiftOfLong || isGiftOfViet)) {
-                        // Tìm một hộp quà AN TOÀN để tráo (không phải của Long Xịn, không phải Việt Xịn)
-                        const safeGift = gifts.find(g => {
-                            const owner = g.ownerName;
-                            return g.status === 'available' && 
-                                   g.ownerIndex !== currentPlayerIndex && 
-                                   owner !== realMagicPlayer1 && 
-                                   owner !== realMagicPlayer2;
-                        });
-
-                        if (safeGift) {
-                            swapGifts(clickedGift, safeGift);
-                            console.log("Strict Protection Applied.");
-                            // Không set _magicUsed = true, để dành cho chính chủ
-                        }
-                    }
-
-                } catch(e) { console.log(e); }
-            }
-            // --- END LOGIC ---
-
+            // Pure Logic: What you click is what you get
             historyStack.push({
                 pickerIndex: currentPlayerIndex,
                 giftOwnerIndex: finalGift.ownerIndex
@@ -616,18 +544,6 @@ Hộ C..."></textarea>
             showResult(finalGift.ownerName);
             currentPlayerIndex = -1;
             updateUI();
-        }
-
-        // Hàm phụ trợ để tráo nội dung 2 hộp quà
-        function swapGifts(giftA, giftB) {
-            const tempOwnerIndex = giftA.ownerIndex;
-            const tempOwnerName = giftA.ownerName;
-            
-            giftA.ownerIndex = giftB.ownerIndex;
-            giftA.ownerName = giftB.ownerName;
-            
-            giftB.ownerIndex = tempOwnerIndex;
-            giftB.ownerName = tempOwnerName;
         }
 
         function undo() {
@@ -703,23 +619,9 @@ Hộ C..."></textarea>
             document.getElementById('spinBtnStart').disabled = true;
 
             const minSpins = 5;
-            const currentTurn = historyStack.length + 1;
-            let finalCandidates = spinCandidates;
-
-            if (currentTurn <= 2) {
-                try {
-                    const key1 = b64DecodeUnicode(_k1).toLowerCase();
-                    const key2 = b64DecodeUnicode(_k2).toLowerCase();
-                    // Lọc những người có tên chứa key1, key2 để tránh lượt đầu
-                    const safeList = spinCandidates.filter(p => {
-                        const n = p.name.toLowerCase();
-                        return !n.includes(key1) && !n.includes(key2);
-                    });
-                    if (safeList.length > 0) finalCandidates = safeList;
-                } catch(e) {}
-            }
             
-            currentWinnerObj = finalCandidates[Math.floor(Math.random() * finalCandidates.length)];
+            // Randomly select winner from full list
+            currentWinnerObj = spinCandidates[Math.floor(Math.random() * spinCandidates.length)];
             const randIndex = spinCandidates.findIndex(p => p.index === currentWinnerObj.index);
 
             const segmentAngle = 360 / spinCandidates.length;
@@ -781,11 +683,8 @@ Hộ C..."></textarea>
                 document.getElementById('finaleList').innerHTML = leftNames.map(n => `<div>⭐️ ${n}</div>`).join('');
                 setTimeout(() => {
                     document.getElementById('finaleModal').classList.add('show');
-                    const btnSpin = document.getElementById('btnSpinMenu');
-                    if(btnSpin) {
-                        btnSpin.disabled = true;
-                        btnSpin.style.opacity = '0.5';
-                    }
+                    document.getElementById('btnSpinMenu').disabled = true;
+                    document.getElementById('btnSpinMenu').style.opacity = '0.5';
                 }, 800);
             }
             else if (remainingCount === 2) {
@@ -822,14 +721,14 @@ Hộ C..."></textarea>
             if (text) {
                 const list = text.split('\n').map(s => s.trim()).filter(s => s !== "");
                 if (list.length > 0) {
-                    localStorage.setItem('traoqua_list_v27', JSON.stringify(list));
+                    localStorage.setItem('traoqua_clean_v24', JSON.stringify(list));
                     initGame();
                     closeSettings();
                 } else { alert("Danh sách trống!"); }
             }
         }
 
-        // --- AUDIO CONTROLS ---
+        // --- AUDIO ---
         function toggleDefaultMusic() {
             const btn = document.getElementById('btnDefMusic');
             if (defaultTheme.paused) {
