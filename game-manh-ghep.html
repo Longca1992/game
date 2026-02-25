@@ -5,80 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mảnh Ghép Kỳ Hà - Tân Niên 2026</title>
     <style>
-        :root {
-            --primary-color: #d32f2f; /* Đỏ tươi */
-            --gold-color: #ffd700; /* Vàng lấp lánh */
-            --bg-color: #aa0000;
-            --box-bg: #fff;
-            --box-text: #333;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            background-image: radial-gradient(circle, #d32f2f 0%, #7a0000 100%);
-            color: #fff;
-            margin: 0; padding: 15px 30px;
-            height: 100vh; max-height: 100vh; overflow: hidden; box-sizing: border-box;
-            display: flex; flex-direction: column; align-items: center; gap: 10px;
-        }
+        :root { --primary-color: #d32f2f; --gold-color: #ffd700; --bg-color: #aa0000; --box-bg: #fff; --box-text: #333; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); background-image: radial-gradient(circle, #d32f2f 0%, #7a0000 100%); color: #fff; margin: 0; padding: 15px 30px; height: 100vh; max-height: 100vh; overflow: hidden; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; gap: 10px; }
         h1 { margin: 0; color: var(--gold-color); text-transform: uppercase; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); text-align: center; font-size: min(2.5em, 5vh); flex: 0 0 auto; z-index: 10;}
-        
-        /* LAYOUT CHÍNH */
         .main-layout { display: flex; width: 100%; max-width: 1500px; gap: 30px; flex: 1; min-height: 0; z-index: 10; }
-        
-        /* CỘT TRÁI */
         .left-column { flex: 0 0 auto; display: flex; flex-direction: column; justify-content: center; gap: 0.8vh; height: 100%; }
         .row { display: flex; gap: 4px; cursor: pointer; transition: transform 0.2s; align-items: center; }
         .row:hover { transform: scale(1.02); filter: brightness(1.1); }
         .row.disabled { pointer-events: none; opacity: 0.8; filter: grayscale(0.5); }
-        .cell {
-            width: min(45px, 3.8vh); height: min(45px, 3.8vh); background: var(--box-bg); color: var(--box-bg); 
-            border-radius: 4px; display: flex; align-items: center; justify-content: center; pointer-events: none;
-            font-size: min(24px, 2.5vh); font-weight: bold; text-transform: uppercase;
-            box-shadow: inset 0 -3px 0 rgba(0,0,0,0.2); transition: all 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
-            position: relative; overflow: hidden;
-        }
+        .cell { width: min(45px, 3.8vh); height: min(45px, 3.8vh); background: var(--box-bg); color: var(--box-bg); border-radius: 4px; display: flex; align-items: center; justify-content: center; pointer-events: none; font-size: min(24px, 2.5vh); font-weight: bold; text-transform: uppercase; box-shadow: inset 0 -3px 0 rgba(0,0,0,0.2); transition: all 0.8s cubic-bezier(0.25, 0.8, 0.25, 1); position: relative; overflow: hidden; }
         .cell::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 50%); }
         .cell.highlight { border: 3px solid var(--gold-color); background: #fff8dc; color: #fff8dc; box-sizing: border-box;}
         .cell.revealed { color: var(--box-text); background: #fff; transform: rotateY(360deg); }
         .cell.revealed::after { display: none; }
         .cell.revealed.highlight { color: var(--primary-color); background: var(--gold-color); box-shadow: 0 0 15px var(--gold-color); border: none; }
-        .row-number {
-            width: 30px; height: min(45px, 3.8vh); display: flex; align-items: center; justify-content: center; pointer-events: none;
-            font-weight: bold; color: var(--gold-color); font-size: min(20px, 2vh);
-            background: rgba(0,0,0,0.4); border-radius: 4px; margin-right: 5px; border: 1px solid rgba(255,215,0,0.3);
-        }
-
-        /* CỘT PHẢI */
+        .row-number { width: 30px; height: min(45px, 3.8vh); display: flex; align-items: center; justify-content: center; pointer-events: none; font-weight: bold; color: var(--gold-color); font-size: min(20px, 2vh); background: rgba(0,0,0,0.4); border-radius: 4px; margin-right: 5px; border: 1px solid rgba(255,215,0,0.3); }
         .right-column { flex: 1; display: flex; flex-direction: column; gap: 10px; min-width: 0; height: 100%; }
         .image-wrapper { flex: 1; position: relative; width: 100%; min-height: 0; border: 6px solid var(--gold-color); border-radius: 12px; overflow: hidden; background: #000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         #secretImage { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
         .tiles-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-        .puzzle-piece {
-            position: absolute; background: linear-gradient(135deg, var(--primary-color), #8B0000);
-            border: 1.5px solid rgba(255, 215, 0, 0.6); box-sizing: border-box;
-            display: flex; align-items: center; justify-content: center; cursor: pointer;
-            transition: all 0.8s cubic-bezier(0.4, 0.0, 0.2, 1); box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
-        }
+        .puzzle-piece { position: absolute; background: linear-gradient(135deg, var(--primary-color), #8B0000); border: 1.5px solid rgba(255, 215, 0, 0.6); box-sizing: border-box; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.8s cubic-bezier(0.4, 0.0, 0.2, 1); box-shadow: inset 0 0 20px rgba(0,0,0,0.5); }
         .puzzle-piece:hover { filter: brightness(1.2); }
-        .puzzle-piece span {
-            font-size: min(35px, 5.5vh); font-weight: bold; color: #fff; text-shadow: 2px 2px 5px rgba(0,0,0,0.8);
-            background: rgba(0,0,0,0.3); padding: 5px 15px; border-radius: 50px; border: 2px solid rgba(255,215,0,0.5); pointer-events: none;
-            display: flex; align-items: center; gap: 8px;
-        }
+        .puzzle-piece span { font-size: min(35px, 5.5vh); font-weight: bold; color: #fff; text-shadow: 2px 2px 5px rgba(0,0,0,0.8); background: rgba(0,0,0,0.3); padding: 5px 15px; border-radius: 50px; border: 2px solid rgba(255,215,0,0.5); pointer-events: none; display: flex; align-items: center; gap: 8px; }
         .puzzle-piece.hidden { opacity: 0; transform: scale(0.9) translateY(20px); pointer-events: none; }
-
-        /* ĐÁP ÁN CUỐI */
         .final-keyword-container { flex: 0 0 auto; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 12px; border: 2px solid rgba(255,215,0, 0.3); }
-        .final-cell {
-            width: min(45px, 4.5vh); height: min(45px, 4.5vh); border: 3px dashed var(--gold-color); border-radius: 8px;
-            display: flex; align-items: center; justify-content: center; font-size: min(28px, 3.5vh); font-weight: bold; color: rgba(255,215,0, 0.3); text-transform: uppercase; background: rgba(0,0,0,0.2); transition: all 0.5s; box-sizing: border-box;
-        }
+        .final-cell { width: min(45px, 4.5vh); height: min(45px, 4.5vh); border: 3px dashed var(--gold-color); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: min(28px, 3.5vh); font-weight: bold; color: rgba(255,215,0, 0.3); text-transform: uppercase; background: rgba(0,0,0,0.2); transition: all 0.5s; box-sizing: border-box; }
         .final-cell.filled { border: 3px solid var(--gold-color); color: var(--gold-color); background: rgba(170, 0, 0, 0.8); box-shadow: 0 0 10px var(--gold-color); animation: dropIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .final-cell.victory { background: var(--gold-color); color: var(--primary-color); border: 3px solid #fff; box-shadow: 0 0 20px var(--gold-color); transform: scale(1.1); }
         @keyframes dropIn { from { transform: translateY(-50px) scale(1.5); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
-
-        /* NÚT ĐIỀU KHIỂN & NHẠC NỀN */
         .controls-group { position: fixed; top: 15px; right: 20px; display: flex; gap: 10px; z-index: 100; align-items: center;}
         .bgm-control { display: flex; align-items: center; background: rgba(0,0,0,0.6); padding: 5px 12px; border-radius: 30px; border: 2px solid var(--gold-color); gap: 5px; }
         .bgm-control input[type=range] { width: 80px; cursor: pointer; accent-color: var(--gold-color); }
@@ -86,13 +40,9 @@
         .control-btn:hover { background: var(--gold-color); color: var(--primary-color); }
         .btn-answer { background: linear-gradient(to right, #ffd700, #ff8c00); color: #800000; box-shadow: 0 4px 15px rgba(255,215,0,0.5); border: none; animation: pulse 2s infinite; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
-
-        /* MODALS */
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; backdrop-filter: blur(5px); }
         .modal-content { background: #fff; color: #333; padding: 25px; border-radius: 15px; max-width: 95%; border: 4px solid var(--gold-color); box-shadow: 0 20px 50px rgba(0,0,0,0.5); position: relative; max-height: 90vh; overflow-y: auto; display: flex; flex-direction: column; }
         .modal-header { font-size: 24px; font-weight: bold; color: var(--primary-color); margin-bottom: 20px; text-align: center; text-transform: uppercase; flex: 0 0 auto;}
-        
-        /* CÂU HỎI & NÚT */
         #questionModal .modal-content { max-width: 800px; text-align: center; min-height: 350px; justify-content: center; }
         .question-text { font-size: 30px; margin-bottom: 25px; font-weight: 500; line-height: 1.4; }
         .char-hint { color: var(--primary-color); font-weight: bold; font-size: 22px; display: block; margin-top: 10px; }
@@ -102,33 +52,17 @@
         .btn.gold { background: linear-gradient(to bottom, var(--gold-color), #e6c200); color: #800000; box-shadow: 0 4px 0 #b39700; }
         .btn.red { background: linear-gradient(to bottom, var(--primary-color), #b30000); box-shadow: 0 4px 0 #800000; }
         .btn:hover { transform: translateY(2px); opacity: 0.9; }
-
-        /* HIỆU ỨNG HIỆN ĐÁP ÁN TRONG MODAL */
         #qAnswerReveal { display: none; font-size: min(45px, 5vh); color: var(--gold-color); font-weight: bold; margin: 0 auto 25px; text-shadow: 2px 2px 10px rgba(255, 215, 0, 0.6); background: rgba(139, 0, 0, 0.9); padding: 15px 30px; border-radius: 12px; border: 3px solid var(--gold-color); text-transform: uppercase; box-shadow: 0 10px 30px rgba(0,0,0,0.5); animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); letter-spacing: 5px; }
-
-        /* HIỆU ỨNG RUNG LẮC KHI SAI */
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-15px); } 50% { transform: translateX(15px); } 75% { transform: translateX(-15px); } }
         .shake-anim { animation: shake 0.3s ease-in-out 2; border-color: red !important; }
-
-        /* HIỆU ỨNG ĐẾM NGƯỢC 3-2-1 */
         #countdownOverlay { display: none; font-size: 180px; color: var(--gold-color); font-weight: bold; text-shadow: 0 0 40px rgba(255,215,0,1); }
         @keyframes popIn { 0% { transform: scale(0.2); opacity: 0; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
         .pop-anim { animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-
-        /* POPUP CHIẾN THẮNG CHUNG CUỘC */
-        #victoryOverlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle, rgba(139,0,0,0.9) 0%, rgba(0,0,0,0.95) 100%);
-            z-index: 997; display: none; flex-direction: column; align-items: center; justify-content: center;
-        }
+        #victoryOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, rgba(139,0,0,0.9) 0%, rgba(0,0,0,0.95) 100%); z-index: 997; display: none; flex-direction: column; align-items: center; justify-content: center; }
         .victory-title { color: #fff; font-size: min(40px, 4vh); font-weight: bold; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 5px; z-index: 1000;}
         .victory-word { font-size: min(100px, 10vw); color: var(--gold-color); font-weight: bold; text-shadow: 0 0 40px var(--gold-color), 0 0 80px #ff8c00; text-transform: uppercase; letter-spacing: 15px; animation: popIn 1.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 1000; text-align: center; }
-
-        /* HIỆU ỨNG SAI & PHÁO HOA */
         #darkOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 999; display: none; opacity: 0; transition: opacity 0.1s; pointer-events: none; }
         #fireworksCanvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 998; }
-
-        /* CÀI ĐẶT */
         #settingsModal .modal-content { width: 1000px; background: #f4f4f4; padding: 20px; }
         .form-group { margin-bottom: 15px; display: flex; gap: 10px; align-items: center; flex: 0 0 auto;}
         .form-label { font-weight: bold; min-width: 140px; text-align: right; }
@@ -308,10 +242,24 @@
         }
     };
     
+    // Tối ưu thuật toán bắt giọng đọc cho Android Máy Chiếu
+    let viVoice = null;
+    function loadVoices() {
+        let voices = window.speechSynthesis.getVoices();
+        // Ưu tiên giọng Google Tiếng Việt, nếu không có thì lấy bất kỳ giọng Tiếng Việt nào
+        viVoice = voices.find(v => v.lang === 'vi-VN' && v.name.includes('Google')) || voices.find(v => v.lang.includes('vi'));
+    }
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
+
     const speakText = (text) => {
         if ('speechSynthesis' in window) {
             window.speechSynthesis.cancel();
-            let msg = new SpeechSynthesisUtterance(text); msg.lang = 'vi-VN'; msg.rate = 1.0; 
+            let msg = new SpeechSynthesisUtterance(text); 
+            msg.lang = 'vi-VN'; msg.rate = 1.0; 
+            if (viVoice) msg.voice = viVoice; // Gắn cứng giọng Tiếng Việt nếu tìm thấy
+
             msg.onstart = () => { isDucking = true; fadeBGM(userVolume * 0.15, 600); };
             msg.onend = () => { fadeBGM(userVolume, 800); setTimeout(() => { isDucking = false; }, 800); };
             msg.onerror = msg.onend;
@@ -339,11 +287,19 @@
         return array;
     }
 
+    // Tiền tải ảnh để chống lag cho máy chiếu
+    function preloadImage(url) {
+        let img = new Image();
+        img.src = url;
+    }
+
     function initGame(data) {
         gameData = data; revealedLettersCount = 0;
         playQuestions = shuffleArray([...data.questions]);
         
+        preloadImage(data.imageUrl); // Tải ngầm ảnh trước
         document.getElementById('secretImage').src = data.imageUrl;
+        
         const board = document.getElementById('board'); const finalWordContainer = document.getElementById('finalKeyword');
         const tilesContainer = document.getElementById('tilesContainer');
         board.innerHTML = ''; finalWordContainer.innerHTML = ''; tilesContainer.innerHTML = ''; rowToTileMap = {};
@@ -385,7 +341,6 @@
 
     function animateText(elem, text) { elem.innerText = text; elem.classList.remove('pop-anim'); void elem.offsetWidth; elem.classList.add('pop-anim'); }
     
-    // Tùy chọn truyền tham số để BIẾT CÓ NÊN TẮT GIỌNG ĐỌC HAY KHÔNG
     function clearAllTimeouts(cancelSpeech = true) { 
         clearInterval(timerInterval); countdownTimeouts.forEach(t => clearTimeout(t)); countdownTimeouts = []; 
         if (cancelSpeech && 'speechSynthesis' in window) window.speechSynthesis.cancel(); 
@@ -393,7 +348,7 @@
 
     function openQuestion(index) {
         if(document.getElementById(`row-${index}`).classList.contains('disabled')) return; 
-        clearAllTimeouts(true); // Tắt giọng cũ
+        clearAllTimeouts(true); 
         currentRowIndex = index; let q = playQuestions[index];
         
         document.getElementById('qNumber').innerText = index + 1; 
@@ -450,17 +405,17 @@
 
             if(rowToTileMap[currentRowIndex]) { rowToTileMap[currentRowIndex].classList.add('hidden'); }
             
-            // Đóng modal nhưng KHÔNG TẮT GIỌNG ĐỌC (truyền false)
+            // Đóng Modal nhưng truyền 'false' để KHÔNG tắt giọng đọc của chị Google đang phát
             setTimeout(() => {
                 let allRevealed = Array.from(document.querySelectorAll('.final-cell')).every(c => c.innerText !== '?');
                 closeQuestion(false); 
-                if(allRevealed) { setTimeout(() => triggerWinSequence(), 500); } // Đợi modal tắt thì hiện win
+                if(allRevealed) { setTimeout(() => triggerWinSequence(), 500); } 
             }, q.a.length * 150 + 3000); 
 
         } else {
             soundBuzzer(); speakText("Ồ nô! Sai mất rồi, mời người tiếp theo.");
             let contentBox = document.getElementById('qModalContentBox'); contentBox.classList.add('shake-anim');
-            setTimeout(() => { contentBox.classList.remove('shake-anim'); closeQuestion(true); }, 2500); // Đóng và có thể tắt giọng
+            setTimeout(() => { contentBox.classList.remove('shake-anim'); closeQuestion(true); }, 2500); 
         }
     }
 
@@ -476,6 +431,7 @@
         let clapAudio = document.getElementById('clapAudio');
         if(clapAudio) { clapAudio.currentTime = 0; clapAudio.play().catch(e => console.log(e)); }
         
+        // CÂU ĐỌC CHUẨN, KHÔNG BỊ CỨNG TỪ KHÓA
         speakText("Chúc mừng bạn đã giành chiến thắng vòng chơi này!"); 
         
         document.querySelectorAll('.puzzle-piece').forEach(t => t.classList.add('hidden'));
@@ -487,7 +443,7 @@
             }, i * 100);
         }
 
-        // Hiện overlay kết quả siêu to
+        // Hiện overlay kết quả siêu to rực rỡ
         setTimeout(() => {
             document.getElementById('victoryWordText').innerText = finalWord;
             document.getElementById('victoryOverlay').style.display = 'flex';
@@ -564,6 +520,7 @@
     }
 
     window.onload = () => {
+        loadVoices(); // Lấy giọng đọc ngay khi load
         document.body.addEventListener('click', function unlockAudio() {
             if(audioCtx.state === 'suspended') audioCtx.resume();
             bgmAudio.volume = userVolume; bgmAudio.play().catch(e=>{});
