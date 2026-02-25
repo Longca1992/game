@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hải Sản Kỳ Hà - Cặp Đôi Hoàn Cảnh v7 (Bản Tối Ưu Máy Chiếu)</title>
+    <title>Hải Sản Kỳ Hà - Cặp Đôi Hoàn Cảnh v7.1 (Bản Tối Ưu Máy Chiếu)</title>
     <style>
         /* === RESET & CƠ BẢN === */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; user-select: none; }
@@ -32,7 +32,7 @@
 
         /* === VÒNG QUAY TÊN CUỘN DỌC === */
         .left-panel {
-            flex: 1; margin-right: 20px; /* Thay gap bằng margin-right */
+            flex: 1; margin-right: 20px; 
             background: rgba(255,255,255,0.05); border-radius: 15px; border: 1px solid rgba(255,215,0,0.3);
             display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center;
         }
@@ -64,7 +64,7 @@
         .right-panel { flex: 2; display: flex; align-items: center; justify-content: center; }
         .grid-container { 
             display: grid; width: 100%; height: 100%; 
-            grid-gap: 15px; /* Dùng grid-gap cũ cho chắc ăn */
+            grid-gap: 15px; 
         }
         .flip-card { perspective: 1000px; cursor: pointer; width: 100%; height: 100%; }
         .flip-card-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.6s; transform-style: preserve-3d; }
@@ -107,7 +107,6 @@
         
         .btn-close { margin-top: 20px; padding: 10px 30px; font-size: 2.5vh; background: #2f3640; color: white; border: none; border-radius: 10px; cursor: pointer; }
         
-        /* Sửa lỗi gap cho trình duyệt cũ */
         .card-selection { display: flex; justify-content: center; width: 100%; margin-top: 20px; flex-wrap: wrap; }
         .mini-card { width: 15vh; height: 20vh; margin: 10px; background: #d4af37; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 4vh; color: white; font-weight: bold; transition: transform 0.3s; }
         .mini-card:hover { transform: scale(1.1); }
@@ -141,7 +140,7 @@
     <audio id="sfxTick" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
 
     <header>
-        <h1>Cặp Đôi Hoàn Cảnh v7</h1>
+        <h1>Cặp Đôi Hoàn Cảnh v7.1</h1>
         <div class="controls">
             <button onclick="toggleMusic()">🎵 Nhạc: TẮT</button>
             <button class="btn-undo" onclick="undoLastBox()">🔙 Hoàn Tác Ô</button> 
@@ -197,7 +196,7 @@
 
     <script>
         /* =========================================
-           CẤU HÌNH HỆ THỐNG GỐC MỚI V7
+           CẤU HÌNH HỆ THỐNG GỐC MỚI V7.1
         ========================================= */
         var CONFIG = {
             employees: [
@@ -268,7 +267,6 @@
 
         function saveSettings() {
             var empStr = document.getElementById('set_employees').value;
-            // Xóa bỏ toán tử ?. gây lỗi trên máy chiếu cũ
             CONFIG.employees = empStr.split('\n').map(function(line) {
                 var parts = line.split('|');
                 var n = parts[0] ? parts[0].trim() : '';
@@ -288,7 +286,7 @@
                 ch.time = parseInt(document.getElementById('set_ch_time_' + idx).value) || 0;
             });
 
-            availableEmployees = CONFIG.employees.slice(); // Copy mảng an toàn
+            availableEmployees = CONFIG.employees.slice(); 
             closeSettings(); resetGame(); alert("Đã lưu cấu hình thành công!");
         }
 
@@ -304,6 +302,18 @@
         function startSpin() {
             if(isSpinning) return;
             if(availableEmployees.length === 0) return alert("Đã quay hết nhân viên trong danh sách!");
+
+            // NÂNG CẤP MỚI: Tự động úp toàn bộ thẻ và xáo trộn lại từ đầu khi bắt đầu lượt mới
+            var cards = document.querySelectorAll('.flip-card');
+            for(var i = 0; i < cards.length; i++) {
+                cards[i].classList.remove('flipped', 'opened');
+                cards[i].querySelector('.flip-card-front').style.backgroundImage = ''; 
+                cards[i].querySelector('.flip-card-back').innerText = "MỞ...";
+            }
+            shuffleBoxes();
+            lastOpenedCardElement = null; 
+            lastOpenedBoxIndex = -1;
+            // --------------------------------------------------------------------------
 
             var listEl = document.getElementById('spinnerList');
             var btnSpin = document.getElementById('btnSpin');
