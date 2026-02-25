@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hải Sản Kỳ Hà - Cặp Đôi Hoàn Cảnh v7.1 (Bản Tối Ưu Máy Chiếu)</title>
+    <title>Cặp Đôi Hoàn Cảnh - Hải Sản Kỳ Hà</title>
     <style>
         /* === RESET & CƠ BẢN === */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; user-select: none; }
@@ -140,7 +140,7 @@
     <audio id="sfxTick" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
 
     <header>
-        <h1>Cặp Đôi Hoàn Cảnh v7.1</h1>
+        <h1>Cặp Đôi Hoàn Cảnh - Hải Sản Kỳ Hà</h1>
         <div class="controls">
             <button onclick="toggleMusic()">🎵 Nhạc: TẮT</button>
             <button class="btn-undo" onclick="undoLastBox()">🔙 Hoàn Tác Ô</button> 
@@ -196,18 +196,18 @@
 
     <script>
         /* =========================================
-           CẤU HÌNH HỆ THỐNG GỐC MỚI V7.1
+           CẤU HÌNH HỆ THỐNG GỐC 
         ========================================= */
         var CONFIG = {
             employees: [
-                { name: "Duyên", avatar: "https://ui-avatars.com/api/?name=Duyên&background=random&color=fff&size=200" },
-                { name: "Khánh", avatar: "https://ui-avatars.com/api/?name=Khánh&background=random&color=fff&size=200" },
-                { name: "Thịnh", avatar: "https://ui-avatars.com/api/?name=Thịnh&background=random&color=fff&size=200" },
+                { name: "Duyên", avatar: "https://cdn.hstatic.net/files/200000273197/file/duyen.jpg" },
+                { name: "Khánh", avatar: "https://cdn.hstatic.net/files/200000273197/file/khanh.jpg" },
+                { name: "Thịnh", avatar: "https://cdn.hstatic.net/files/200000273197/file/thinh.jpg" },
                 { name: "Hải", avatar: "https://cdn.hstatic.net/files/200000273197/file/hai.jpg" },
-                { name: "Tây", avatar: "https://ui-avatars.com/api/?name=Tây&background=random&color=fff&size=200" },
-                { name: "Hằng", avatar: "https://ui-avatars.com/api/?name=Hằng&background=random&color=fff&size=200" },
-                { name: "Dương", avatar: "https://ui-avatars.com/api/?name=Dương&background=random&color=fff&size=200" },
-                { name: "Chi", avatar: "https://ui-avatars.com/api/?name=Chi&background=random&color=fff&size=200" }
+                { name: "Tây", avatar: "https://cdn.hstatic.net/files/200000273197/file/tay.jpg" },
+                { name: "Hằng", avatar: "https://cdn.hstatic.net/files/200000273197/file/hang.jpg" },
+                { name: "Dương", avatar: "https://cdn.hstatic.net/files/200000273197/file/duong.jpg" },
+                { name: "Chi", avatar: "https://cdn.hstatic.net/files/200000273197/file/chi.jpg" }
             ],
             sharedImages: [
                 'https://cdn.hstatic.net/files/200000273197/file/wasabi_tuyt_co_nap_day_rohi.png',
@@ -303,7 +303,6 @@
             if(isSpinning) return;
             if(availableEmployees.length === 0) return alert("Đã quay hết nhân viên trong danh sách!");
 
-            // NÂNG CẤP MỚI: Tự động úp toàn bộ thẻ và xáo trộn lại từ đầu khi bắt đầu lượt mới
             var cards = document.querySelectorAll('.flip-card');
             for(var i = 0; i < cards.length; i++) {
                 cards[i].classList.remove('flipped', 'opened');
@@ -313,7 +312,6 @@
             shuffleBoxes();
             lastOpenedCardElement = null; 
             lastOpenedBoxIndex = -1;
-            // --------------------------------------------------------------------------
 
             var listEl = document.getElementById('spinnerList');
             var btnSpin = document.getElementById('btnSpin');
