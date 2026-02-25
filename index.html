@@ -16,13 +16,12 @@
 
         h1 {
             font-family: 'Bangers', cursive;
-            font-size: clamp(2rem, 5vw, 4rem); /* Giảm size tiêu đề chút */
+            font-size: clamp(2rem, 5vw, 4rem); 
             color: #ffeb3b;
             text-shadow: 0 0 10px #ff9800;
             margin-bottom: 15px;
         }
 
-        /* Khu vực nút tải nhạc */
         .download-area {
             display: flex;
             gap: 10px;
@@ -48,9 +47,8 @@
 
         .grid-menu {
             display: grid;
-            /* Giảm kích thước min từ 280px -> 160px để hiện nhiều ô hơn */
             grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 15px; /* Giảm khoảng cách giữa các ô */
+            gap: 15px; 
             max-width: 1200px;
             margin: 0 auto;
         }
@@ -58,9 +56,9 @@
         .card {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.2); /* Viền mỏng lại */
-            border-radius: 15px; /* Bo góc nhỏ hơn */
-            padding: 15px; /* Giảm padding từ 30px -> 15px */
+            border: 1px solid rgba(255,255,255,0.2); 
+            border-radius: 15px;
+            padding: 15px;
             text-decoration: none;
             color: white;
             transition: 0.3s;
@@ -74,12 +72,10 @@
             box-shadow: 0 0 20px rgba(255, 235, 59, 0.3);
         }
 
-        /* Thu nhỏ Icon và Chữ */
-        .icon { font-size: 2.5rem; margin-bottom: 8px; } /* Giảm từ 4rem -> 2.5rem */
+        .icon { font-size: 2.5rem; margin-bottom: 8px; } 
         .title { font-size: 1.1rem; font-weight: bold; text-transform: uppercase; margin-bottom: 2px; color: #ffeb3b; line-height: 1.2; }
         .desc { font-size: 0.75rem; color: #ccc; }
 
-        /* Style riêng cho ô Mua Hàng */
         .card.shop {
             border-color: #00e676;
             background: linear-gradient(45deg, rgba(0, 230, 118, 0.2), rgba(0,0,0,0));
@@ -87,11 +83,9 @@
         .card.shop .title { color: #00e676; }
         .card.shop:hover { box-shadow: 0 0 30px rgba(0, 230, 118, 0.4); }
 
-        /* Style riêng cho Game Master */
         .card.master { border-color: #f44336; background: rgba(244, 67, 54, 0.1); }
         .card.master:hover { background: rgba(244, 67, 54, 0.3); box-shadow: 0 0 30px rgba(244, 67, 54, 0.4); }
         
-        /* Style riêng cho Game Mới (Nổi bật) */
         .card.new-game { border-color: #ff9800; }
         .card.new-game .icon { animation: bounce 2s infinite; }
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
@@ -113,6 +107,12 @@
 
     <div class="grid-menu">
         
+        <a href="game-manh-ghep.html" class="card new-game">
+            <div class="icon">🧩✨</div>
+            <div class="title">Mảnh Ghép Kỳ Hà</div>
+            <div class="desc">Giải mã từ khóa bí ẩn</div>
+        </a>
+
         <a href="traoqua.html" class="card new-game">
             <div class="icon">🎁✨</div>
             <div class="title">Trao Quà Tết</div>
