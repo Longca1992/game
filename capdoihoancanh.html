@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hải Sản Kỳ Hà - Cặp Đôi Hoàn Cảnh v7</title>
+    <style>
+        /* === RESET & CƠ BẢN === */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; user-select: none; }
+        body { 
+            width: 100vw; height: 100vh; overflow: hidden; 
+            background: linear-gradient(135deg, #0b192c 0%, #1a365d 100%);
+            color: white; display: flex; flex-direction: column;
+        }
+
+        /* === HEADER & AUDIO === */
+        header {
+            height: 10vh; display: flex; justify-content: space-between; align-items: center; padding: 0 30px;
+            background: rgba(0,0,0,0.3); border-bottom: 2px solid #ffd700;
+        }
+        h1 { color: #ffd700; text-transform: uppercase; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); font-size: 3vh;}
+        .controls button {
+            padding: 10px 15px; font-size: 1.8vh; font-weight: bold; border-radius: 8px; cursor: pointer;
+            background: linear-gradient(to bottom, #ffd700, #d4af37); color: #0b192c; border: none; margin-left: 10px; transition: transform 0.2s;
+        }
+        .controls button.btn-settings { background: linear-gradient(to bottom, #bdc3c7, #2c3e50); color: white;}
+        .controls button.btn-undo { background: linear-gradient(to bottom, #ff9ff3, #f368e0); color: white;}
+        .controls button:active { transform: scale(0.95); }
+
+        /* === LAYOUT CHÍNH === */
+        .main-container { display: flex; height: 90vh; width: 100vw; padding: 20px; gap: 20px; }
+
+        /* === VÒNG QUAY TÊN CUỘN DỌC (SLOT MACHINE) === */
+        .left-panel {
+            flex: 1; background: rgba(255,255,255,0.05); border-radius: 15px; border: 1px solid rgba(255,215,0,0.3);
+            display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center;
+        }
+        .spinner-box {
+            width: 90%; height: 15vh; background: #000; border: 4px solid #ffd700; border-radius: 15px;
+            position: relative; overflow: hidden; margin-bottom: 20px;
+            box-shadow: inset 0 0 20px rgba(255,215,0,0.2);
+        }
+        .spinner-list {
+            position: absolute; top: 0; left: 0; width: 100%;
+            transition: transform 6s cubic-bezier(0.15, 0.9, 0.25, 1); 
+        }
+        .spinner-item {
+            height: 15vh; display: flex; align-items: center; justify-content: center;
+            font-size: 5vh; font-weight: bold; color: #fff; text-shadow: 0 0 10px #ffd700; white-space: nowrap;
+        }
+        .spinner-item.winner {
+            color: #ff4757; transform: scale(1.3); text-shadow: 0 0 20px #ff4757; transition: all 0.5s ease;
+        }
+
+        .btn-spin {
+            padding: 15px 40px; font-size: 3vh; background: #ff4757; color: white; border: 2px solid #fff;
+            border-radius: 50px; cursor: pointer; text-transform: uppercase; font-weight: bold;
+            box-shadow: 0 5px 15px rgba(255, 71, 87, 0.4); transition: 0.2s;
+        }
+        .btn-spin:active { transform: scale(0.95); }
+
+        /* === LƯỚI 6 Ô BÍ MẬT === */
+        .right-panel { flex: 2; display: flex; align-items: center; justify-content: center; }
+        .grid-container { display: grid; width: 100%; height: 100%; gap: 15px; }
+        .flip-card { perspective: 1000px; cursor: pointer; width: 100%; height: 100%; }
+        .flip-card-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.6s; transform-style: preserve-3d; }
+        .flip-card.flipped .flip-card-inner { transform: rotateY(180deg); }
+        .flip-card-front, .flip-card-back {
+            position: absolute; width: 100%; height: 100%; backface-visibility: hidden;
+            display: flex; align-items: center; justify-content: center; flex-direction: column;
+            border-radius: 15px; border: 2px solid #ffd700; padding: 10px;
+        }
+        .flip-card-front {
+            background: radial-gradient(circle, #d4af37 0%, #8a6d1c 100%);
+            color: #fff; font-size: 10vh; font-weight: bold; text-shadow: 3px 3px 6px #000, -2px -2px 6px #000; 
+            background-size: cover; background-position: center;
+        }
+        .flip-card-back { background: #fff; color: #0b192c; transform: rotateY(180deg); font-size: 3vh; font-weight: bold; text-transform: uppercase; padding: 20px;}
+        .flip-card.opened { opacity: 0.5; pointer-events: none; }
+
+        /* === POPUP CHƠI GAME & ĐẾM NGƯỢC === */
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.85); z-index: 1000; align-items: center; justify-content: center; flex-direction: column;
+        }
+        .modal.active { display: flex; }
+        .modal-content {
+            background: #fff; border-radius: 20px; padding: 30px; width: 85vw; max-height: 95vh; text-align: center; color: #0b192c;
+            box-shadow: 0 0 30px #ffd700; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;
+        }
+        .modal-title { font-size: 4vh; color: #e84118; margin-bottom: 10px; text-transform: uppercase; }
+        
+        /* TIMER UI & ANIMATION NHẤP NHÁY */
+        .timer-display { font-size: 7vh; font-weight: bold; color: #2ecc71; margin-bottom: 15px; text-shadow: 1px 1px 2px rgba(0,0,0,0.2); display: none;}
+        @keyframes blink-danger { 0% { opacity: 1; color: #ff4757; transform: scale(1.1); } 50% { opacity: 0; } 100% { opacity: 1; color: #ff4757; transform: scale(1.1); } }
+        .timer-display.danger { animation: blink-danger 0.5s infinite !important; color: #ff4757 !important; }
+
+        .btn-start-timer {
+            padding: 15px 40px; font-size: 3vh; background: #2ecc71; color: white; border: none; border-radius: 50px; 
+            cursor: pointer; font-weight: bold; box-shadow: 0 5px 15px rgba(46, 204, 113, 0.4); margin-bottom: 15px; animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        
+        .btn-close { margin-top: 20px; padding: 10px 30px; font-size: 2.5vh; background: #2f3640; color: white; border: none; border-radius: 10px; cursor: pointer; }
+        .card-selection { display: flex; gap: 20px; justify-content: center; width: 100%; margin-top: 20px; flex-wrap: wrap;}
+        .mini-card { width: 15vh; height: 20vh; background: #d4af37; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 4vh; color: white; font-weight: bold; transition: transform 0.3s; }
+        .mini-card:hover { transform: scale(1.1); }
+        .revealed-image { max-width: 60vw; max-height: 45vh; display: none; margin-top: 15px; border-radius: 10px; border: 3px solid #0b192c;}
+        .puzzle-wrapper { display: none; flex-direction: column; align-items: center; margin-top: 10px;}
+        .puzzle-grid { display: grid; width: 50vh; height: 50vh; background: #ccc; border: 4px solid #0b192c; gap: 1px;}
+        .puzzle-piece { width: 100%; height: 100%; }
+        .btn-solve { margin-top: 15px; padding: 10px 20px; background: #e1b12c; border: none; border-radius: 5px; cursor: pointer; font-size: 2vh; font-weight:bold;}
+
+        /* === BẢNG CÀI ĐẶT === */
+        .settings-panel { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.9); z-index: 2000; align-items: center; justify-content: center; }
+        .settings-panel.active { display: flex; }
+        .settings-box { background: #fff; width: 85vw; height: 90vh; border-radius: 15px; padding: 20px; color: #000; display: flex; flex-direction: column; }
+        .settings-header { display: flex; justify-content: space-between; border-bottom: 2px solid #ccc; padding-bottom: 10px; margin-bottom: 15px;}
+        .settings-content { overflow-y: auto; flex: 1; padding-right: 10px; }
+        .form-group { margin-bottom: 20px; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #ddd;}
+        .form-group label { display: block; font-weight: bold; margin-bottom: 5px; color: #e84118; font-size: 2vh;}
+        .form-group input, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 1.8vh; }
+        .form-group textarea { resize: vertical; min-height: 80px; }
+        .settings-footer { display: flex; justify-content: flex-end; gap: 15px; padding-top: 15px; border-top: 2px solid #ccc; margin-top: 10px;}
+        .settings-footer button { padding: 10px 20px; font-size: 2vh; font-weight: bold; border-radius: 5px; cursor: pointer; border: none; }
+    </style>
+</head>
+<body>
+
+    <audio id="bgMusic" loop><source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg"></audio>
+    <audio id="sfxSpin" src="https://actions.google.com/sounds/v1/alarms/bugle_tune.ogg"></audio>
+    <audio id="sfxTing" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
+    <audio id="sfxFlip" src="https://actions.google.com/sounds/v1/paper/paper_flap.ogg"></audio>
+    <audio id="sfxTick" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
+
+    <header>
+        <h1>Cặp Đôi Hoàn Cảnh v7</h1>
+        <div class="controls">
+            <button onclick="toggleMusic()">🎵 Nhạc: TẮT</button>
+            <button class="btn-undo" onclick="undoLastBox()">🔙 Hoàn Tác Ô</button> 
+            <button onclick="resetGame()">🔄 Reset Vòng</button>
+            <button class="btn-settings" onclick="openSettings()">⚙️ Cài Đặt</button>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <div class="left-panel">
+            <h2 style="color: #ffd700; margin-bottom: 20px; font-size: 3vh;">QUAY CHỌN NHÂN VIÊN</h2>
+            <div class="spinner-box">
+                <div class="spinner-list" id="spinnerList">
+                    <div class="spinner-item">Hải Sản Kỳ Hà</div>
+                </div>
+            </div>
+            <button class="btn-spin" id="btnSpin" onclick="startSpin()">Bắt Đầu Quay</button>
+        </div>
+
+        <div class="right-panel">
+            <div class="grid-container" id="gridContainer"></div>
+        </div>
+    </div>
+
+    <div class="modal" id="mainModal">
+        <div class="modal-content">
+            <h2 class="modal-title" id="modalTitle">Tiêu đề</h2>
+            <p id="modalDesc" style="font-size: 2.5vh; margin-bottom: 10px; line-height: 1.4;"></p>
+            
+            <button id="btnStartTimer" class="btn-start-timer" style="display:none;">BẮT ĐẦU THỬ THÁCH</button>
+            <div id="timerDisplay" class="timer-display">00s</div>
+
+            <div class="card-selection" id="cardSelection"></div>
+            <img class="revealed-image" id="revealedImage" src="" alt="Result">
+            <div class="puzzle-wrapper" id="puzzleWrapper">
+                <div class="puzzle-grid" id="puzzleGrid"></div>
+                <button class="btn-solve" onclick="solvePuzzle()">Hiện Ảnh Gốc / Đáp Án</button>
+            </div>
+            <button class="btn-close" onclick="closeModal()">Đóng Lại</button>
+        </div>
+    </div>
+
+    <div class="settings-panel" id="settingsPanel">
+        <div class="settings-box">
+            <div class="settings-header"><h2>⚙️ Bảng Cài Đặt Trò Chơi</h2></div>
+            <div class="settings-content" id="settingsContent"></div>
+            <div class="settings-footer">
+                <button style="background: #e74c3c; color: white;" onclick="closeSettings()">Hủy Bỏ</button>
+                <button style="background: #2ecc71; color: white;" onclick="saveSettings()">💾 Lưu Cấu Hình</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* =========================================
+           CẤU HÌNH HỆ THỐNG GỐC MỚI V7
+        ========================================= */
+        let CONFIG = {
+            employees: [
+                { name: "Duyên", avatar: "https://ui-avatars.com/api/?name=Duyên&background=random&color=fff&size=200" },
+                { name: "Khánh", avatar: "https://ui-avatars.com/api/?name=Khánh&background=random&color=fff&size=200" },
+                { name: "Thịnh", avatar: "https://ui-avatars.com/api/?name=Thịnh&background=random&color=fff&size=200" },
+                { name: "Hải", avatar: "https://cdn.hstatic.net/files/200000273197/file/hai.jpg" },
+                { name: "Tây", avatar: "https://ui-avatars.com/api/?name=Tây&background=random&color=fff&size=200" },
+                { name: "Hằng", avatar: "https://ui-avatars.com/api/?name=Hằng&background=random&color=fff&size=200" },
+                { name: "Dương", avatar: "https://ui-avatars.com/api/?name=Dương&background=random&color=fff&size=200" },
+                { name: "Chi", avatar: "https://ui-avatars.com/api/?name=Chi&background=random&color=fff&size=200" }
+            ],
+            // KHO ẢNH DÙNG CHUNG CHO CẢ 2 TRÒ CHƠI
+            sharedImages: [
+                'https://cdn.hstatic.net/files/200000273197/file/wasabi_tuyt_co_nap_day_rohi.png',
+                'https://cdn.hstatic.net/files/200000273197/file/khoai_tay_bi.png',
+                'https://file.hstatic.net/200000273197/file/4e8a1ee1d902745c2d132_7b260803c09b4928a7f8281435648716.jpg',
+                'https://cdn.hstatic.net/files/200000273197/file/rong_bien_trong_me_hop_500gr.png',
+                'https://cdn.hstatic.net/files/200000273197/file/cum_chan_cua_tuyet_-_kho_si_hai_san_ky_ha1.png',
+                'https://cdn.hstatic.net/files/200000273197/file/gemini_generated_image_t8sa8lt8sa8lt8sa.png',
+                'https://cdn.hstatic.net/200000273197/file/so-sanh-bao-ngu-nissi-va-thuong_b29b8bc848264a67a8c38253a0337d2f.png',
+                'https://cdn.hstatic.net/files/200000273197/file/loi_vai_bo_my_-_kho_si_hai_san_ky_ha.png',
+                'https://cdn.hstatic.net/files/200000273197/file/img_5594.jpeg',
+                'https://cdn.hstatic.net/files/200000273197/file/ca_dua_1_nang_lam_qua_bieu_tang_cao_cap_sang_trong.png'
+            ],
+            boxCount: 6,
+            gridCols: 3, gridRows: 2,
+            puzzleSize: 12, // CẮT 12x12
+            challenges: [
+                { id: 1, type: 'normal', time: 30, title: 'Bịt Mắt Đút Mồi', desc: 'Đồng đội bịt mắt, dùng muỗng đút đồ ăn cho Nhân Viên. Rơi mồi phạt 1 ly bia! Hoàn thành nhận 200K/người.' },
+                { id: 2, type: 'normal', time: 20, title: 'Cặp Đôi Vòi Voi', desc: 'Cả hai hút chung 1 ly bia bằng ống hút siêu dài. Hoàn thành nhận 200K/người.' },
+                { id: 3, type: 'telepathy', time: 90, title: 'Thần Giao Cách Cảm', desc: 'Chọn 1 thẻ để lấy từ khóa diễn tả. Hoàn thành nhận 200K/người.' },
+                { id: 4, type: 'puzzle', time: 45, title: 'Đuổi Hình Bắt Chữ', desc: 'Giải mã bức ảnh bị cắt nát (12x12). Hoàn thành nhận 200K/người.'},
+                { id: 5, type: 'gift', time: 0, title: '🎉 LÌ XÌ 100K 🎉', desc: 'Nhân phẩm bùng nổ! Mỗi người nhận ngay 100K' }, 
+                { id: 6, type: 'gift', time: 0, title: '🔥 LÌ XÌ 200K 🔥', desc: 'Đỉnh cao may mắn! Mỗi người nhận ngay 200K' }
+            ]
+        };
+
+        let isMusicPlaying = false; let isSpinning = false; let currentBoxes = []; let currentPuzzleImage = '';
+        let countdownInterval; 
+        let availableEmployees = []; 
+        let lastOpenedCardElement = null;
+        let lastOpenedBoxIndex = -1;
+
+        const bgMusic = document.getElementById('bgMusic'); const sfxSpin = document.getElementById('sfxSpin'); const sfxTing = document.getElementById('sfxTing');
+        const sfxFlip = document.getElementById('sfxFlip'); const sfxTick = document.getElementById('sfxTick');
+
+        // =========================================
+        // LOGIC CÀI ĐẶT
+        // =========================================
+        function openSettings() {
+            const content = document.getElementById('settingsContent');
+            let empString = CONFIG.employees.map(e => `${e.name} ${e.avatar ? '| ' + e.avatar : ''}`).join('\n');
+
+            let html = `
+                <div class="form-group">
+                    <label>👥 Danh sách nhân viên (Cú pháp: <b>Tên | Link_Avatar</b>):</label>
+                    <textarea id="set_employees" style="min-height: 150px;">${empString}</textarea>
+                </div>
+                <div class="form-group">
+                    <label>🖼️ Kho Ảnh Dùng Chung (Cho Thần Giao Cách Cảm & Đuổi Hình Bắt Chữ - Mỗi link 1 dòng):</label>
+                    <textarea id="set_sharedImages" style="min-height: 150px;">${CONFIG.sharedImages.join('\n')}</textarea>
+                </div>
+                <div class="form-group">
+                    <label>🧩 Kích thước cắt ảnh "Đuổi Hình Bắt Chữ" (Ví dụ: 12 là 12x12):</label>
+                    <input type="number" id="set_puzzleSize" value="${CONFIG.puzzleSize}" min="2" max="20">
+                </div>
+                <hr style="margin:20px 0; border: 1px dashed #ccc;">
+            `;
+
+            CONFIG.challenges.forEach((ch, idx) => {
+                html += `
+                <div class="form-group">
+                    <label>Tên Ô Số ${idx + 1} (${ch.type === 'gift' ? 'Quà tặng' : 'Trò chơi'}):</label>
+                    <input type="text" id="set_ch_title_${idx}" value="${ch.title}" style="margin-bottom:10px;">
+                    <label>⏱️ Thời gian (giây):</label>
+                    <input type="number" id="set_ch_time_${idx}" value="${ch.time}" min="0" style="margin-bottom:10px; width:150px;">
+                    <br><label>Luật chơi:</label>
+                    <input type="text" id="set_ch_desc_${idx}" value="${ch.desc}">
+                </div>
+                `;
+            });
+
+            content.innerHTML = html; document.getElementById('settingsPanel').classList.add('active');
+        }
+
+        function closeSettings() { document.getElementById('settingsPanel').classList.remove('active'); }
+
+        function saveSettings() {
+            const empStr = document.getElementById('set_employees').value;
+            CONFIG.employees = empStr.split('\n').map(line => {
+                const parts = line.split('|'); return { name: parts[0]?.trim(), avatar: parts[1]?.trim() || '' };
+            }).filter(e => e.name); 
+            
+            const sharedImgStr = document.getElementById('set_sharedImages').value;
+            CONFIG.sharedImages = sharedImgStr.split('\n').map(s => s.trim()).filter(s => s);
+
+            const pSize = parseInt(document.getElementById('set_puzzleSize').value);
+            CONFIG.puzzleSize = (pSize >= 2) ? pSize : 12;
+
+            CONFIG.challenges.forEach((ch, idx) => {
+                ch.title = document.getElementById(`set_ch_title_${idx}`).value; ch.desc = document.getElementById(`set_ch_desc_${idx}`).value;
+                ch.time = parseInt(document.getElementById(`set_ch_time_${idx}`).value) || 0;
+            });
+
+            availableEmployees = [...CONFIG.employees]; closeSettings(); resetGame(); alert("Đã lưu cấu hình thành công!");
+        }
+
+        // =========================================
+        // LOGIC TRÒ CHƠI & VÒNG QUAY (FIX LỖI TRÙNG TÊN)
+        // =========================================
+        function initGame() { availableEmployees = [...CONFIG.employees]; renderGrid(); shuffleBoxes(); }
+
+        function toggleMusic() {
+            const btn = document.querySelector('.controls button');
+            if(isMusicPlaying) { bgMusic.pause(); btn.innerText = "🎵 Nhạc: TẮT"; } 
+            else { bgMusic.play(); bgMusic.volume = 0.5; btn.innerText = "🎵 Nhạc: BẬT"; }
+            isMusicPlaying = !isMusicPlaying;
+        }
+
+        function startSpin() {
+            if(isSpinning) return;
+            if(availableEmployees.length === 0) return alert("Đã quay hết nhân viên trong danh sách!");
+
+            const listEl = document.getElementById('spinnerList');
+            const btnSpin = document.getElementById('btnSpin');
+
+            // --- LUẬT NGƯỜI CUỐI CÙNG (AUTO-SKIP) ---
+            if(availableEmployees.length === 1) {
+                let finalEmployee = availableEmployees[0];
+                availableEmployees = []; 
+                
+                listEl.style.transition = 'none';
+                listEl.style.transform = `translateY(0)`;
+                listEl.innerHTML = `<div class="spinner-item winner" style="font-size: 4vh; color: #ffd700;">NGƯỜI CUỐI: <br>${finalEmployee.name}</div>`;
+                applyAvatarToBoxes(finalEmployee.avatar);
+                btnSpin.innerText = "CHỌN Ô THỬ THÁCH!";
+                return;
+            }
+
+            // --- QUAY BÌNH THƯỜNG ---
+            isSpinning = true; sfxSpin.currentTime = 0; sfxSpin.play();
+            btnSpin.innerText = "Đang quay...";
+            
+            let finalEmployee = availableEmployees[Math.floor(Math.random() * availableEmployees.length)];
+            
+            // XỬ LÝ KHÔNG CHO TÊN LIỀN KỀ BỊ TRÙNG
+            let spinItems = [];
+            let previousName = "";
+            for(let i=0; i<40; i++) { 
+                let randomEmp;
+                do {
+                    randomEmp = CONFIG.employees[Math.floor(Math.random() * CONFIG.employees.length)].name;
+                } while (randomEmp === previousName && CONFIG.employees.length > 1);
+                spinItems.push(randomEmp);
+                previousName = randomEmp;
+            }
+            
+            // Ép người thắng vào cuối cùng và đảm bảo người kề cuối khác người thắng
+            if (spinItems[38] === finalEmployee.name && CONFIG.employees.length > 1) {
+                 let fallback;
+                 do { fallback = CONFIG.employees[Math.floor(Math.random() * CONFIG.employees.length)].name; } 
+                 while (fallback === finalEmployee.name);
+                 spinItems[38] = fallback;
+            }
+            spinItems[39] = finalEmployee.name;
+            
+            listEl.innerHTML = spinItems.map(name => `<div class="spinner-item">${name}</div>`).join('');
+            
+            listEl.style.transition = 'none'; listEl.style.transform = `translateY(0)`;
+            void listEl.offsetWidth; 
+            
+            listEl.style.transition = 'transform 6s cubic-bezier(0.15, 0.9, 0.25, 1)'; 
+            listEl.style.transform = `translateY(-${39 * 15}vh)`;
+
+            setTimeout(() => {
+                isSpinning = false; sfxSpin.pause(); sfxTing.currentTime = 0; sfxTing.play();
+                listEl.children[39].classList.add('winner'); 
+                
+                availableEmployees = availableEmployees.filter(e => e.name !== finalEmployee.name);
+                applyAvatarToBoxes(finalEmployee.avatar);
+                btnSpin.innerText = availableEmployees.length === 1 ? "MỜI NGƯỜI CUỐI" : "Bắt Đầu Quay";
+            }, 6000);
+        }
+
+        function applyAvatarToBoxes(avatarUrl) {
+            if(!avatarUrl) return;
+            document.querySelectorAll('.flip-card-front').forEach(el => {
+                el.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('${avatarUrl}')`;
+            });
+        }
+
+        function renderGrid() {
+            const container = document.getElementById('gridContainer');
+            container.innerHTML = '';
+            container.style.gridTemplateColumns = `repeat(${CONFIG.gridCols}, 1fr)`;
+            container.style.gridTemplateRows = `repeat(${CONFIG.gridRows}, 1fr)`;
+            for(let i = 1; i <= CONFIG.boxCount; i++) {
+                const card = document.createElement('div'); card.className = 'flip-card';
+                card.innerHTML = `<div class="flip-card-inner"><div class="flip-card-front">${i}</div><div class="flip-card-back">MỞ...</div></div>`;
+                card.onclick = () => openBox(card, i - 1);
+                container.appendChild(card);
+            }
+        }
+
+        function shuffleBoxes() {
+            currentBoxes = [...CONFIG.challenges].sort(() => Math.random() - 0.5);
+            while(currentBoxes.length < CONFIG.boxCount) { currentBoxes.push(CONFIG.challenges[Math.floor(Math.random() * CONFIG.challenges.length)]); }
+            currentBoxes = currentBoxes.slice(0, CONFIG.boxCount);
+        }
+
+        function resetGame() {
+            document.querySelectorAll('.flip-card').forEach(card => {
+                card.classList.remove('flipped', 'opened');
+                card.querySelector('.flip-card-front').style.backgroundImage = ''; 
+                card.querySelector('.flip-card-back').innerText = "MỞ...";
+            });
+            document.getElementById('spinnerList').style.transition = 'none';
+            document.getElementById('spinnerList').style.transform = `translateY(0)`;
+            document.getElementById('spinnerList').innerHTML = `<div class="spinner-item">Hải Sản Kỳ Hà</div>`;
+            document.getElementById('btnSpin').innerText = "Bắt Đầu Quay";
+            
+            shuffleBoxes(); clearInterval(countdownInterval);
+            lastOpenedCardElement = null; lastOpenedBoxIndex = -1;
+        }
+
+        function undoLastBox() {
+            if(lastOpenedCardElement && lastOpenedCardElement.classList.contains('flipped')) {
+                lastOpenedCardElement.classList.remove('flipped', 'opened');
+                lastOpenedCardElement.querySelector('.flip-card-back').innerText = "MỞ...";
+                lastOpenedCardElement = null; lastOpenedBoxIndex = -1;
+            } else {
+                alert("Không có ô nào đang mở để hoàn tác!");
+            }
+        }
+
+        function openBox(cardElement, index) {
+            if(cardElement.classList.contains('flipped')) return;
+            sfxFlip.currentTime = 0; sfxFlip.play(); 
+            cardElement.classList.add('flipped');
+            
+            lastOpenedCardElement = cardElement; lastOpenedBoxIndex = index;
+
+            const challenge = currentBoxes[index];
+            cardElement.querySelector('.flip-card-back').innerText = challenge.title;
+            setTimeout(() => { cardElement.classList.add('opened'); showModal(challenge); }, 800);
+        }
+
+        // =========================================
+        // LOGIC POPUP & ĐẾM NGƯỢC (DÙNG KHO ẢNH CHUNG)
+        // =========================================
+        function showModal(data) {
+            clearInterval(countdownInterval); 
+            const modal = document.getElementById('mainModal');
+            document.getElementById('modalTitle').innerText = data.title;
+            document.getElementById('modalDesc').innerText = data.desc;
+            
+            const cardSelection = document.getElementById('cardSelection');
+            const revealedImage = document.getElementById('revealedImage');
+            const puzzleWrapper = document.getElementById('puzzleWrapper');
+            const btnStart = document.getElementById('btnStartTimer');
+            const timerDisplay = document.getElementById('timerDisplay');
+            
+            cardSelection.innerHTML = ''; revealedImage.style.display = 'none'; puzzleWrapper.style.display = 'none';
+            timerDisplay.classList.remove('danger'); 
+
+            if(data.time > 0) {
+                timerDisplay.style.display = 'block'; timerDisplay.style.color = '#2ecc71'; timerDisplay.innerText = data.time + "s";
+                btnStart.style.display = 'block';
+                btnStart.onclick = () => {
+                    btnStart.style.display = 'none'; timerDisplay.style.color = '#e84118'; 
+                    let timeLeft = data.time; timerDisplay.innerText = timeLeft + "s";
+                    
+                    countdownInterval = setInterval(() => {
+                        timeLeft--;
+                        if (timeLeft <= 5 && timeLeft > 0) {
+                            timerDisplay.classList.add('danger'); sfxTick.currentTime = 0; sfxTick.play();
+                        } else { timerDisplay.classList.remove('danger'); }
+
+                        if(timeLeft <= 0) {
+                            clearInterval(countdownInterval); timerDisplay.innerText = "HẾT GIỜ!";
+                        } else { timerDisplay.innerText = timeLeft + "s"; }
+                    }, 1000);
+                };
+            } else {
+                timerDisplay.style.display = 'none'; btnStart.style.display = 'none';
+            }
+
+            // SỬ DỤNG CONFIG.sharedImages CHO CẢ 2 GAME
+            if (data.type === 'telepathy') {
+                const pool = [...CONFIG.sharedImages].sort(() => Math.random() - 0.5).slice(0, 3);
+                pool.forEach((imgUrl, idx) => {
+                    const btn = document.createElement('div'); btn.className = 'mini-card'; btn.innerText = `Thẻ ${idx + 1}`;
+                    btn.onclick = () => { cardSelection.innerHTML = ''; revealedImage.src = imgUrl; revealedImage.style.display = 'block'; };
+                    cardSelection.appendChild(btn);
+                });
+            } 
+            else if (data.type === 'puzzle') {
+                const pool = [...CONFIG.sharedImages].sort(() => Math.random() - 0.5).slice(0, 5);
+                pool.forEach((imgUrl, idx) => {
+                    const btn = document.createElement('div'); btn.className = 'mini-card'; btn.innerText = `Thẻ ${idx + 1}`;
+                    btn.onclick = () => {
+                        cardSelection.innerHTML = ''; currentPuzzleImage = imgUrl;
+                        generatePuzzleGrid(imgUrl); puzzleWrapper.style.display = 'flex';
+                    };
+                    cardSelection.appendChild(btn);
+                });
+            }
+
+            document.getElementById('modalTitle').style.color = data.type === 'gift' ? '#ff4757' : '#e84118';
+            modal.classList.add('active');
+        }
+
+        function closeModal() { 
+            clearInterval(countdownInterval); 
+            document.getElementById('timerDisplay').classList.remove('danger');
+            document.getElementById('mainModal').classList.remove('active'); 
+        }
+
+        // =========================================
+        // THUẬT TOÁN CẮT ẢNH
+        // =========================================
+        function generatePuzzleGrid(imageUrl) {
+            const grid = document.getElementById('puzzleGrid'); grid.innerHTML = '';
+            const S = CONFIG.puzzleSize; 
+            grid.style.gridTemplateColumns = `repeat(${S}, 1fr)`; grid.style.backgroundImage = 'none'; 
+
+            let positions = [];
+            const step = (S > 1) ? (100 / (S - 1)) : 0; 
+            for(let row = 0; row < S; row++) {
+                for(let col = 0; col < S; col++) { positions.push(`${col * step}% ${row * step}%`); }
+            }
+            positions.sort(() => Math.random() - 0.5);
+
+            const bgSize = `${S * 100}% ${S * 100}%`; 
+            for(let i = 0; i < (S * S); i++) {
+                const piece = document.createElement('div'); piece.className = 'puzzle-piece';
+                piece.style.backgroundImage = `url(${imageUrl})`; piece.style.backgroundSize = bgSize;
+                piece.style.backgroundPosition = positions[i]; grid.appendChild(piece);
+            }
+        }
+
+        function solvePuzzle() {
+            const grid = document.getElementById('puzzleGrid'); grid.innerHTML = '';
+            grid.style.backgroundImage = `url(${currentPuzzleImage})`;
+            grid.style.backgroundSize = 'contain'; grid.style.backgroundPosition = 'center'; grid.style.backgroundRepeat = 'no-repeat';
+        }
+
+        window.onload = initGame;
+    </script>
+</body>
+</html>
