@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hải Sản Kỳ Hà - Cặp Đôi Hoàn Cảnh v7</title>
+    <title>Hải Sản Kỳ Hà - Cặp Đôi Hoàn Cảnh v7 (Bản Tối Ưu Máy Chiếu)</title>
     <style>
         /* === RESET & CƠ BẢN === */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; user-select: none; }
@@ -27,12 +27,13 @@
         .controls button.btn-undo { background: linear-gradient(to bottom, #ff9ff3, #f368e0); color: white;}
         .controls button:active { transform: scale(0.95); }
 
-        /* === LAYOUT CHÍNH === */
-        .main-container { display: flex; height: 90vh; width: 100vw; padding: 20px; gap: 20px; }
+        /* === LAYOUT CHÍNH (SỬA LỖI GAP CHO TRÌNH DUYỆT CŨ) === */
+        .main-container { display: flex; height: 90vh; width: 100vw; padding: 20px; }
 
-        /* === VÒNG QUAY TÊN CUỘN DỌC (SLOT MACHINE) === */
+        /* === VÒNG QUAY TÊN CUỘN DỌC === */
         .left-panel {
-            flex: 1; background: rgba(255,255,255,0.05); border-radius: 15px; border: 1px solid rgba(255,215,0,0.3);
+            flex: 1; margin-right: 20px; /* Thay gap bằng margin-right */
+            background: rgba(255,255,255,0.05); border-radius: 15px; border: 1px solid rgba(255,215,0,0.3);
             display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center;
         }
         .spinner-box {
@@ -61,7 +62,10 @@
 
         /* === LƯỚI 6 Ô BÍ MẬT === */
         .right-panel { flex: 2; display: flex; align-items: center; justify-content: center; }
-        .grid-container { display: grid; width: 100%; height: 100%; gap: 15px; }
+        .grid-container { 
+            display: grid; width: 100%; height: 100%; 
+            grid-gap: 15px; /* Dùng grid-gap cũ cho chắc ăn */
+        }
         .flip-card { perspective: 1000px; cursor: pointer; width: 100%; height: 100%; }
         .flip-card-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.6s; transform-style: preserve-3d; }
         .flip-card.flipped .flip-card-inner { transform: rotateY(180deg); }
@@ -102,12 +106,15 @@
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
         
         .btn-close { margin-top: 20px; padding: 10px 30px; font-size: 2.5vh; background: #2f3640; color: white; border: none; border-radius: 10px; cursor: pointer; }
-        .card-selection { display: flex; gap: 20px; justify-content: center; width: 100%; margin-top: 20px; flex-wrap: wrap;}
-        .mini-card { width: 15vh; height: 20vh; background: #d4af37; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 4vh; color: white; font-weight: bold; transition: transform 0.3s; }
+        
+        /* Sửa lỗi gap cho trình duyệt cũ */
+        .card-selection { display: flex; justify-content: center; width: 100%; margin-top: 20px; flex-wrap: wrap; }
+        .mini-card { width: 15vh; height: 20vh; margin: 10px; background: #d4af37; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 4vh; color: white; font-weight: bold; transition: transform 0.3s; }
         .mini-card:hover { transform: scale(1.1); }
+        
         .revealed-image { max-width: 60vw; max-height: 45vh; display: none; margin-top: 15px; border-radius: 10px; border: 3px solid #0b192c;}
         .puzzle-wrapper { display: none; flex-direction: column; align-items: center; margin-top: 10px;}
-        .puzzle-grid { display: grid; width: 50vh; height: 50vh; background: #ccc; border: 4px solid #0b192c; gap: 1px;}
+        .puzzle-grid { display: grid; width: 50vh; height: 50vh; background: #ccc; border: 4px solid #0b192c; grid-gap: 1px;}
         .puzzle-piece { width: 100%; height: 100%; }
         .btn-solve { margin-top: 15px; padding: 10px 20px; background: #e1b12c; border: none; border-radius: 5px; cursor: pointer; font-size: 2vh; font-weight:bold;}
 
@@ -121,8 +128,8 @@
         .form-group label { display: block; font-weight: bold; margin-bottom: 5px; color: #e84118; font-size: 2vh;}
         .form-group input, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 1.8vh; }
         .form-group textarea { resize: vertical; min-height: 80px; }
-        .settings-footer { display: flex; justify-content: flex-end; gap: 15px; padding-top: 15px; border-top: 2px solid #ccc; margin-top: 10px;}
-        .settings-footer button { padding: 10px 20px; font-size: 2vh; font-weight: bold; border-radius: 5px; cursor: pointer; border: none; }
+        .settings-footer { display: flex; justify-content: flex-end; margin-top: 15px; padding-top: 15px; border-top: 2px solid #ccc; }
+        .settings-footer button { padding: 10px 20px; font-size: 2vh; font-weight: bold; border-radius: 5px; cursor: pointer; border: none; margin-left: 10px;}
     </style>
 </head>
 <body>
@@ -192,7 +199,7 @@
         /* =========================================
            CẤU HÌNH HỆ THỐNG GỐC MỚI V7
         ========================================= */
-        let CONFIG = {
+        var CONFIG = {
             employees: [
                 { name: "Duyên", avatar: "https://ui-avatars.com/api/?name=Duyên&background=random&color=fff&size=200" },
                 { name: "Khánh", avatar: "https://ui-avatars.com/api/?name=Khánh&background=random&color=fff&size=200" },
@@ -203,7 +210,6 @@
                 { name: "Dương", avatar: "https://ui-avatars.com/api/?name=Dương&background=random&color=fff&size=200" },
                 { name: "Chi", avatar: "https://ui-avatars.com/api/?name=Chi&background=random&color=fff&size=200" }
             ],
-            // KHO ẢNH DÙNG CHUNG CHO CẢ 2 TRÒ CHƠI
             sharedImages: [
                 'https://cdn.hstatic.net/files/200000273197/file/wasabi_tuyt_co_nap_day_rohi.png',
                 'https://cdn.hstatic.net/files/200000273197/file/khoai_tay_bi.png',
@@ -220,7 +226,7 @@
             gridCols: 3, gridRows: 2,
             puzzleSize: 12, // CẮT 12x12
             challenges: [
-                { id: 1, type: 'normal', time: 30, title: 'Bịt Mắt Đút Mồi', desc: 'Đồng đội bịt mắt, dùng muỗng đút đồ ăn cho Nhân Viên. Rơi mồi phạt 1 ly bia! Hoàn thành nhận 200K/người.' },
+                { id: 1, type: 'normal', time: 30, title: 'Bịt Mắt Đút Mồi', desc: 'Đồng đội bịt mắt, dùng muỗng đút đồ ăn. Rơi mồi phạt 1 ly bia! Nhận 200K/người.' },
                 { id: 2, type: 'normal', time: 20, title: 'Cặp Đôi Vòi Voi', desc: 'Cả hai hút chung 1 ly bia bằng ống hút siêu dài. Hoàn thành nhận 200K/người.' },
                 { id: 3, type: 'telepathy', time: 90, title: 'Thần Giao Cách Cảm', desc: 'Chọn 1 thẻ để lấy từ khóa diễn tả. Hoàn thành nhận 200K/người.' },
                 { id: 4, type: 'puzzle', time: 45, title: 'Đuổi Hình Bắt Chữ', desc: 'Giải mã bức ảnh bị cắt nát (12x12). Hoàn thành nhận 200K/người.'},
@@ -229,49 +235,30 @@
             ]
         };
 
-        let isMusicPlaying = false; let isSpinning = false; let currentBoxes = []; let currentPuzzleImage = '';
-        let countdownInterval; 
-        let availableEmployees = []; 
-        let lastOpenedCardElement = null;
-        let lastOpenedBoxIndex = -1;
+        var isMusicPlaying = false; var isSpinning = false; var currentBoxes = []; var currentPuzzleImage = '';
+        var countdownInterval; 
+        var availableEmployees = []; 
+        var lastOpenedCardElement = null;
+        var lastOpenedBoxIndex = -1;
 
-        const bgMusic = document.getElementById('bgMusic'); const sfxSpin = document.getElementById('sfxSpin'); const sfxTing = document.getElementById('sfxTing');
-        const sfxFlip = document.getElementById('sfxFlip'); const sfxTick = document.getElementById('sfxTick');
+        var bgMusic = document.getElementById('bgMusic'); var sfxSpin = document.getElementById('sfxSpin'); var sfxTing = document.getElementById('sfxTing');
+        var sfxFlip = document.getElementById('sfxFlip'); var sfxTick = document.getElementById('sfxTick');
 
         // =========================================
-        // LOGIC CÀI ĐẶT
+        // LÀM LẠI JS THEO CHUẨN CŨ CHO TRÌNH DUYỆT TV
         // =========================================
         function openSettings() {
-            const content = document.getElementById('settingsContent');
-            let empString = CONFIG.employees.map(e => `${e.name} ${e.avatar ? '| ' + e.avatar : ''}`).join('\n');
+            var content = document.getElementById('settingsContent');
+            var empString = CONFIG.employees.map(function(e) { 
+                return e.name + (e.avatar ? ' | ' + e.avatar : ''); 
+            }).join('\n');
 
-            let html = `
-                <div class="form-group">
-                    <label>👥 Danh sách nhân viên (Cú pháp: <b>Tên | Link_Avatar</b>):</label>
-                    <textarea id="set_employees" style="min-height: 150px;">${empString}</textarea>
-                </div>
-                <div class="form-group">
-                    <label>🖼️ Kho Ảnh Dùng Chung (Cho Thần Giao Cách Cảm & Đuổi Hình Bắt Chữ - Mỗi link 1 dòng):</label>
-                    <textarea id="set_sharedImages" style="min-height: 150px;">${CONFIG.sharedImages.join('\n')}</textarea>
-                </div>
-                <div class="form-group">
-                    <label>🧩 Kích thước cắt ảnh "Đuổi Hình Bắt Chữ" (Ví dụ: 12 là 12x12):</label>
-                    <input type="number" id="set_puzzleSize" value="${CONFIG.puzzleSize}" min="2" max="20">
-                </div>
-                <hr style="margin:20px 0; border: 1px dashed #ccc;">
-            `;
+            var html = '<div class="form-group"><label>👥 Danh sách nhân viên (Cú pháp: <b>Tên | Link_Avatar</b>):</label><textarea id="set_employees" style="min-height: 150px;">' + empString + '</textarea></div>';
+            html += '<div class="form-group"><label>🖼️ Kho Ảnh Dùng Chung (Mỗi link 1 dòng):</label><textarea id="set_sharedImages" style="min-height: 150px;">' + CONFIG.sharedImages.join('\n') + '</textarea></div>';
+            html += '<div class="form-group"><label>🧩 Kích thước cắt ảnh "Đuổi Hình Bắt Chữ":</label><input type="number" id="set_puzzleSize" value="' + CONFIG.puzzleSize + '" min="2" max="20"></div><hr style="margin:20px 0; border: 1px dashed #ccc;">';
 
-            CONFIG.challenges.forEach((ch, idx) => {
-                html += `
-                <div class="form-group">
-                    <label>Tên Ô Số ${idx + 1} (${ch.type === 'gift' ? 'Quà tặng' : 'Trò chơi'}):</label>
-                    <input type="text" id="set_ch_title_${idx}" value="${ch.title}" style="margin-bottom:10px;">
-                    <label>⏱️ Thời gian (giây):</label>
-                    <input type="number" id="set_ch_time_${idx}" value="${ch.time}" min="0" style="margin-bottom:10px; width:150px;">
-                    <br><label>Luật chơi:</label>
-                    <input type="text" id="set_ch_desc_${idx}" value="${ch.desc}">
-                </div>
-                `;
+            CONFIG.challenges.forEach(function(ch, idx) {
+                html += '<div class="form-group"><label>Tên Ô Số ' + (idx + 1) + ':</label><input type="text" id="set_ch_title_' + idx + '" value="' + ch.title + '" style="margin-bottom:10px;"><label>⏱️ Thời gian (giây):</label><input type="number" id="set_ch_time_' + idx + '" value="' + ch.time + '" min="0" style="margin-bottom:10px; width:150px;"><br><label>Luật chơi:</label><input type="text" id="set_ch_desc_' + idx + '" value="' + ch.desc + '"></div>';
             });
 
             content.innerHTML = html; document.getElementById('settingsPanel').classList.add('active');
@@ -280,32 +267,35 @@
         function closeSettings() { document.getElementById('settingsPanel').classList.remove('active'); }
 
         function saveSettings() {
-            const empStr = document.getElementById('set_employees').value;
-            CONFIG.employees = empStr.split('\n').map(line => {
-                const parts = line.split('|'); return { name: parts[0]?.trim(), avatar: parts[1]?.trim() || '' };
-            }).filter(e => e.name); 
+            var empStr = document.getElementById('set_employees').value;
+            // Xóa bỏ toán tử ?. gây lỗi trên máy chiếu cũ
+            CONFIG.employees = empStr.split('\n').map(function(line) {
+                var parts = line.split('|');
+                var n = parts[0] ? parts[0].trim() : '';
+                var a = parts[1] ? parts[1].trim() : '';
+                return { name: n, avatar: a };
+            }).filter(function(e) { return e.name !== ''; }); 
             
-            const sharedImgStr = document.getElementById('set_sharedImages').value;
-            CONFIG.sharedImages = sharedImgStr.split('\n').map(s => s.trim()).filter(s => s);
+            var sharedImgStr = document.getElementById('set_sharedImages').value;
+            CONFIG.sharedImages = sharedImgStr.split('\n').map(function(s) { return s.trim(); }).filter(function(s) { return s !== ''; });
 
-            const pSize = parseInt(document.getElementById('set_puzzleSize').value);
+            var pSize = parseInt(document.getElementById('set_puzzleSize').value);
             CONFIG.puzzleSize = (pSize >= 2) ? pSize : 12;
 
-            CONFIG.challenges.forEach((ch, idx) => {
-                ch.title = document.getElementById(`set_ch_title_${idx}`).value; ch.desc = document.getElementById(`set_ch_desc_${idx}`).value;
-                ch.time = parseInt(document.getElementById(`set_ch_time_${idx}`).value) || 0;
+            CONFIG.challenges.forEach(function(ch, idx) {
+                ch.title = document.getElementById('set_ch_title_' + idx).value; 
+                ch.desc = document.getElementById('set_ch_desc_' + idx).value;
+                ch.time = parseInt(document.getElementById('set_ch_time_' + idx).value) || 0;
             });
 
-            availableEmployees = [...CONFIG.employees]; closeSettings(); resetGame(); alert("Đã lưu cấu hình thành công!");
+            availableEmployees = CONFIG.employees.slice(); // Copy mảng an toàn
+            closeSettings(); resetGame(); alert("Đã lưu cấu hình thành công!");
         }
 
-        // =========================================
-        // LOGIC TRÒ CHƠI & VÒNG QUAY (FIX LỖI TRÙNG TÊN)
-        // =========================================
-        function initGame() { availableEmployees = [...CONFIG.employees]; renderGrid(); shuffleBoxes(); }
+        function initGame() { availableEmployees = CONFIG.employees.slice(); renderGrid(); shuffleBoxes(); }
 
         function toggleMusic() {
-            const btn = document.querySelector('.controls button');
+            var btn = document.querySelector('.controls button');
             if(isMusicPlaying) { bgMusic.pause(); btn.innerText = "🎵 Nhạc: TẮT"; } 
             else { bgMusic.play(); bgMusic.volume = 0.5; btn.innerText = "🎵 Nhạc: BẬT"; }
             isMusicPlaying = !isMusicPlaying;
@@ -315,33 +305,31 @@
             if(isSpinning) return;
             if(availableEmployees.length === 0) return alert("Đã quay hết nhân viên trong danh sách!");
 
-            const listEl = document.getElementById('spinnerList');
-            const btnSpin = document.getElementById('btnSpin');
+            var listEl = document.getElementById('spinnerList');
+            var btnSpin = document.getElementById('btnSpin');
 
-            // --- LUẬT NGƯỜI CUỐI CÙNG (AUTO-SKIP) ---
             if(availableEmployees.length === 1) {
-                let finalEmployee = availableEmployees[0];
+                var finalEmployee = availableEmployees[0];
                 availableEmployees = []; 
                 
                 listEl.style.transition = 'none';
-                listEl.style.transform = `translateY(0)`;
-                listEl.innerHTML = `<div class="spinner-item winner" style="font-size: 4vh; color: #ffd700;">NGƯỜI CUỐI: <br>${finalEmployee.name}</div>`;
+                listEl.style.transform = 'translateY(0)';
+                listEl.innerHTML = '<div class="spinner-item winner" style="font-size: 4vh; color: #ffd700;">NGƯỜI CUỐI: <br>' + finalEmployee.name + '</div>';
                 applyAvatarToBoxes(finalEmployee.avatar);
                 btnSpin.innerText = "CHỌN Ô THỬ THÁCH!";
                 return;
             }
 
-            // --- QUAY BÌNH THƯỜNG ---
             isSpinning = true; sfxSpin.currentTime = 0; sfxSpin.play();
             btnSpin.innerText = "Đang quay...";
             
-            let finalEmployee = availableEmployees[Math.floor(Math.random() * availableEmployees.length)];
+            var randomIdx = Math.floor(Math.random() * availableEmployees.length);
+            var finalEmployee = availableEmployees[randomIdx];
             
-            // XỬ LÝ KHÔNG CHO TÊN LIỀN KỀ BỊ TRÙNG
-            let spinItems = [];
-            let previousName = "";
-            for(let i=0; i<40; i++) { 
-                let randomEmp;
+            var spinItems = [];
+            var previousName = "";
+            for(var i=0; i<40; i++) { 
+                var randomEmp;
                 do {
                     randomEmp = CONFIG.employees[Math.floor(Math.random() * CONFIG.employees.length)].name;
                 } while (randomEmp === previousName && CONFIG.employees.length > 1);
@@ -349,28 +337,27 @@
                 previousName = randomEmp;
             }
             
-            // Ép người thắng vào cuối cùng và đảm bảo người kề cuối khác người thắng
             if (spinItems[38] === finalEmployee.name && CONFIG.employees.length > 1) {
-                 let fallback;
+                 var fallback;
                  do { fallback = CONFIG.employees[Math.floor(Math.random() * CONFIG.employees.length)].name; } 
                  while (fallback === finalEmployee.name);
                  spinItems[38] = fallback;
             }
             spinItems[39] = finalEmployee.name;
             
-            listEl.innerHTML = spinItems.map(name => `<div class="spinner-item">${name}</div>`).join('');
+            listEl.innerHTML = spinItems.map(function(name) { return '<div class="spinner-item">' + name + '</div>'; }).join('');
             
-            listEl.style.transition = 'none'; listEl.style.transform = `translateY(0)`;
+            listEl.style.transition = 'none'; listEl.style.transform = 'translateY(0)';
             void listEl.offsetWidth; 
             
             listEl.style.transition = 'transform 6s cubic-bezier(0.15, 0.9, 0.25, 1)'; 
-            listEl.style.transform = `translateY(-${39 * 15}vh)`;
+            listEl.style.transform = 'translateY(-' + (39 * 15) + 'vh)';
 
-            setTimeout(() => {
+            setTimeout(function() {
                 isSpinning = false; sfxSpin.pause(); sfxTing.currentTime = 0; sfxTing.play();
                 listEl.children[39].classList.add('winner'); 
                 
-                availableEmployees = availableEmployees.filter(e => e.name !== finalEmployee.name);
+                availableEmployees = availableEmployees.filter(function(e) { return e.name !== finalEmployee.name; });
                 applyAvatarToBoxes(finalEmployee.avatar);
                 btnSpin.innerText = availableEmployees.length === 1 ? "MỜI NGƯỜI CUỐI" : "Bắt Đầu Quay";
             }, 6000);
@@ -378,39 +365,50 @@
 
         function applyAvatarToBoxes(avatarUrl) {
             if(!avatarUrl) return;
-            document.querySelectorAll('.flip-card-front').forEach(el => {
-                el.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('${avatarUrl}')`;
-            });
+            var cards = document.querySelectorAll('.flip-card-front');
+            for(var i = 0; i < cards.length; i++) {
+                cards[i].style.backgroundImage = "linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('" + avatarUrl + "')";
+            }
         }
 
         function renderGrid() {
-            const container = document.getElementById('gridContainer');
+            var container = document.getElementById('gridContainer');
             container.innerHTML = '';
-            container.style.gridTemplateColumns = `repeat(${CONFIG.gridCols}, 1fr)`;
-            container.style.gridTemplateRows = `repeat(${CONFIG.gridRows}, 1fr)`;
-            for(let i = 1; i <= CONFIG.boxCount; i++) {
-                const card = document.createElement('div'); card.className = 'flip-card';
-                card.innerHTML = `<div class="flip-card-inner"><div class="flip-card-front">${i}</div><div class="flip-card-back">MỞ...</div></div>`;
-                card.onclick = () => openBox(card, i - 1);
-                container.appendChild(card);
+            container.style.gridTemplateColumns = 'repeat(' + CONFIG.gridCols + ', 1fr)';
+            container.style.gridTemplateRows = 'repeat(' + CONFIG.gridRows + ', 1fr)';
+            
+            for(var i = 1; i <= CONFIG.boxCount; i++) {
+                (function(index) {
+                    var card = document.createElement('div'); card.className = 'flip-card';
+                    card.innerHTML = '<div class="flip-card-inner"><div class="flip-card-front">' + index + '</div><div class="flip-card-back">MỞ...</div></div>';
+                    card.onclick = function() { openBox(card, index - 1); };
+                    container.appendChild(card);
+                })(i);
             }
         }
 
         function shuffleBoxes() {
-            currentBoxes = [...CONFIG.challenges].sort(() => Math.random() - 0.5);
-            while(currentBoxes.length < CONFIG.boxCount) { currentBoxes.push(CONFIG.challenges[Math.floor(Math.random() * CONFIG.challenges.length)]); }
+            var temp = CONFIG.challenges.slice();
+            temp.sort(function() { return Math.random() - 0.5; });
+            currentBoxes = temp;
+            while(currentBoxes.length < CONFIG.boxCount) { 
+                currentBoxes.push(CONFIG.challenges[Math.floor(Math.random() * CONFIG.challenges.length)]); 
+            }
             currentBoxes = currentBoxes.slice(0, CONFIG.boxCount);
         }
 
         function resetGame() {
-            document.querySelectorAll('.flip-card').forEach(card => {
-                card.classList.remove('flipped', 'opened');
-                card.querySelector('.flip-card-front').style.backgroundImage = ''; 
-                card.querySelector('.flip-card-back').innerText = "MỞ...";
-            });
-            document.getElementById('spinnerList').style.transition = 'none';
-            document.getElementById('spinnerList').style.transform = `translateY(0)`;
-            document.getElementById('spinnerList').innerHTML = `<div class="spinner-item">Hải Sản Kỳ Hà</div>`;
+            var cards = document.querySelectorAll('.flip-card');
+            for(var i = 0; i < cards.length; i++) {
+                cards[i].classList.remove('flipped', 'opened');
+                cards[i].querySelector('.flip-card-front').style.backgroundImage = ''; 
+                cards[i].querySelector('.flip-card-back').innerText = "MỞ...";
+            }
+            
+            var listEl = document.getElementById('spinnerList');
+            listEl.style.transition = 'none';
+            listEl.style.transform = 'translateY(0)';
+            listEl.innerHTML = '<div class="spinner-item">Hải Sản Kỳ Hà</div>';
             document.getElementById('btnSpin').innerText = "Bắt Đầu Quay";
             
             shuffleBoxes(); clearInterval(countdownInterval);
@@ -434,25 +432,22 @@
             
             lastOpenedCardElement = cardElement; lastOpenedBoxIndex = index;
 
-            const challenge = currentBoxes[index];
+            var challenge = currentBoxes[index];
             cardElement.querySelector('.flip-card-back').innerText = challenge.title;
-            setTimeout(() => { cardElement.classList.add('opened'); showModal(challenge); }, 800);
+            setTimeout(function() { cardElement.classList.add('opened'); showModal(challenge); }, 800);
         }
 
-        // =========================================
-        // LOGIC POPUP & ĐẾM NGƯỢC (DÙNG KHO ẢNH CHUNG)
-        // =========================================
         function showModal(data) {
             clearInterval(countdownInterval); 
-            const modal = document.getElementById('mainModal');
+            var modal = document.getElementById('mainModal');
             document.getElementById('modalTitle').innerText = data.title;
             document.getElementById('modalDesc').innerText = data.desc;
             
-            const cardSelection = document.getElementById('cardSelection');
-            const revealedImage = document.getElementById('revealedImage');
-            const puzzleWrapper = document.getElementById('puzzleWrapper');
-            const btnStart = document.getElementById('btnStartTimer');
-            const timerDisplay = document.getElementById('timerDisplay');
+            var cardSelection = document.getElementById('cardSelection');
+            var revealedImage = document.getElementById('revealedImage');
+            var puzzleWrapper = document.getElementById('puzzleWrapper');
+            var btnStart = document.getElementById('btnStartTimer');
+            var timerDisplay = document.getElementById('timerDisplay');
             
             cardSelection.innerHTML = ''; revealedImage.style.display = 'none'; puzzleWrapper.style.display = 'none';
             timerDisplay.classList.remove('danger'); 
@@ -460,11 +455,11 @@
             if(data.time > 0) {
                 timerDisplay.style.display = 'block'; timerDisplay.style.color = '#2ecc71'; timerDisplay.innerText = data.time + "s";
                 btnStart.style.display = 'block';
-                btnStart.onclick = () => {
+                btnStart.onclick = function() {
                     btnStart.style.display = 'none'; timerDisplay.style.color = '#e84118'; 
-                    let timeLeft = data.time; timerDisplay.innerText = timeLeft + "s";
+                    var timeLeft = data.time; timerDisplay.innerText = timeLeft + "s";
                     
-                    countdownInterval = setInterval(() => {
+                    countdownInterval = setInterval(function() {
                         timeLeft--;
                         if (timeLeft <= 5 && timeLeft > 0) {
                             timerDisplay.classList.add('danger'); sfxTick.currentTime = 0; sfxTick.play();
@@ -479,20 +474,19 @@
                 timerDisplay.style.display = 'none'; btnStart.style.display = 'none';
             }
 
-            // SỬ DỤNG CONFIG.sharedImages CHO CẢ 2 GAME
             if (data.type === 'telepathy') {
-                const pool = [...CONFIG.sharedImages].sort(() => Math.random() - 0.5).slice(0, 3);
-                pool.forEach((imgUrl, idx) => {
-                    const btn = document.createElement('div'); btn.className = 'mini-card'; btn.innerText = `Thẻ ${idx + 1}`;
-                    btn.onclick = () => { cardSelection.innerHTML = ''; revealedImage.src = imgUrl; revealedImage.style.display = 'block'; };
+                var pool = CONFIG.sharedImages.slice().sort(function(){return Math.random()-0.5;}).slice(0, 3);
+                pool.forEach(function(imgUrl, idx) {
+                    var btn = document.createElement('div'); btn.className = 'mini-card'; btn.innerText = 'Thẻ ' + (idx + 1);
+                    btn.onclick = function() { cardSelection.innerHTML = ''; revealedImage.src = imgUrl; revealedImage.style.display = 'block'; };
                     cardSelection.appendChild(btn);
                 });
             } 
             else if (data.type === 'puzzle') {
-                const pool = [...CONFIG.sharedImages].sort(() => Math.random() - 0.5).slice(0, 5);
-                pool.forEach((imgUrl, idx) => {
-                    const btn = document.createElement('div'); btn.className = 'mini-card'; btn.innerText = `Thẻ ${idx + 1}`;
-                    btn.onclick = () => {
+                var pool = CONFIG.sharedImages.slice().sort(function(){return Math.random()-0.5;}).slice(0, 5);
+                pool.forEach(function(imgUrl, idx) {
+                    var btn = document.createElement('div'); btn.className = 'mini-card'; btn.innerText = 'Thẻ ' + (idx + 1);
+                    btn.onclick = function() {
                         cardSelection.innerHTML = ''; currentPuzzleImage = imgUrl;
                         generatePuzzleGrid(imgUrl); puzzleWrapper.style.display = 'flex';
                     };
@@ -510,32 +504,29 @@
             document.getElementById('mainModal').classList.remove('active'); 
         }
 
-        // =========================================
-        // THUẬT TOÁN CẮT ẢNH
-        // =========================================
         function generatePuzzleGrid(imageUrl) {
-            const grid = document.getElementById('puzzleGrid'); grid.innerHTML = '';
-            const S = CONFIG.puzzleSize; 
-            grid.style.gridTemplateColumns = `repeat(${S}, 1fr)`; grid.style.backgroundImage = 'none'; 
+            var grid = document.getElementById('puzzleGrid'); grid.innerHTML = '';
+            var S = CONFIG.puzzleSize; 
+            grid.style.gridTemplateColumns = 'repeat(' + S + ', 1fr)'; grid.style.backgroundImage = 'none'; 
 
-            let positions = [];
-            const step = (S > 1) ? (100 / (S - 1)) : 0; 
-            for(let row = 0; row < S; row++) {
-                for(let col = 0; col < S; col++) { positions.push(`${col * step}% ${row * step}%`); }
+            var positions = [];
+            var step = (S > 1) ? (100 / (S - 1)) : 0; 
+            for(var row = 0; row < S; row++) {
+                for(var col = 0; col < S; col++) { positions.push((col * step) + '% ' + (row * step) + '%'); }
             }
-            positions.sort(() => Math.random() - 0.5);
+            positions.sort(function() { return Math.random() - 0.5; });
 
-            const bgSize = `${S * 100}% ${S * 100}%`; 
-            for(let i = 0; i < (S * S); i++) {
-                const piece = document.createElement('div'); piece.className = 'puzzle-piece';
-                piece.style.backgroundImage = `url(${imageUrl})`; piece.style.backgroundSize = bgSize;
+            var bgSize = (S * 100) + '% ' + (S * 100) + '%'; 
+            for(var i = 0; i < (S * S); i++) {
+                var piece = document.createElement('div'); piece.className = 'puzzle-piece';
+                piece.style.backgroundImage = 'url(' + imageUrl + ')'; piece.style.backgroundSize = bgSize;
                 piece.style.backgroundPosition = positions[i]; grid.appendChild(piece);
             }
         }
 
         function solvePuzzle() {
-            const grid = document.getElementById('puzzleGrid'); grid.innerHTML = '';
-            grid.style.backgroundImage = `url(${currentPuzzleImage})`;
+            var grid = document.getElementById('puzzleGrid'); grid.innerHTML = '';
+            grid.style.backgroundImage = 'url(' + currentPuzzleImage + ')';
             grid.style.backgroundSize = 'contain'; grid.style.backgroundPosition = 'center'; grid.style.backgroundRepeat = 'no-repeat';
         }
 
