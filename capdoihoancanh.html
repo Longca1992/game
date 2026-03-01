@@ -19,6 +19,7 @@
             background: rgba(0,0,0,0.3); border-bottom: 2px solid #ffd700;
         }
         h1 { color: #ffd700; text-transform: uppercase; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); font-size: 3vh;}
+        
         .controls { display: flex; align-items: center; }
         .controls button {
             padding: 10px 15px; font-size: 1.8vh; font-weight: bold; border-radius: 8px; cursor: pointer;
@@ -144,7 +145,6 @@
 <body>
 
     <audio id="bgMusic" loop><source src="nhac.mp3" type="audio/mpeg"></audio>
-    
     <audio id="sfxSpin" src="https://actions.google.com/sounds/v1/alarms/bugle_tune.ogg"></audio>
     <audio id="sfxTing" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
     <audio id="sfxFlip" src="https://actions.google.com/sounds/v1/paper/paper_flap.ogg"></audio>
@@ -313,6 +313,7 @@
 
         function initGame() { availableEmployees = CONFIG.employees.slice(); renderGrid(); shuffleBoxes(); }
 
+        // Nâng cấp tính năng bật/tắt nhạc
         function toggleMusic() {
             var btn = document.getElementById('btnToggleMusic');
             if(isMusicPlaying) { 
@@ -334,13 +335,13 @@
             for(var i = 0; i < cards.length; i++) {
                 cards[i].classList.remove('flipped', 'opened');
                 var front = cards[i].querySelector('.flip-card-front');
+                
+                // Cài lại số và xóa style
+                front.innerHTML = (i + 1);
                 front.style.backgroundImage = ''; 
+                front.style.backgroundColor = 'transparent';
                 front.style.border = '2px solid #ffd700';
                 front.style.boxShadow = 'none';
-                
-                // Reset lại các thuộc tính background khi quay mới
-                front.style.backgroundSize = 'cover'; 
-                front.style.backgroundColor = 'transparent';
                 
                 cards[i].querySelector('.flip-card-back').innerText = "MỞ...";
             }
@@ -410,21 +411,22 @@
             }, 6000);
         }
 
-        // HÀM CHỈNH SỬA HIỂN THỊ AVATAR TRỌN VẸN
+        // HÀM CHỈNH SỬA HIỂN THỊ AVATAR HÌNH TRÒN TRONG Ô CHỌN
         function applyAvatarToBoxes(avatarUrl) {
             if(!avatarUrl) return;
             var cards = document.querySelectorAll('.flip-card-front');
             for(var i = 0; i < cards.length; i++) {
-                cards[i].style.backgroundImage = "linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.3)), url('" + avatarUrl + "')";
+                var currentNumber = i + 1;
                 
-                // Thu nhỏ hình ảnh lọt lòng ô, không cắt góc
-                cards[i].style.backgroundSize = "contain"; 
-                cards[i].style.backgroundPosition = "center"; 
-                cards[i].style.backgroundRepeat = "no-repeat"; 
-                cards[i].style.backgroundColor = "#1a365d"; // Đổ màu nền phía sau nhỡ ảnh không lấp đầy
+                // Chèn thẻ img hình tròn và hạ size số xuống
+                cards[i].innerHTML = '<img src="' + avatarUrl + '" style="width: 15vh; height: 15vh; border-radius: 50%; border: 4px solid #00e676; box-shadow: 0 0 20px rgba(0, 230, 118, 0.8); object-fit: cover; margin-bottom: 1vh;">' +
+                                     '<span style="font-size: 5vh; text-shadow: 2px 2px 5px #000; color: #fff;">' + currentNumber + '</span>';
                 
-                cards[i].style.border = "4px solid #00e676";
-                cards[i].style.boxShadow = "0 0 20px rgba(0, 230, 118, 0.6)";
+                // Đổ nền tối mờ để Avatar tròn nổi bật lên
+                cards[i].style.backgroundImage = 'none'; 
+                cards[i].style.backgroundColor = "rgba(11, 25, 44, 0.8)";
+                cards[i].style.border = "3px solid #00e676";
+                cards[i].style.boxShadow = "0 0 20px rgba(0, 230, 118, 0.4)";
             }
         }
 
@@ -459,13 +461,15 @@
             for(var i = 0; i < cards.length; i++) {
                 cards[i].classList.remove('flipped', 'opened');
                 var front = cards[i].querySelector('.flip-card-front');
+                
+                // Trả lại số nguyên bản
+                front.innerHTML = (i + 1);
+                
+                // Reset CSS
                 front.style.backgroundImage = ''; 
+                front.style.backgroundColor = 'transparent';
                 front.style.border = '2px solid #ffd700';
                 front.style.boxShadow = 'none';
-                
-                // Reset lại background property
-                front.style.backgroundSize = 'cover'; 
-                front.style.backgroundColor = 'transparent';
                 
                 cards[i].querySelector('.flip-card-back').innerText = "MỞ...";
             }
