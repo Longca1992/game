@@ -53,20 +53,7 @@
         .image-wrapper { flex: 1; position: relative; width: 100%; min-height: 0; border: 6px solid var(--gold-color); border-radius: 12px; overflow: hidden; background: #000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         #secretImage { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
         .tiles-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-        .puzzle-piece {
-            position: absolute; background: linear-gradient(135deg, var(--primary-color), #8B0000);
-            border: 1.5px solid rgba(255, 215, 0, 0.6); box-sizing: border-box;
-            display: flex; align-items: center; justify-content: center; cursor: pointer;
-            transition: all 0.8s cubic-bezier(0.4, 0.0, 0.2, 1); box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
-        }
-        .puzzle-piece:hover { filter: brightness(1.2); }
-        .puzzle-piece span {
-            font-size: 30px; font-size: min(35px, 5.5vh); font-weight: bold; color: #fff; text-shadow: 2px 2px 5px rgba(0,0,0,0.8);
-            background: rgba(0,0,0,0.3); padding: 5px 15px; border-radius: 50px; border: 2px solid rgba(255,215,0,0.5); pointer-events: none;
-            display: flex; align-items: center; gap: 8px;
-        }
-        .puzzle-piece.hidden { opacity: 0; transform: scale(0.9) translateY(20px); pointer-events: none; }
-
+        
         /* ĐÁP ÁN CUỐI */
         .final-keyword-container { flex: 0 0 auto; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 12px; border: 2px solid rgba(255,215,0, 0.3); }
         .final-cell {
@@ -225,7 +212,6 @@
     </div>
 
 <script>
-    // JS TƯƠNG THÍCH MÁY CHIẾU (Viết theo chuẩn ES5 an toàn)
     var defaultData = {
         "finalWord": "VƯỢTSÓNGRAKHƠI",
         "imageUrl": "https://cdn.hstatic.net/files/200000273197/file/vuot_song_ra_khoi_text_ky_ha__1_.png",
@@ -247,7 +233,6 @@
         ]
     };
 
-    var seafoodIcons = ['🦐', '🦀', '🦑', '🐙', '🦞', '🐡', '🐠', '🐟', '🐚', '🦪'];
     var gameData = {}; var playQuestions = []; var currentRowIndex = -1; var timerInterval = null; var countdownTimeouts = []; var rowToTileMap = {}; var revealedLettersCount = 0; 
 
     // QUẢN LÝ NHẠC NỀN
@@ -267,20 +252,14 @@
         }, stepTime);
     }
 
-    // FULLSCREEN TƯƠNG THÍCH MỌI TRÌNH DUYỆT (Kể cả máy chiếu Tàu)
+    // FULLSCREEN TƯƠNG THÍCH MÁY CHIẾU
     function toggleFullScreen() {
-        var doc = window.document;
-        var docEl = doc.documentElement;
-
+        var doc = window.document; var docEl = doc.documentElement;
         var requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
         var cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
-
         if(!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
             if(requestFullScreen) requestFullScreen.call(docEl);
-        }
-        else {
-            if(cancelFullScreen) cancelFullScreen.call(doc);
-        }
+        } else { if(cancelFullScreen) cancelFullScreen.call(doc); }
     }
 
     // ÂM THANH
@@ -351,60 +330,159 @@
         }
     };
 
-    function generatePuzzlePiecesLayout(numPieces) {
-        var rects = [{l: 0, t: 0, w: 100, h: 100}];
-        while (rects.length < numPieces) {
-            var biggestIdx = 0; var maxArea = 0;
-            for (var i = 0; i < rects.length; i++) { var area = rects[i].w * rects[i].h; if (area > maxArea) { maxArea = area; biggestIdx = i; } }
-            var r = rects[biggestIdx]; rects.splice(biggestIdx, 1);
-            var splitVert = r.w > r.h; if (r.w / r.h > 0.6 && r.w / r.h < 1.6) { splitVert = Math.random() > 0.5; }
-            var ratio = 0.35 + Math.random() * 0.3; 
-            if (splitVert) { rects.push({l: r.l, t: r.t, w: r.w * ratio, h: r.h}); rects.push({l: r.l + r.w * ratio, t: r.t, w: r.w * (1 - ratio), h: r.h}); } 
-            else { rects.push({l: r.l, t: r.t, w: r.w, h: r.h * ratio}); rects.push({l: r.l, t: r.t + r.h * ratio, w: r.w, h: r.h * (1 - ratio)}); }
+    // --- BỘ TẠO MẢNH GHÉP JIGSAW SVG SIÊU THỰC ---
+    function generateJigsawPaths(cols, rows) {
+        var rightEdge = []; var bottomEdge = [];
+        for(var c=0; c<cols; c++) {
+            rightEdge[c] = []; bottomEdge[c] = [];
+            for(var r=0; r<rows; r++) {
+                rightEdge[c][r] = Math.random() > 0.5 ? 1 : -1;
+                bottomEdge[c][r] = Math.random() > 0.5 ? 1 : -1;
+            }
         }
-        return rects;
+
+        var W = 1000 / cols; var H = 1000 / rows;
+        var Rw = W * 0.12; var Rh = H * 0.12;
+
+        var paths = [];
+        for(var r=0; r<rows; r++) {
+            for(var c=0; c<cols; c++) {
+                var x = c * W; var y = r * H;
+                var d = "M " + x + "," + y + " ";
+
+                // Cạnh Trên
+                if (r === 0) { d += "L " + (x+W) + "," + y + " "; } 
+                else {
+                    var sweep = bottomEdge[c][r-1] === 1 ? 1 : 0;
+                    d += "L " + (x + W*0.4) + "," + y + " ";
+                    d += "A " + Rw + " " + Rw + " 0 1 " + sweep + " " + (x + W*0.6) + "," + y + " ";
+                    d += "L " + (x+W) + "," + y + " ";
+                }
+
+                // Cạnh Phải
+                if (c === cols - 1) { d += "L " + (x+W) + "," + (y+H) + " "; } 
+                else {
+                    var sweep = rightEdge[c][r] === 1 ? 0 : 1;
+                    d += "L " + (x+W) + "," + (y + H*0.4) + " ";
+                    d += "A " + Rh + " " + Rh + " 0 1 " + sweep + " " + (x+W) + "," + (y + H*0.6) + " ";
+                    d += "L " + (x+W) + "," + (y+H) + " ";
+                }
+
+                // Cạnh Dưới
+                if (r === rows - 1) { d += "L " + x + "," + (y+H) + " "; } 
+                else {
+                    var sweep = bottomEdge[c][r] === 1 ? 0 : 1;
+                    d += "L " + (x + W*0.6) + "," + (y+H) + " ";
+                    d += "A " + Rw + " " + Rw + " 0 1 " + sweep + " " + (x + W*0.4) + "," + (y+H) + " ";
+                    d += "L " + x + "," + (y+H) + " ";
+                }
+
+                // Cạnh Trái
+                if (c === 0) { d += "L " + x + "," + y + " "; } 
+                else {
+                    var sweep = rightEdge[c-1][r] === 1 ? 1 : 0;
+                    d += "L " + x + "," + (y + H*0.6) + " ";
+                    d += "A " + Rh + " " + Rh + " 0 1 " + sweep + " " + x + "," + (y + H*0.4) + " ";
+                    d += "L " + x + "," + y + " ";
+                }
+                d += "Z";
+                paths.push({path: d, cx: x + W/2, cy: y + H/2});
+            }
+        }
+        return paths;
     }
 
     function shuffleArray(array) {
         var currentIndex = array.length, randomIndex;
         while (currentIndex !== 0) { 
             randomIndex = Math.floor(Math.random() * currentIndex); currentIndex--; 
-            var temp = array[currentIndex];
-            array[currentIndex] = array[randomIndex];
-            array[randomIndex] = temp;
+            var temp = array[currentIndex]; array[currentIndex] = array[randomIndex]; array[randomIndex] = temp;
         }
         return array;
     }
 
     function initGame(data) {
         gameData = data; revealedLettersCount = 0;
-        playQuestions = shuffleArray(JSON.parse(JSON.stringify(data.questions))); // Clone mảng an toàn
+        playQuestions = shuffleArray(JSON.parse(JSON.stringify(data.questions))); 
         
         document.getElementById('secretImage').src = data.imageUrl;
         var board = document.getElementById('board'); var finalWordContainer = document.getElementById('finalKeyword');
         var tilesContainer = document.getElementById('tilesContainer');
         board.innerHTML = ''; finalWordContainer.innerHTML = ''; tilesContainer.innerHTML = ''; rowToTileMap = {};
 
-        var rectLayouts = generatePuzzlePiecesLayout(playQuestions.length);
-        var tileNumbers = [];
-        for(var i=0; i<playQuestions.length; i++) tileNumbers.push(i);
-        tileNumbers = shuffleArray(tileNumbers);
+        // --- XỬ LÝ KHỐI MẢNH GHÉP JIGSAW SVG ---
+        var N = playQuestions.length;
+        var cols = Math.ceil(Math.sqrt(N * 1.5));
+        var rows = Math.ceil(N / cols);
+        while (cols * rows < N) { rows++; }
         
-        for(var i=0; i<rectLayouts.length; i++) {
-            (function(idx){
-                var rect = rectLayouts[idx];
-                var rowNumberIndex = tileNumbers[idx];
-                var tile = document.createElement('div'); tile.className = 'puzzle-piece';
-                tile.style.left = rect.l + '%'; tile.style.top = rect.t + '%'; tile.style.width = rect.w + '%'; tile.style.height = rect.h + '%';
-                tile.onclick = function() { openQuestion(rowNumberIndex); };
-
-                var randomIcon = seafoodIcons[Math.floor(Math.random() * seafoodIcons.length)];
-                var span = document.createElement('span'); span.innerHTML = '<span style="font-size: 0.7em;">' + randomIcon + '</span>' + (rowNumberIndex + 1); 
+        var svgNS = "http://www.w3.org/2000/svg";
+        var svg = document.createElementNS(svgNS, "svg");
+        svg.setAttribute("viewBox", "0 0 1000 1000");
+        svg.setAttribute("preserveAspectRatio", "none"); // Để giãn đều khung chứa
+        svg.style.position = "absolute"; svg.style.top = "0"; svg.style.left = "0";
+        svg.style.width = "100%"; svg.style.height = "100%"; svg.style.zIndex = "2";
+        
+        var defs = document.createElementNS(svgNS, "defs");
+        defs.innerHTML = '<linearGradient id="puzzleGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#d32f2f" /><stop offset="100%" stop-color="#8B0000" /></linearGradient>';
+        svg.appendChild(defs);
+        
+        var paths = generateJigsawPaths(cols, rows);
+        var tileNumbers = [];
+        for(var i=0; i<paths.length; i++) tileNumbers.push(i);
+        tileNumbers = shuffleArray(tileNumbers); 
+        
+        for(var i=0; i<paths.length; i++) {
+            var pathData = paths[i];
+            var g = document.createElementNS(svgNS, "g");
+            g.style.transition = "opacity 0.8s cubic-bezier(0.4, 0.0, 0.2, 1), transform 0.8s";
+            g.style.transformOrigin = pathData.cx + "px " + pathData.cy + "px";
+            
+            var pathEl = document.createElementNS(svgNS, "path");
+            pathEl.setAttribute("d", pathData.path);
+            pathEl.setAttribute("fill", "url(#puzzleGrad)");
+            pathEl.setAttribute("stroke", "rgba(255, 215, 0, 0.6)");
+            pathEl.setAttribute("stroke-width", "4");
+            g.appendChild(pathEl);
+            
+            var assignedQuestion = tileNumbers[i];
+            
+            if (assignedQuestion < N) {
+                g.style.cursor = "pointer";
                 
-                tile.appendChild(span); tilesContainer.appendChild(tile); rowToTileMap[rowNumberIndex] = tile; 
-            })(i);
+                var textEl = document.createElementNS(svgNS, "text");
+                textEl.setAttribute("x", pathData.cx);
+                textEl.setAttribute("y", pathData.cy);
+                textEl.setAttribute("fill", "#fff");
+                textEl.setAttribute("font-size", "50");
+                textEl.setAttribute("font-family", "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif");
+                textEl.setAttribute("font-weight", "bold");
+                textEl.setAttribute("text-anchor", "middle");
+                textEl.setAttribute("dominant-baseline", "central");
+                textEl.style.textShadow = "3px 3px 8px #000, -2px -2px 8px #000";
+                textEl.textContent = (assignedQuestion + 1);
+                g.appendChild(textEl);
+                
+                rowToTileMap[assignedQuestion] = g;
+                
+                // Hiệu ứng hover
+                g.onmouseover = function() { this.style.opacity = "0.8"; };
+                g.onmouseout = function() { this.style.opacity = "1"; };
+                
+                (function(idx){
+                    g.onclick = function() { openQuestion(idx); };
+                })(assignedQuestion);
+                
+            } else {
+                g.style.opacity = "0"; // Dấu đi các mảnh ghép dư thừa
+                g.style.pointerEvents = "none";
+            }
+            
+            svg.appendChild(g);
         }
+        tilesContainer.appendChild(svg);
 
+        // --- XỬ LÝ BẢNG Ô CHỮ TRÁI ---
         var totalFinalChars = data.finalWord ? data.finalWord.length : playQuestions.length;
 
         for(var i=0; i<playQuestions.length; i++) {
@@ -433,9 +511,7 @@
         clearInterval(timerInterval); 
         for(var i=0; i<countdownTimeouts.length; i++) clearTimeout(countdownTimeouts[i]); 
         countdownTimeouts = []; 
-        if (cancelSpeech && 'speechSynthesis' in window) {
-            try { window.speechSynthesis.cancel(); } catch(e){}
-        }
+        if (cancelSpeech && 'speechSynthesis' in window) { try { window.speechSynthesis.cancel(); } catch(e){} }
     }
 
     function openQuestion(index) {
@@ -502,7 +578,12 @@
                 if(targetCell) { targetCell.innerText = keyChar; targetCell.classList.add('filled'); soundDrop(); revealedLettersCount++; }
             }, q.a.length * 150 + 300);
 
-            if(rowToTileMap[currentRowIndex]) { rowToTileMap[currentRowIndex].classList.add('hidden'); }
+            // Mở mảnh ghép (hiệu ứng bay mất)
+            if(rowToTileMap[currentRowIndex]) { 
+                rowToTileMap[currentRowIndex].style.opacity = "0"; 
+                rowToTileMap[currentRowIndex].style.transform = "scale(0.8) translateY(30px)";
+                rowToTileMap[currentRowIndex].style.pointerEvents = "none";
+            }
             
             setTimeout(function() {
                 var allRevealed = true;
@@ -533,8 +614,13 @@
         
         speakText("Chúc mừng bạn đã giành chiến thắng vòng chơi này!"); 
         
-        var pieces = document.querySelectorAll('.puzzle-piece');
-        for(var p=0; p<pieces.length; p++) pieces[p].classList.add('hidden');
+        // Mở tát cả các mảnh ghép còn lại
+        for(var k in rowToTileMap) {
+            if(rowToTileMap[k]) {
+                rowToTileMap[k].style.opacity = "0";
+                rowToTileMap[k].style.transform = "scale(0.8) translateY(30px)";
+            }
+        }
 
         var finalWord = gameData.finalWord || "";
         for(var i=0; i < finalWord.length; i++) {
