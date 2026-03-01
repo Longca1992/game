@@ -19,6 +19,8 @@
             background: rgba(0,0,0,0.3); border-bottom: 2px solid #ffd700;
         }
         h1 { color: #ffd700; text-transform: uppercase; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); font-size: 3vh;}
+        
+        .controls { display: flex; align-items: center; }
         .controls button {
             padding: 10px 15px; font-size: 1.8vh; font-weight: bold; border-radius: 8px; cursor: pointer;
             background: linear-gradient(to bottom, #ffd700, #d4af37); color: #0b192c; border: none; margin-left: 10px;
@@ -28,7 +30,14 @@
         .controls button.btn-undo { background: linear-gradient(to bottom, #ff9ff3, #f368e0); color: white;}
         .controls button:active { transform: scale(0.95); }
 
-        /* === LAYOUT CHÍNH (SỬA LỖI GAP CHO TRÌNH DUYỆT CŨ) === */
+        /* THANH ĐIỀU CHỈNH ÂM LƯỢNG */
+        .bgm-control {
+            display: flex; align-items: center; background: rgba(0,0,0,0.6); padding: 5px 12px; 
+            border-radius: 30px; border: 2px solid #ffd700; gap: 5px; margin-right: 10px;
+        }
+        .bgm-control input[type=range] { width: 80px; cursor: pointer; accent-color: #ffd700; }
+
+        /* === LAYOUT CHÍNH === */
         .main-container { display: flex; height: 90vh; width: 100vw; padding: 20px; }
 
         /* === VÒNG QUAY TÊN CUỘN DỌC === */
@@ -135,7 +144,8 @@
 </head>
 <body>
 
-    <audio id="bgMusic" loop><source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg"></audio>
+    <audio id="bgMusic" loop><source src="nhac.mp3" type="audio/mpeg"></audio>
+    
     <audio id="sfxSpin" src="https://actions.google.com/sounds/v1/alarms/bugle_tune.ogg"></audio>
     <audio id="sfxTing" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
     <audio id="sfxFlip" src="https://actions.google.com/sounds/v1/paper/paper_flap.ogg"></audio>
@@ -144,7 +154,11 @@
     <header>
         <h1>Cặp Đôi Hoàn Cảnh - Hải Sản Kỳ Hà</h1>
         <div class="controls">
-            <button onclick="toggleMusic()">🎵 Nhạc: TẮT</button>
+            <div class="bgm-control" title="Âm lượng Nhạc nền">
+                <span style="font-size:20px;">🎵</span>
+                <input type="range" id="bgmVolume" min="0" max="1" step="0.05" value="0.2" oninput="changeBGMVolume()">
+            </div>
+            <button id="btnToggleMusic" onclick="toggleMusic()">🎵 Nhạc: TẮT</button>
             <button class="btn-undo" onclick="undoLastBox()">🔙 Hoàn Tác Ô</button> 
             <button onclick="resetGame()">🔄 Reset Vòng</button>
             <button class="btn-settings" onclick="openSettings()">⚙️ Cài Đặt</button>
@@ -242,13 +256,22 @@
         var lastOpenedCardElement = null;
         var lastOpenedBoxIndex = -1;
 
-        var bgMusic = document.getElementById('bgMusic'); var sfxSpin = document.getElementById('sfxSpin');
+        var bgMusic = document.getElementById('bgMusic'); 
+        var sfxSpin = document.getElementById('sfxSpin');
         var sfxTing = document.getElementById('sfxTing');
-        var sfxFlip = document.getElementById('sfxFlip'); var sfxTick = document.getElementById('sfxTick');
+        var sfxFlip = document.getElementById('sfxFlip'); 
+        var sfxTick = document.getElementById('sfxTick');
 
-        // =========================================
-        // LÀM LẠI JS THEO CHUẨN CŨ CHO TRÌNH DUYỆT TV
-        // =========================================
+        // Mặc định âm lượng nhạc nền là 20%
+        var userVolume = 0.2;
+        bgMusic.volume = userVolume;
+
+        // Hàm thay đổi âm lượng nhạc nền
+        function changeBGMVolume() {
+            userVolume = parseFloat(document.getElementById('bgmVolume').value);
+            bgMusic.volume = userVolume;
+        }
+
         function openSettings() {
             var content = document.getElementById('settingsContent');
             var empString = CONFIG.employees.map(function(e) { 
@@ -291,16 +314,20 @@
 
         function initGame() { availableEmployees = CONFIG.employees.slice(); renderGrid(); shuffleBoxes(); }
 
+        // Nâng cấp tính năng bật/tắt nhạc
         function toggleMusic() {
-            var btn = document.querySelector('.controls button');
-            if(isMusicPlaying) { bgMusic.pause(); btn.innerText = "🎵 Nhạc: TẮT"; } 
-            else { bgMusic.play(); bgMusic.volume = 0.5; btn.innerText = "🎵 Nhạc: BẬT"; }
+            var btn = document.getElementById('btnToggleMusic');
+            if(isMusicPlaying) { 
+                bgMusic.pause(); 
+                btn.innerText = "🎵 Nhạc: TẮT"; 
+            } else { 
+                bgMusic.volume = userVolume;
+                bgMusic.play(); 
+                btn.innerText = "🎵 Nhạc: BẬT"; 
+            }
             isMusicPlaying = !isMusicPlaying;
         }
 
-        // =========================================
-        // HÀM QUAY VÀ HIỂN THỊ AVATAR ĐÃ ĐƯỢC CẬP NHẬT
-        // =========================================
         function startSpin() {
             if(isSpinning) return;
             if(availableEmployees.length === 0) return alert("Đã quay hết nhân viên trong danh sách!");
@@ -308,7 +335,6 @@
             var cards = document.querySelectorAll('.flip-card');
             for(var i = 0; i < cards.length; i++) {
                 cards[i].classList.remove('flipped', 'opened');
-                // Reset lại viền và ảnh khi bắt đầu quay mới
                 var front = cards[i].querySelector('.flip-card-front');
                 front.style.backgroundImage = ''; 
                 front.style.border = '2px solid #ffd700';
@@ -371,7 +397,6 @@
                 
                 var winnerItem = listEl.children[39];
                 winnerItem.classList.add('winner'); 
-                // Cập nhật giao diện lúc chiến thắng để hiện Avatar to đùng bên cạnh tên
                 var avatarHtml = finalEmployee.avatar ? '<img src="' + finalEmployee.avatar + '" style="width: 7vh; height: 7vh; border-radius: 50%; border: 3px solid #ffd700; box-shadow: 0 0 15px #ffd700; margin-right: 15px; object-fit: cover;">' : '';
                 winnerItem.innerHTML = '<div style="display: flex; align-items: center; justify-content: center;">' + avatarHtml + '<span>' + finalEmployee.name + '</span></div>';
                 
@@ -382,16 +407,12 @@
             }, 6000);
         }
 
-        // HÀM XỬ LÝ HÌNH NỀN SÁNG RÕ
         function applyAvatarToBoxes(avatarUrl) {
             if(!avatarUrl) return;
             var cards = document.querySelectorAll('.flip-card-front');
             for(var i = 0; i < cards.length; i++) {
-                // Giảm lớp phủ đen từ 0.5 xuống 0.1 để ảnh cực sáng trên máy chiếu
                 cards[i].style.backgroundImage = "linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.3)), url('" + avatarUrl + "')";
-                // Chỉnh vị trí center top để ưu tiên hiển thị khuôn mặt
                 cards[i].style.backgroundPosition = "center top";
-                // Đổi viền sang phát sáng màu xanh lá cho nổi bật
                 cards[i].style.border = "4px solid #00e676";
                 cards[i].style.boxShadow = "0 0 20px rgba(0, 230, 118, 0.6)";
             }
@@ -423,12 +444,10 @@
             currentBoxes = currentBoxes.slice(0, CONFIG.boxCount);
         }
 
-        // HÀM RESET CẬP NHẬT GỠ BỎ HIỆU ỨNG VIỀN
         function resetGame() {
             var cards = document.querySelectorAll('.flip-card');
             for(var i = 0; i < cards.length; i++) {
                 cards[i].classList.remove('flipped', 'opened');
-                // Reset viền và ảnh
                 var front = cards[i].querySelector('.flip-card-front');
                 front.style.backgroundImage = ''; 
                 front.style.border = '2px solid #ffd700';
