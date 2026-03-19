@@ -7,7 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
         :root {
-            --primary: #ccff00; 
+            --primary: #ccff00;
             --bg-dark: #0a0a0c;
             --bg-panel: #16161d;
             --text-light: #ffffff;
@@ -108,11 +108,14 @@
         .file-input-group { background: rgba(255,255,255,0.03); padding: 10px; border-radius: 4px; border: 1px dashed #444; margin-bottom: 10px; }
         .file-input-group input[type="file"] { font-size: 0.8rem; color: var(--text-muted); }
         
-        .split-inputs { display: flex; gap: 15px; margin-bottom: 5px; }
-        .split-inputs > div { flex: 1; }
-        .split-inputs textarea { border-color: #444; }
-        .split-inputs .male-input textarea { border-bottom: 2px solid var(--male-color); }
-        .split-inputs .female-input textarea { border-bottom: 2px solid var(--female-color); }
+        .gender-box { border: 1px solid #333; padding: 10px; border-radius: 8px; margin-bottom: 10px; background: rgba(0,0,0,0.2); }
+        .gender-box-m { border-color: rgba(0,210,255,0.3); }
+        .gender-box-f { border-color: rgba(255,0,160,0.3); }
+        .level-inputs { display: flex; gap: 10px; margin-top: 5px; }
+        .level-inputs > div { flex: 1; }
+        .level-inputs textarea { border-color: #444; height: 60px; }
+        .level-inputs.m-inputs textarea { border-bottom: 2px solid var(--male-color); }
+        .level-inputs.f-inputs textarea { border-bottom: 2px solid var(--female-color); }
 
         .music-ctrl { display: flex; align-items: center; gap: 10px; margin-top: 5px;}
 
@@ -131,8 +134,9 @@
             #resetBtn { order: 2; padding: 6px; } #spinBtn { order: 1; padding: 10px; }
             .teams-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px;}
             .team-card { padding: 8px; } .team-title { font-size: 0.9rem; margin-bottom: 5px;}
-            .team-members li { font-size: 0.85rem; } .split-inputs { flex-direction: column; gap: 10px; }
-            .form-group textarea { height: 60px; }
+            .team-members li { font-size: 0.85rem; }
+            .level-inputs { flex-direction: column; gap: 5px; }
+            .level-inputs textarea { height: 50px; }
         }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
@@ -182,20 +186,39 @@
             <div class="form-group">
                 <label>1. Danh sách VĐV</label>
                 <div class="file-input-group">
-                    <label style="color:var(--primary)">➜ Nhập File Excel (Cột A: Nam | Cột B: Nữ)</label>
+                    <label style="color:var(--primary)">➜ Nhập Excel (Cột A: Nam A | B: Nam B | C: Nữ A | D: Nữ B)</label>
                     <input type="file" id="excelInput" accept=".xlsx, .xls" onchange="handleExcel(this)">
                 </div>
                 <label>Hoặc nhập tay (Mỗi người 1 dòng):</label>
-                <div class="split-inputs">
-                    <div class="male-input">
-                        <label style="color:var(--male-color)">VĐV Nam:</label>
-                        <textarea id="playerListMale" placeholder="Nam A&#10;Nam B"></textarea>
-                    </div>
-                    <div class="female-input">
-                        <label style="color:var(--female-color)">VĐV Nữ:</label>
-                        <textarea id="playerListFemale" placeholder="Nữ A&#10;Nữ B"></textarea>
+                
+                <div class="gender-box gender-box-m">
+                    <label style="color:var(--male-color); font-weight:bold;">VĐV NAM:</label>
+                    <div class="level-inputs m-inputs">
+                        <div>
+                            <label style="font-size:0.8rem; color:#ccc;">Trình A:</label>
+                            <textarea id="playerListMaleA" placeholder="Nam A1&#10;Nam A2"></textarea>
+                        </div>
+                        <div>
+                            <label style="font-size:0.8rem; color:#ccc;">Trình B:</label>
+                            <textarea id="playerListMaleB" placeholder="Nam B1&#10;Nam B2"></textarea>
+                        </div>
                     </div>
                 </div>
+
+                <div class="gender-box gender-box-f">
+                    <label style="color:var(--female-color); font-weight:bold;">VĐV NỮ:</label>
+                    <div class="level-inputs f-inputs">
+                        <div>
+                            <label style="font-size:0.8rem; color:#ccc;">Trình A:</label>
+                            <textarea id="playerListFemaleA" placeholder="Nữ A1&#10;Nữ A2"></textarea>
+                        </div>
+                        <div>
+                            <label style="font-size:0.8rem; color:#ccc;">Trình B:</label>
+                            <textarea id="playerListFemaleB" placeholder="Nữ B1&#10;Nữ B2"></textarea>
+                        </div>
+                    </div>
+                </div>
+
                 <div style="font-size:0.75rem; color:var(--text-muted); margin-top:3px; text-align:center;">
                     Tổng hợp lệ: <span id="countMale" style="color:var(--male-color); font-weight:bold;">0</span> Nam | 
                     <span id="countFemale" style="color:var(--female-color); font-weight:bold;">0</span> Nữ
@@ -291,11 +314,16 @@
                 const worksheet = workbook.Sheets[workbook.SheetNames[0]];
                 const jsonParams = XLSX.utils.sheet_to_json(worksheet, {header: 1});
                 
-                let extMale = jsonParams.map(row => row[0]).filter(c => c && c.toString().trim() !== "");
-                let extFemale = jsonParams.map(row => row[1]).filter(c => c && c.toString().trim() !== "");
+                let extMaleA = jsonParams.map(row => row[0]).filter(c => c && c.toString().trim() !== "");
+                let extMaleB = jsonParams.map(row => row[1]).filter(c => c && c.toString().trim() !== "");
+                let extFemaleA = jsonParams.map(row => row[2]).filter(c => c && c.toString().trim() !== "");
+                let extFemaleB = jsonParams.map(row => row[3]).filter(c => c && c.toString().trim() !== "");
                 
-                document.getElementById('playerListMale').value = extMale.join('\n');
-                document.getElementById('playerListFemale').value = extFemale.join('\n');
+                document.getElementById('playerListMaleA').value = extMaleA.join('\n');
+                document.getElementById('playerListMaleB').value = extMaleB.join('\n');
+                document.getElementById('playerListFemaleA').value = extFemaleA.join('\n');
+                document.getElementById('playerListFemaleB').value = extFemaleB.join('\n');
+                
                 updatePlayerCounts();
                 input.value = ''; 
             };
@@ -303,16 +331,20 @@
         }
 
         function updatePlayerCounts() {
-            const tM = document.getElementById('playerListMale').value;
-            const cM = tM.split(/\r?\n/).map(p => p.trim()).filter(p => p !== "").length;
-            document.getElementById('countMale').innerText = cM;
+            const getCount = (id) => document.getElementById(id).value.split(/\r?\n/).map(p => p.trim()).filter(p => p !== "").length;
+            
+            const cMA = getCount('playerListMaleA');
+            const cMB = getCount('playerListMaleB');
+            document.getElementById('countMale').innerText = cMA + cMB;
 
-            const tF = document.getElementById('playerListFemale').value;
-            const cF = tF.split(/\r?\n/).map(p => p.trim()).filter(p => p !== "").length;
-            document.getElementById('countFemale').innerText = cF;
+            const cFA = getCount('playerListFemaleA');
+            const cFB = getCount('playerListFemaleB');
+            document.getElementById('countFemale').innerText = cFA + cFB;
         }
-        document.getElementById('playerListMale').addEventListener('input', updatePlayerCounts);
-        document.getElementById('playerListFemale').addEventListener('input', updatePlayerCounts);
+
+        ['playerListMaleA', 'playerListMaleB', 'playerListFemaleA', 'playerListFemaleB'].forEach(id => {
+            document.getElementById(id).addEventListener('input', updatePlayerCounts);
+        });
 
         let pMale = [], pFemale = [];
         let tMale = 6, tFemale = 4;
@@ -326,8 +358,10 @@
         }
 
         function saveSettings() {
-            pMale = document.getElementById('playerListMale').value.split(/\r?\n/).map(p => p.trim()).filter(p => p !== "");
-            pFemale = document.getElementById('playerListFemale').value.split(/\r?\n/).map(p => p.trim()).filter(p => p !== "");
+            const getList = (id) => document.getElementById(id).value.split(/\r?\n/).map(p => p.trim()).filter(p => p !== "");
+            
+            pMale = [...getList('playerListMaleA'), ...getList('playerListMaleB')];
+            pFemale = [...getList('playerListFemaleA'), ...getList('playerListFemaleB')];
             
             tMale = parseInt(document.getElementById('teamCountMale').value) || 0;
             tFemale = parseInt(document.getElementById('teamCountFemale').value) || 0;
@@ -452,14 +486,23 @@
         function resetGame(fullReset = false) {
             document.getElementById('slotDisplay').innerText = "SẴN SÀNG";
             document.getElementById('slotDisplay').style.color = "var(--text-light)";
-            if(fullReset) _0xPKB._r = true; 
+            
+            if(fullReset) {
+                _0xPKB._r = true; // Bật phép màu khi lưu cài đặt
+            } else {
+                _0xPKB._r = false; // Tắt phép màu khi nhấn nút Làm mới ở ngoài màn hình
+            }
+
             renderTeamsStructure();
             prepareDraw();
         }
 
-        // Tên mặc định chung chung để che giấu danh sách thực sự
-        document.getElementById('playerListMale').value = "Nguyễn Văn A\nTrần Văn B\nLê Văn C\nPhạm Văn D\nHoàng Văn E\nNgô Văn F\nĐặng Văn G\nBùi Văn H\nĐinh Văn I\nPhan Văn K\nLý Văn L\nVũ Văn M";
-        document.getElementById('playerListFemale').value = "Nguyễn Thị A\nTrần Thị B\nLê Thị C\nPhạm Thị D\nHoàng Thị E\nNgô Thị F\nĐặng Thị G\nBùi Thị H";
+        // Dữ liệu mẫu ban đầu
+        document.getElementById('playerListMaleA').value = "Nguyễn Văn A\nTrần Văn B\nLê Văn C";
+        document.getElementById('playerListMaleB').value = "Phạm Văn D\nHoàng Văn E\nNgô Văn F\nĐặng Văn G\nBùi Văn H";
+        document.getElementById('playerListFemaleA').value = "Nguyễn Thị A\nTrần Thị B";
+        document.getElementById('playerListFemaleB').value = "Lê Thị C\nPhạm Thị D\nHoàng Thị E\nNgô Thị F\nĐặng Thị G\nBùi Thị H";
+        
         saveSettings();
     </script>
 </body>
