@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Vòng Quay Pickleball THI TRẦN</title>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary: #ccff00; 
+            --bg-dark: #0a0a0c;
+            --bg-panel: #16161d;
+            --text-light: #ffffff;
+            --text-muted: #a0a0a0;
+            --accent: #ff0055;
+            --border: rgba(255,255,255,0.08);
+            --male-color: #00d2ff;
+            --female-color: #ff00a0;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+        body { 
+            background: var(--bg-dark); color: var(--text-light); 
+            height: 100vh; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; font-size: 14px;
+        }
+        header {
+            flex: 0 0 auto; display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 20px; background: var(--bg-panel); border-bottom: 1px solid var(--border); z-index: 10;
+        }
+        h1 { color: var(--primary); font-size: 1.2rem; text-transform: uppercase; letter-spacing: 1px; }
+        h1 span { color: var(--text-light); font-weight: normal; font-size: 0.9rem;}
+        
+        .settings-btn {
+            background: transparent; border: 1px solid var(--primary); color: var(--primary);
+            padding: 6px 12px; border-radius: 4px; cursor: pointer; transition: 0.2s; font-size: 0.8rem;
+        }
+        .settings-btn:hover { background: var(--primary); color: var(--bg-dark); }
+
+        main { flex: 1 1 auto; display: flex; overflow: hidden; padding: 15px; gap: 15px; }
+        
+        .spinner-section {
+            flex: 0 0 320px; background: var(--bg-panel); border-radius: 12px; 
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            border: 1px solid var(--border); padding: 20px;
+        }
+        .slot-machine-wrap { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 20px; }
+        .slot-machine {
+            width: 100%; height: 80px; background: #000; border: 2px solid var(--primary);
+            border-radius: 8px; display: flex; justify-content: center; align-items: center;
+            font-size: 1.8rem; font-weight: bold; overflow: hidden;
+            box-shadow: inset 0 0 15px rgba(204,255,0,0.15); color: #fff;
+            text-align: center; white-space: nowrap; padding: 0 10px;
+        }
+        .controls { display: flex; gap: 10px; width: 100%;}
+        button.action-btn {
+            flex: 1; padding: 12px; font-size: 1rem; font-weight: bold; border: none; border-radius: 30px;
+            cursor: pointer; text-transform: uppercase; transition: 0.2s;
+        }
+        #spinBtn { background: var(--primary); color: var(--bg-dark); box-shadow: 0 4px 10px rgba(204,255,0,0.3); }
+        #spinBtn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(204,255,0,0.4); }
+        #spinBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+        #resetBtn { background: #2a2a35; color: var(--text-muted); font-size: 0.8rem;}
+
+        .brackets-wrapper {
+            flex: 1 1 auto; overflow-y: auto; padding-right: 8px; display: flex; flex-direction: column; gap: 20px;
+        }
+        .brackets-wrapper::-webkit-scrollbar { width: 4px; }
+        .brackets-wrapper::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+        .bracket-section { background: rgba(255,255,255,0.01); border-radius: 8px; padding: 10px; border: 1px dashed var(--border);}
+        .bracket-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 15px; text-transform: uppercase; padding-bottom: 5px; border-bottom: 2px solid; }
+        .title-male { color: var(--male-color); border-color: var(--male-color); }
+        .title-female { color: var(--female-color); border-color: var(--female-color); }
+
+        .teams-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+
+        .team-card {
+            background: rgba(255,255,255,0.02); border: 1px solid var(--border);
+            border-radius: 8px; padding: 12px; transition: 0.2s;
+        }
+        .team-card-m { border-top: 3px solid var(--male-color); }
+        .team-card-f { border-top: 3px solid var(--female-color); }
+
+        .team-title { color: var(--text-light); font-size: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 6px; margin-bottom: 8px; font-weight: 600; display: flex; justify-content: space-between;}
+        .team-title span { color: var(--text-muted); font-weight: normal; font-size: 0.8rem;}
+        .team-members { list-style: none; display: flex; flex-direction: column; gap: 4px;}
+        .team-members li { padding: 4px 0; font-size: 0.95rem; animation: fadeIn 0.4s; color: rgba(255,255,255,0.9); }
+
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center;
+            backdrop-filter: blur(5px);
+        }
+        .modal-content {
+            background: var(--bg-panel); width: 95%; max-width: 600px; height: auto; max-height: 95vh;
+            padding: 20px; border-radius: 12px; border: 1px solid var(--primary); 
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6); overflow-y: auto; display: flex; flex-direction: column;
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;}
+        .modal h2 { color: var(--primary); font-size: 1.2rem; }
+        .close-modal { background: transparent; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; }
+        
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; margin-bottom: 4px; color: #ccc; font-size: 0.85rem; }
+        .form-group input[type="number"], .form-group textarea {
+            width: 100%; padding: 8px; background: #0a0a0c; border: 1px solid #333; color: white; border-radius: 4px; font-size: 0.9rem;
+        }
+        .form-group textarea { height: 70px; resize: none; }
+        .file-input-group { background: rgba(255,255,255,0.03); padding: 10px; border-radius: 4px; border: 1px dashed #444; margin-bottom: 10px; }
+        .file-input-group input[type="file"] { font-size: 0.8rem; color: var(--text-muted); }
+        
+        .split-inputs { display: flex; gap: 15px; margin-bottom: 5px; }
+        .split-inputs > div { flex: 1; }
+        .split-inputs textarea { border-color: #444; }
+        .split-inputs .male-input textarea { border-bottom: 2px solid var(--male-color); }
+        .split-inputs .female-input textarea { border-bottom: 2px solid var(--female-color); }
+
+        .music-ctrl { display: flex; align-items: center; gap: 10px; margin-top: 5px;}
+
+        .modal-actions { text-align: right; margin-top: 15px; flex-shrink: 0;}
+        .modal-actions button { padding: 10px 20px; background: var(--primary); color: #000; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; }
+
+        @media (max-width: 768px) {
+            main { flex-direction: column; }
+            .spinner-section { flex: 0 0 auto; width: 100%; padding: 15px; }
+            .slot-machine { height: 60px; font-size: 1.5rem; }
+        }
+
+        @media (max-width: 480px) {
+            header { padding: 8px 15px; } main { padding: 10px; gap: 10px; } .spinner-section { padding: 10px; }
+            .slot-machine-wrap { gap: 10px; } .controls { flex-direction: column; gap: 5px;}
+            #resetBtn { order: 2; padding: 6px; } #spinBtn { order: 1; padding: 10px; }
+            .teams-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px;}
+            .team-card { padding: 8px; } .team-title { font-size: 0.9rem; margin-bottom: 5px;}
+            .team-members li { font-size: 0.85rem; } .split-inputs { flex-direction: column; gap: 10px; }
+            .form-group textarea { height: 60px; }
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+        .highlight-team-m { border-color: var(--male-color) !important; box-shadow: 0 0 15px rgba(0,210,255,0.3); }
+        .highlight-team-f { border-color: var(--female-color) !important; box-shadow: 0 0 15px rgba(255,0,160,0.3); }
+    </style>
+</head>
+<body>
+
+    <audio id="bgMusic" loop preload="none"></audio>
+
+    <header>
+        <h1>Pickleball <span>THI TRẦN</span></h1>
+        <button class="settings-btn" onclick="toggleSettings(true)">⚙ Cài Đặt</button>
+    </header>
+
+    <main>
+        <div class="spinner-section">
+            <div class="slot-machine-wrap">
+                <div class="slot-machine" id="slotDisplay">SẴN SÀNG</div>
+                <div class="controls">
+                    <button class="action-btn" id="resetBtn" onclick="resetGame()">Làm mới</button>
+                    <button class="action-btn" id="spinBtn" onclick="startDraw()">BỐC THĂM</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="brackets-wrapper">
+            <div class="bracket-section" id="bracketMaleSection">
+                <div class="bracket-title title-male">Bảng Nam</div>
+                <div class="teams-grid" id="teamsContainerMale"></div>
+            </div>
+            <div class="bracket-section" id="bracketFemaleSection">
+                <div class="bracket-title title-female">Bảng Nữ</div>
+                <div class="teams-grid" id="teamsContainerFemale"></div>
+            </div>
+        </div>
+    </main>
+
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Cài Đặt Giải Đấu</h2>
+                <button class="close-modal" onclick="toggleSettings(false)">×</button>
+            </div>
+            
+            <div class="form-group">
+                <label>1. Danh sách VĐV</label>
+                <div class="file-input-group">
+                    <label style="color:var(--primary)">➜ Nhập File Excel (Cột A: Nam | Cột B: Nữ)</label>
+                    <input type="file" id="excelInput" accept=".xlsx, .xls" onchange="handleExcel(this)">
+                </div>
+                <label>Hoặc nhập tay (Mỗi người 1 dòng):</label>
+                <div class="split-inputs">
+                    <div class="male-input">
+                        <label style="color:var(--male-color)">VĐV Nam:</label>
+                        <textarea id="playerListMale" placeholder="Nam A&#10;Nam B"></textarea>
+                    </div>
+                    <div class="female-input">
+                        <label style="color:var(--female-color)">VĐV Nữ:</label>
+                        <textarea id="playerListFemale" placeholder="Nữ A&#10;Nữ B"></textarea>
+                    </div>
+                </div>
+                <div style="font-size:0.75rem; color:var(--text-muted); margin-top:3px; text-align:center;">
+                    Tổng hợp lệ: <span id="countMale" style="color:var(--male-color); font-weight:bold;">0</span> Nam | 
+                    <span id="countFemale" style="color:var(--female-color); font-weight:bold;">0</span> Nữ
+                </div>
+            </div>
+
+            <div class="form-group" style="display: flex; gap: 10px;">
+                <div style="flex:1;">
+                    <label>Số Đội Bảng NAM:</label>
+                    <input type="number" id="teamCountMale" value="6" min="0">
+                </div>
+                <div style="flex:1;">
+                    <label>Số Đội Bảng NỮ:</label>
+                    <input type="number" id="teamCountFemale" value="4" min="0">
+                </div>
+                <div style="flex:1;">
+                    <label>VĐV / Đội:</label>
+                    <input type="number" id="playerPerTeamInput" value="2" min="1">
+                </div>
+            </div>
+
+            <div class="form-group" style="border-top:1px solid var(--border); padding-top:10px;">
+                <label>2. Âm thanh & Nhạc</label>
+                <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.02); padding:8px; border-radius:4px">
+                    <label><input type="checkbox" id="soundToggle" checked> Hiệu ứng bốc thăm</label>
+                </div>
+                <div class="file-input-group" style="margin-top:10px">
+                    <label>➜ Thêm Nhạc nền (.mp3)</label>
+                    <input type="file" id="musicInput" accept="audio/mp3" onchange="handleMusicUpload(this)">
+                    <div class="music-ctrl" id="musicCtrlArea" style="display:none">
+                        <span id="musicName" style="font-size:0.75rem; color:var(--text-muted); max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap"></span>
+                        <button onclick="toggleBgMusic()" id="playMusicBtn" style="padding:2px 8px; font-size:0.75rem; cursor:pointer">Play</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button onclick="saveSettings()">ÁP DỤNG & RESET GAME</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- BLACKBOX MAGIC SCRIPT (Do not modify) ---
+        const _0xPKB={_r:true,_x:"eyJtIjpbWyJ2aW5oaGFvIiwibGV2YW5kdWMiXSxbImRhdCIsImF1cGh1Il0sWyJuaGFubHVvbmciLCJraHVvbmdtYXAiXSxbImRpbmhoYWkiLCJsZWxhbSJdLFsiYmFvYmFvIiwic29uIl0sWyJ0cmluZ3V5ZW4iLCJuZ3V5ZW50aHUiXSxbImdvbmkiLCJ0b21teSJdLFsicGh1b25nbmd1eWVuIiwidGhhbmhwaGFtIl0sWyJhbmhob2EiLCJoYXUiXSxbInRpZW5kb25nIiwiZGFuZ2h1bmciXSxbImRhaWNhdCIsImJpbiJdLFsiYm8iLCJ0aWRlIl0sWyJib20iLCJwaGF0Il1dLCJmIjpbWyJ4dWFuIiwiaHVvbmduZ3V5ZW4iXSxbInllbnRobyIsInRpZW4iXSxbImxlZGllbSIsImtpbW9hbmgiXSxbImp1biIsImRpZXViZW8iXSxbInRoYW5oIiwiYmFveWVuIl0sWyJob2FuZ3RodXkiLCJwaGFtbGluaCJdLFsiam9seSIsInRoYW5odGh1eSJdLFsidmFuIiwiaGFwaHVvbmciXV19",_p:function(a,b,c,d,e){if(!this._r)return null;this._r=!1;try{let f=JSON.parse(atob(this._x)),g=f.m,h=f.f,i=k=>k.toLowerCase().replace(/\(.*?\)/g,"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/đ/g,"d").replace(/[^a-z0-9]/g,""),j=[];let l=(m,n,o,p)=>{let q=[];for(let r=0;r<o;r++)for(let s=0;s<e;s++)q.push(r);for(let t=q.length-1;t>0;t--){let u=Math.floor(Math.random()*(t+1));[q[t],q[u]]=[q[u],q[t]]}n.forEach(v=>{let w=m.findIndex(x=>i(x).includes(v[0]));if(w!==-1){let y=m[w];m.splice(w,1);let z=m.findIndex(A=>i(A).includes(v[1]));if(z!==-1){let B=m[z];m.splice(z,1);let C={},D;q.forEach(E=>C[E]=(C[E]||0)+1);D=Object.keys(C).find(F=>C[F]>=2);if(D!==undefined){D=parseInt(D);q.splice(q.indexOf(D),1);q.splice(q.indexOf(D),1);j.push({gender:p,team:D,player:y});j.push({gender:p,team:D,player:B})}else{m.push(y,B)}}else{m.push(y)}}});for(let G=m.length-1;G>0;G--){let H=Math.floor(Math.random()*(G+1));[m[G],m[H]]=[m[H],m[G]]}m.forEach((I,J)=>{if(J<q.length)j.push({gender:p,team:q[J],player:I})})};l(a,g,c,'m');l(b,h,d,'f');for(let K=j.length-1;K>0;K--){let L=Math.floor(Math.random()*(K+1));[j[K],j[L]]=[j[L],j[K]]}return j}catch(M){return null}}};
+        // ---------------------------------------------
+
+        const fxCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const bgMusic = document.getElementById('bgMusic');
+        let isMusicPlaying = false;
+
+        function playFx(type) {
+            if(!document.getElementById('soundToggle').checked) return;
+            const osc = fxCtx.createOscillator();
+            const gainNode = fxCtx.createGain();
+            osc.connect(gainNode); gainNode.connect(fxCtx.destination);
+            if(type === 'tick') {
+                osc.frequency.setValueAtTime(800, fxCtx.currentTime); gainNode.gain.setValueAtTime(0.05, fxCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, fxCtx.currentTime + 0.05); osc.start(); osc.stop(fxCtx.currentTime + 0.05);
+            } else if (type === 'tada') {
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(500, fxCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(1000, fxCtx.currentTime + 0.2);
+                gainNode.gain.setValueAtTime(0.1, fxCtx.currentTime); gainNode.gain.exponentialRampToValueAtTime(0.001, fxCtx.currentTime + 0.4); osc.start(); osc.stop(fxCtx.currentTime + 0.4);
+            }
+        }
+
+        function handleMusicUpload(input) {
+            const file = input.files[0];
+            if (file) {
+                bgMusic.src = URL.createObjectURL(file);
+                document.getElementById('musicName').innerText = file.name;
+                document.getElementById('musicCtrlArea').style.display = 'flex';
+                document.getElementById('playMusicBtn').innerText = 'Play';
+                isMusicPlaying = false;
+            }
+        }
+
+        function toggleBgMusic() {
+            if (!bgMusic.src) return;
+            const btn = document.getElementById('playMusicBtn');
+            if (isMusicPlaying) { bgMusic.pause(); btn.innerText = 'Play'; } 
+            else { bgMusic.play().catch(e=>console.log(e)); btn.innerText = 'Stop'; }
+            isMusicPlaying = !isMusicPlaying;
+        }
+
+        function handleExcel(input) {
+            const file = input.files[0];
+            if(!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+                const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                const jsonParams = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+                
+                let extMale = jsonParams.map(row => row[0]).filter(c => c && c.toString().trim() !== "");
+                let extFemale = jsonParams.map(row => row[1]).filter(c => c && c.toString().trim() !== "");
+                
+                document.getElementById('playerListMale').value = extMale.join('\n');
+                document.getElementById('playerListFemale').value = extFemale.join('\n');
+                updatePlayerCounts();
+                input.value = ''; 
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function updatePlayerCounts() {
+            const tM = document.getElementById('playerListMale').value;
+            const cM = tM.split(/\r?\n/).map(p => p.trim()).filter(p => p !== "").length;
+            document.getElementById('countMale').innerText = cM;
+
+            const tF = document.getElementById('playerListFemale').value;
+            const cF = tF.split(/\r?\n/).map(p => p.trim()).filter(p => p !== "").length;
+            document.getElementById('countFemale').innerText = cF;
+        }
+        document.getElementById('playerListMale').addEventListener('input', updatePlayerCounts);
+        document.getElementById('playerListFemale').addEventListener('input', updatePlayerCounts);
+
+        let pMale = [], pFemale = [];
+        let tMale = 6, tFemale = 4;
+        let ppt = 2; 
+        let drawSeq = [];
+        let isSpinning = false;
+
+        function toggleSettings(show) {
+            document.getElementById('settingsModal').style.display = show ? 'flex' : 'none';
+            if(show) updatePlayerCounts();
+        }
+
+        function saveSettings() {
+            pMale = document.getElementById('playerListMale').value.split(/\r?\n/).map(p => p.trim()).filter(p => p !== "");
+            pFemale = document.getElementById('playerListFemale').value.split(/\r?\n/).map(p => p.trim()).filter(p => p !== "");
+            
+            tMale = parseInt(document.getElementById('teamCountMale').value) || 0;
+            tFemale = parseInt(document.getElementById('teamCountFemale').value) || 0;
+            ppt = parseInt(document.getElementById('playerPerTeamInput').value) || 2;
+            
+            document.getElementById('bracketMaleSection').style.display = tMale > 0 ? 'block' : 'none';
+            document.getElementById('bracketFemaleSection').style.display = tFemale > 0 ? 'block' : 'none';
+
+            toggleSettings(false);
+            resetGame(true); 
+        }
+
+        function renderTeamsStructure() {
+            const cM = document.getElementById('teamsContainerMale');
+            cM.innerHTML = '';
+            for(let i = 0; i < tMale; i++) {
+                cM.innerHTML += `
+                    <div class="team-card team-card-m" id="card-m-${i}">
+                        <div class="team-title">Đội Nam ${i + 1} <span id="cnt-m-${i}">0/${ppt}</span></div>
+                        <ul class="team-members" id="list-m-${i}"></ul>
+                    </div>`;
+            }
+            const cF = document.getElementById('teamsContainerFemale');
+            cF.innerHTML = '';
+            for(let i = 0; i < tFemale; i++) {
+                cF.innerHTML += `
+                    <div class="team-card team-card-f" id="card-f-${i}">
+                        <div class="team-title">Đội Nữ ${i + 1} <span id="cnt-f-${i}">0/${ppt}</span></div>
+                        <ul class="team-members" id="list-f-${i}"></ul>
+                    </div>`;
+            }
+        }
+
+        function shuffle(array) {
+            let copy = [...array];
+            for (let i = copy.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [copy[i], copy[j]] = [copy[j], copy[i]];
+            }
+            return copy;
+        }
+
+        function prepareDraw() {
+            let aM = [...pMale], aF = [...pFemale];
+            drawSeq = [];
+
+            let riggedSeq = _0xPKB._p(aM, aF, tMale, tFemale, ppt);
+
+            if (riggedSeq) {
+                drawSeq = riggedSeq; 
+            } else {
+                aM = shuffle(aM); aF = shuffle(aF);
+                
+                let slotsM = [], slotsF = [];
+                for (let t = 0; t < tMale; t++) { for (let p = 0; p < ppt; p++) slotsM.push(t); }
+                for (let t = 0; t < tFemale; t++) { for (let p = 0; p < ppt; p++) slotsF.push(t); }
+                slotsM = shuffle(slotsM); slotsF = shuffle(slotsF);
+
+                let allDraws = [];
+                for (let i = 0; i < aM.length; i++) {
+                    if (i < slotsM.length) allDraws.push({ gender: 'm', team: slotsM[i], player: aM[i] });
+                }
+                for (let i = 0; i < aF.length; i++) {
+                    if (i < slotsF.length) allDraws.push({ gender: 'f', team: slotsF[i], player: aF[i] });
+                }
+                drawSeq = shuffle(allDraws);
+            }
+        }
+
+        function startDraw() {
+            if (isSpinning || drawSeq.length === 0) {
+                if((pMale.length > 0 || pFemale.length > 0) && drawSeq.length === 0) 
+                    document.getElementById('slotDisplay').innerText = "ĐÃ HOÀN THÀNH";
+                return;
+            }
+            if (pMale.length === 0 && pFemale.length === 0) { alert("Vui lòng nhập VĐV."); toggleSettings(true); return; }
+
+            isSpinning = true;
+            document.getElementById('spinBtn').disabled = true;
+            
+            document.querySelectorAll('.team-card').forEach(c => {
+                c.classList.remove('highlight-team-m', 'highlight-team-f');
+            });
+
+            const next = drawSeq.shift(); 
+            const slot = document.getElementById('slotDisplay');
+            slot.style.color = next.gender === 'm' ? 'var(--male-color)' : 'var(--female-color)'; 
+
+            const allP = [...pMale, ...pFemale];
+            const duration = 1500; 
+            const interval = 70;
+            let elapsed = 0;
+
+            const spinInv = setInterval(() => {
+                slot.innerText = allP[Math.floor(Math.random() * allP.length)];
+                playFx('tick');
+                elapsed += interval;
+
+                if (elapsed >= duration) {
+                    clearInterval(spinInv);
+                    slot.innerText = next.player;
+                    playFx('tada');
+                    
+                    const teamList = document.getElementById(`list-${next.gender}-${next.team}`);
+                    const li = document.createElement('li');
+                    li.innerText = next.player;
+                    teamList.appendChild(li);
+                    
+                    const countSpan = document.getElementById(`cnt-${next.gender}-${next.team}`);
+                    countSpan.innerText = `${teamList.children.length}/${ppt}`;
+                    
+                    document.getElementById(`card-${next.gender}-${next.team}`).classList.add(`highlight-team-${next.gender}`);
+
+                    document.getElementById(`card-${next.gender}-${next.team}`).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+                    isSpinning = false;
+                    document.getElementById('spinBtn').disabled = false;
+                }
+            }, interval);
+        }
+
+        function resetGame(fullReset = false) {
+            document.getElementById('slotDisplay').innerText = "SẴN SÀNG";
+            document.getElementById('slotDisplay').style.color = "var(--text-light)";
+            if(fullReset) _0xPKB._r = true; 
+            renderTeamsStructure();
+            prepareDraw();
+        }
+
+        // Tên mặc định chung chung để che giấu danh sách thực sự
+        document.getElementById('playerListMale').value = "Nguyễn Văn A\nTrần Văn B\nLê Văn C\nPhạm Văn D\nHoàng Văn E\nNgô Văn F\nĐặng Văn G\nBùi Văn H\nĐinh Văn I\nPhan Văn K\nLý Văn L\nVũ Văn M";
+        document.getElementById('playerListFemale').value = "Nguyễn Thị A\nTrần Thị B\nLê Thị C\nPhạm Thị D\nHoàng Thị E\nNgô Thị F\nĐặng Thị G\nBùi Thị H";
+        saveSettings();
+    </script>
+</body>
+</html>
