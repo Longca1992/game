@@ -7,7 +7,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Roboto:wght@700&display=swap" rel="stylesheet">
     <style>
         body {
-            margin: 0; padding: 20px;
+            margin: 0;
+            padding: 20px;
             min-height: 100vh;
             background: linear-gradient(135deg, #2c3e50, #000000);
             font-family: 'Roboto', sans-serif;
@@ -43,7 +44,8 @@
             font-size: 0.9rem;
             transition: 0.3s;
         }
-        .btn-download:hover { background: white; color: black; }
+        .btn-download:hover { background: white; color: black;
+        }
 
         .grid-menu {
             display: grid;
@@ -73,24 +75,33 @@
             box-shadow: 0 0 20px rgba(255, 235, 59, 0.3);
         }
 
-        .icon { font-size: 2.5rem; margin-bottom: 8px; } 
+        .icon { font-size: 2.5rem; margin-bottom: 8px;
+        } 
         .title { font-size: 1.1rem; font-weight: bold; text-transform: uppercase; margin-bottom: 2px;
         color: #ffeb3b; line-height: 1.2; }
-        .desc { font-size: 0.75rem; color: #ccc; }
+        .desc { font-size: 0.75rem; color: #ccc;
+        }
 
         .card.shop {
             border-color: #00e676;
             background: linear-gradient(45deg, rgba(0, 230, 118, 0.2), rgba(0,0,0,0));
         }
-        .card.shop .title { color: #00e676; }
-        .card.shop:hover { box-shadow: 0 0 30px rgba(0, 230, 118, 0.4); }
+        .card.shop .title { color: #00e676;
+        }
+        .card.shop:hover { box-shadow: 0 0 30px rgba(0, 230, 118, 0.4);
+        }
 
-        .card.master { border-color: #f44336; background: rgba(244, 67, 54, 0.1); }
-        .card.master:hover { background: rgba(244, 67, 54, 0.3); box-shadow: 0 0 30px rgba(244, 67, 54, 0.4); }
+        .card.master { border-color: #f44336; background: rgba(244, 67, 54, 0.1);
+        }
+        .card.master:hover { background: rgba(244, 67, 54, 0.3);
+        box-shadow: 0 0 30px rgba(244, 67, 54, 0.4); }
         
-        .card.new-game { border-color: #ff9800; }
-        .card.new-game .icon { animation: bounce 2s infinite; }
-        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+        .card.new-game { border-color: #ff9800;
+        }
+        .card.new-game .icon { animation: bounce 2s infinite;
+        }
+        @keyframes bounce { 0%, 100% { transform: translateY(0);
+        } 50% { transform: translateY(-5px); } }
     </style>
 </head>
 <body>
@@ -108,6 +119,12 @@
     </div>
 
     <div class="grid-menu">
+        
+        <a href="Pickleball.html" class="card new-game">
+            <div class="icon">🏓🎾</div>
+            <div class="title">Vòng Quay Pickleball</div>
+            <div class="desc">Bốc thăm chia đội</div>
+        </a>
         
         <a href="capdoihoancanh.html" class="card new-game">
             <div class="icon">👫🎁</div>
