@@ -262,10 +262,6 @@
     </div>
 
     <script>
-        // --- BLACKBOX MAGIC SCRIPT (Do not modify) ---
-        const _0xPKB={_r:true,_x:"eyJtIjpbWyJ2aW5oaGFvIiwibGV2YW5kdWMiXSxbImRhdCIsImF1cGh1Il0sWyJuaGFubHVvbmciLCJraHVvbmdtYXAiXSxbImRpbmhoYWkiLCJsZWxhbSJdLFsiYmFvYmFvIiwic29uIl0sWyJ0cmluZ3V5ZW4iLCJuZ3V5ZW50aHUiXSxbImdvbmkiLCJ0b21teSJdLFsicGh1b25nbmd1eWVuIiwidGhhbmhwaGFtIl0sWyJhbmhob2EiLCJoYXUiXSxbInRpZW5kb25nIiwiZGFuZ2h1bmciXSxbImRhaWNhdCIsImJpbiJdLFsiYm8iLCJ0aWRlIl0sWyJib20iLCJwaGF0Il1dLCJmIjpbWyJ4dWFuIiwiaHVvbmduZ3V5ZW4iXSxbInllbnRobyIsInRpZW4iXSxbImxlZGllbSIsImtpbW9hbmgiXSxbImp1biIsImRpZXViZW8iXSxbInRoYW5oIiwiYmFveWVuIl0sWyJob2FuZ3RodXkiLCJwaGFtbGluaCJdLFsiam9seSIsInRoYW5odGh1eSJdLFsidmFuIiwiaGFwaHVvbmciXV19",_p:function(a,b,c,d,e){if(!this._r)return null;this._r=!1;try{let f=JSON.parse(atob(this._x)),g=f.m,h=f.f,i=k=>k.toLowerCase().replace(/\(.*?\)/g,"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/đ/g,"d").replace(/[^a-z0-9]/g,""),j=[];let l=(m,n,o,p)=>{let q=[];for(let r=0;r<o;r++)q.push([]);n.forEach(v=>{let w=m.findIndex(x=>i(x).includes(v[0]));if(w!==-1){let y=m[w];m.splice(w,1);let z=m.findIndex(A=>i(A).includes(v[1]));if(z!==-1){let B=m[z];m.splice(z,1);let t=q.find(T=>T.length===0);if(t)t.push(y,B);else m.push(y,B)}else m.push(y)}});for(let G=m.length-1;G>0;G--){let H=Math.floor(Math.random()*(G+1));[m[G],m[H]]=[m[H],m[G]]}let hB=s=>s.toUpperCase().includes("B+"),hA=s=>s.includes("\u200B")||s.toUpperCase().includes("(A)");while(m.length>0){let P=m.shift(),iB=hB(P),iA=hA(P),pd=!1;for(let t of q){if(t.length>0&&t.length<e){let tB=t.some(hB),tA=t.some(hA),cf=!1;if(iB&&(tB||tA))cf=!0;if(iA&&tB)cf=!0;if(!cf){t.push(P);pd=!0;break}}}if(!pd){let eT=q.find(t=>t.length===0);if(eT){eT.push(P);pd=!0}}if(!pd){let aT=q.find(t=>t.length<e);if(aT)aT.push(P)}}q.forEach((t,idx)=>{t.forEach(ply=>{j.push({gender:p,team:idx,player:ply})})})};l(a,g,c,'m');l(b,h,d,'f');for(let K=j.length-1;K>0;K--){let L=Math.floor(Math.random()*(K+1));[j[K],j[L]]=[j[L],j[K]]}return j}catch(M){return null}}};
-        // ---------------------------------------------
-
         const fxCtx = new (window.AudioContext || window.webkitAudioContext)();
         const bgMusic = document.getElementById('bgMusic');
         let isMusicPlaying = false;
@@ -358,11 +354,10 @@
         }
 
         function saveSettings() {
-            // Nâng cấp tàng hình: Nhúng ký tự khoảng trắng vô hình \u200B vào những VĐV thuộc nhóm A
-            const getList = (id, marker) => document.getElementById(id).value.split(/\r?\n/).map(p => p.trim()).filter(p => p !== "").map(p => p + marker);
+            const getList = (id) => document.getElementById(id).value.split(/\r?\n/).map(p => p.trim()).filter(p => p !== "");
             
-            pMale = [...getList('playerListMaleA', '\u200B'), ...getList('playerListMaleB', '')];
-            pFemale = [...getList('playerListFemaleA', '\u200B'), ...getList('playerListFemaleB', '')];
+            pMale = [...getList('playerListMaleA'), ...getList('playerListMaleB')];
+            pFemale = [...getList('playerListFemaleA'), ...getList('playerListFemaleB')];
             
             tMale = parseInt(document.getElementById('teamCountMale').value) || 0;
             tFemale = parseInt(document.getElementById('teamCountFemale').value) || 0;
@@ -372,7 +367,7 @@
             document.getElementById('bracketFemaleSection').style.display = tFemale > 0 ? 'block' : 'none';
 
             toggleSettings(false);
-            resetGame(true); 
+            resetGame(); 
         }
 
         function renderTeamsStructure() {
@@ -409,27 +404,24 @@
             let aM = [...pMale], aF = [...pFemale];
             drawSeq = [];
 
-            let riggedSeq = _0xPKB._p(aM, aF, tMale, tFemale, ppt);
+            aM = shuffle(aM); 
+            aF = shuffle(aF);
+            
+            let slotsM = [], slotsF = [];
+            for (let t = 0; t < tMale; t++) { for (let p = 0; p < ppt; p++) slotsM.push(t); }
+            for (let t = 0; t < tFemale; t++) { for (let p = 0; p < ppt; p++) slotsF.push(t); }
+            
+            slotsM = shuffle(slotsM); 
+            slotsF = shuffle(slotsF);
 
-            if (riggedSeq) {
-                drawSeq = riggedSeq; 
-            } else {
-                aM = shuffle(aM); aF = shuffle(aF);
-                
-                let slotsM = [], slotsF = [];
-                for (let t = 0; t < tMale; t++) { for (let p = 0; p < ppt; p++) slotsM.push(t); }
-                for (let t = 0; t < tFemale; t++) { for (let p = 0; p < ppt; p++) slotsF.push(t); }
-                slotsM = shuffle(slotsM); slotsF = shuffle(slotsF);
-
-                let allDraws = [];
-                for (let i = 0; i < aM.length; i++) {
-                    if (i < slotsM.length) allDraws.push({ gender: 'm', team: slotsM[i], player: aM[i] });
-                }
-                for (let i = 0; i < aF.length; i++) {
-                    if (i < slotsF.length) allDraws.push({ gender: 'f', team: slotsF[i], player: aF[i] });
-                }
-                drawSeq = shuffle(allDraws);
+            let allDraws = [];
+            for (let i = 0; i < aM.length; i++) {
+                if (i < slotsM.length) allDraws.push({ gender: 'm', team: slotsM[i], player: aM[i] });
             }
+            for (let i = 0; i < aF.length; i++) {
+                if (i < slotsF.length) allDraws.push({ gender: 'f', team: slotsF[i], player: aF[i] });
+            }
+            drawSeq = shuffle(allDraws);
         }
 
         function startDraw() {
@@ -484,21 +476,14 @@
             }, interval);
         }
 
-        function resetGame(fullReset = false) {
+        function resetGame() {
             document.getElementById('slotDisplay').innerText = "SẴN SÀNG";
             document.getElementById('slotDisplay').style.color = "var(--text-light)";
-            
-            if(fullReset) {
-                _0xPKB._r = true; 
-            } else {
-                _0xPKB._r = false; 
-            }
-
             renderTeamsStructure();
             prepareDraw();
         }
 
-        // Dữ liệu mẫu ban đầu để che giấu danh sách thực sự
+        // Dữ liệu mẫu ban đầu
         document.getElementById('playerListMaleA').value = "Nguyễn Văn A\nTrần Văn B\nLê Văn C";
         document.getElementById('playerListMaleB').value = "Phạm Văn D\nHoàng Văn E\nNgô Văn F\nĐặng Văn G\nBùi Văn H";
         document.getElementById('playerListFemaleA').value = "Nguyễn Thị A\nTrần Thị B";
